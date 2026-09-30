@@ -171,6 +171,7 @@ const CSS = `
 .hud-panel h1 { margin: 0 0 6px; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
 .hud-panel h2 { margin: 0 0 14px; font-size: 22px; font-weight: 600; }
 .hud-panel p { margin: 0 0 8px; font-size: 14px; line-height: 1.55; opacity: .78; }
+.hud-panel p.hud-leave-hint { margin: 14px 0 0; font-size: 12px; opacity: .6; }
 .hud-panel p.hud-touch { opacity: 1; margin: 6px 0 10px; padding: 10px 12px; border: 1px solid rgba(232,201,138,.35);
   border-radius: 10px; background: rgba(232,201,138,.06); color: var(--amber); font-size: 13px; }
 .hud-panel .tag { color: var(--mint); font-size: 12px; letter-spacing: .18em;
@@ -1315,10 +1316,13 @@ export function createHud({ container, actions, getLevels, settings, input }) {
             ['Controls', () => showControls(self)],
             ['Leaderboard', () => showBoard(currentLevelId, self)],
             ['Main menu', () => actions.quitToMenu?.()],
-          ])
+          ]),
+          buttons([['Leave to Sundown Club', () => actions.leave?.()]]),
+          el('p', 'hud-leave-hint', 'Press Esc again to save and leave to Sundown Club.')
         );
       },
-      { escape: () => actions.resume?.() }
+      // First Escape paused the game (this menu); a second one leaves.
+      { escape: () => actions.leave?.() }
     );
   }
 

@@ -144,14 +144,23 @@ check(
   `L${d.levelIndex + 1}, expected L${finalExamIndex + 1}`
 );
 
-// Esc then Esc: pause, then resume
+// Esc then Esc: pause, then leave to Sundown Club (packages/shared/leave-guard.js).
+// On the dev server the site root is this game's own homepage.
 await page.keyboard.press('Escape');
 await page.evaluate(() => window.__game.debugTick(0.05));
 await sleep(200);
-await page.keyboard.press('Escape');
-await sleep(200);
+check('pause menu offers leaving to Sundown Club', /Esc again/.test((await panelText()) ?? ''));
+await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.keyboard.press('Escape')]);
+check('Esc in the pause menu leaves to the site root', new globalThis.URL(page.url()).pathname === '/', page.url());
+check('leaving saved the club profile', await page.evaluate(() => Boolean(JSON.parse(localStorage.getItem('hub.v1.profile') || '{}').games?.parking?.lastPlayed)));
+// Come back and drive again so the rest of the probe starts from the same place.
+await page.goto(new globalThis.URL('/play/', page.url()).href, { waitUntil: 'load' });
+await page.waitForFunction(() => window.__game?.debug, { timeout: 60000 });
+await sleep(1500);
+await click('Start driving');
+await page.evaluate(() => window.__game.debugTick(0.05));
 d = await dbg();
-check('Esc in the pause menu resumes', d.state === 'driving', d.state);
+check('Start driving resumes play after coming back', d.state === 'driving', d.state);
 
 // Settings from pause returns to pause
 await page.keyboard.press('Escape');

@@ -1,5 +1,17 @@
 # NOTES — Parking Precision (v1 + v2 + v3 + v4)
 
+## 30 Sep 2026: Esc twice leaves to Sundown Club
+
+Owner's request for every Sundown Club game: first Esc asks, second Esc saves
+and leaves to the hub. Parking already paused on Esc, so the pause menu is the
+"ask" (it now says "Press Esc again to save and leave to Sundown Club" and has
+a "Leave to Sundown Club" button) and Esc inside the pause menu LEAVES instead
+of resuming. Resume is the focused button, so Enter still resumes. Submenus
+(Settings, Controls, Level select...) keep Esc = back. Saving = records are
+already stored per park; leaving adds play time and a summary to
+`hub.v1.profile` (`packages/shared/profile.js`). `tools/shell-probe.mjs` checks
+the new behaviour.
+
 ## v4: full rewrite (see CLAUDE.md for conventions, plan file for what's left)
 
 v4 replaced the whole `src/` tree. v1-v3 are preserved in `legacy-v3/`. The

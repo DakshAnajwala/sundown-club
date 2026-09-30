@@ -163,12 +163,15 @@ select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid 
       <label><input id="shadows" type="checkbox" checked> Shadows</label>
       <label><input id="sound" type="checkbox" checked> Sound (after first click)</label>
     </fieldset>
-    <div class="keys">Keys: <kbd>1</kbd>–<kbd>5</kbd> chips · <kbd>Space</kbd> deal, rebet, skip · <kbd>H</kbd> <kbd>S</kbd> <kbd>D</kbd> · <kbd>Z</kbd> undo · <kbd>C</kbd> clear · <kbd>X</kbd> double last bet and deal</div>
+    <div class="keys">Keys: <kbd>Esc</kbd> leave (asks first) · <kbd>1</kbd>–<kbd>5</kbd> chips · <kbd>Space</kbd> deal, rebet, skip · <kbd>H</kbd> <kbd>S</kbd> <kbd>D</kbd> · <kbd>Z</kbd> undo · <kbd>C</kbd> clear · <kbd>X</kbd> double last bet and deal</div>
   </div>
 </details>
 
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js';
+// Shared Sundown Club code, copied to /shared/ by tools/build-site.mjs.
+import { createLeaveGuard } from '/shared/leave-guard.js';
+import { trackPlaytime, updateGame } from '/shared/profile.js';
 
 const $ = (s) => document.querySelector(s);
 const V3 = THREE.Vector3;
@@ -829,6 +832,31 @@ function camBeat(toward, dist, fovD, inMs, holdMs, outMs) {
 // ---------------------------------------------------------------- game (simplified rules; full rules in SPEC §3)
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 const G = { tier: TIERS.lounge, bank: 1000, bet: 0, lastBet: 50, phase: 'bet', shoe: [], dealt: 0, player: [], dealer: [], betChips: [], looseChips: [], cardsOnTable: [], shownBank: 1000 };
+
+// ---------------------------------------------------------------- saving (SPEC §13, main mode only)
+const SAVE_KEY = 'bj.v1.main';
+const saved = (() => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { return {}; } })();
+if (Number.isFinite(saved.bankroll) && saved.bankroll >= 0) { G.bank = G.shownBank = saved.bankroll; }
+G.peak = Math.max(Number(saved.peak) || 0, G.bank); G.hands = Number(saved.hands) || 0; G.naturals = Number(saved.naturals) || 0;
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ bankroll: G.bank, peak: G.peak, hands: G.hands, naturals: G.naturals })); } catch { /* storage blocked */ }
+  updateGame('blackjack', {
+    resume: `Continue · ${fmt(G.bank)} chips`,
+    facts: [[fmt(G.bank), 'Chips'], [fmt(G.peak), 'Peak'], [fmt(G.hands), 'Hands']],
+    ledger: { peak: G.peak, hands: G.hands, naturals: G.naturals },
+  });
+}
+const playtime = trackPlaytime('blackjack');
+// Esc once: "Leave Blackjack?"; Esc again: void any round in play (its stake comes back), save, go to the club.
+createLeaveGuard({
+  game: 'Blackjack',
+  save: () => {
+    TL.skipAll();
+    if (G.phase !== 'bet' && G.bet) { G.bank += G.bet; G.bet = 0; }
+    playtime.flush();
+    saveGame();
+  },
+});
 function newShoe() {
   const s = [];
   for (let d = 0; d < 6; d++) for (const suit of 'SHDC') for (const rank of RANKS) s.push({ rank, suit });
@@ -997,6 +1025,7 @@ function settle() {
   TL.call(() => {
     const back = kind === 'lose' ? 0 : G.bet + win;
     countBank(G.bank + back); G.bank += back;
+    G.hands += 1; if (kind === 'natural') G.naturals += 1; G.peak = Math.max(G.peak, G.bank); saveGame();
     G.betChips = []; G.bet = 0; G.phase = 'bet'; updateHud(); showBars();
     if (G.bank < G.tier.min) say(G.bank < 10 ? 'Out of chips. In the build: Refill to 1,000.' : `Below this room's minimum.`);
   });
@@ -1050,11 +1079,11 @@ let toastTimer;
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 1800); }
 
 // ---------------------------------------------------------------- tiers, day cycle
-function setTier(key) {
+function setTier(key, { review = true } = {}) {
   if (G.phase !== 'bet') { TL.skipAll(); }
   clearBet();
   G.tier = TIERS[key];
-  if (G.bank < G.tier.min * 20) { G.bank = G.tier.min * 20; G.shownBank = G.bank; }  // review only: enough chips to try the room
+  if (review && G.bank < G.tier.min * 20) { G.bank = G.tier.min * 20; G.shownBank = G.bank; }  // review only: enough chips to try the room
   G.lastBet = G.tier.min * 5;
   M.plaster.color.set(G.tier.plaster); M.trim.color.set(G.tier.trim);
   $('#roomName').textContent = G.tier.name; $('#limits').textContent = `${fmt(G.tier.min)}–${fmt(G.tier.max)}`;
@@ -1161,7 +1190,7 @@ async function boot() {
   backMat = new THREE.MeshStandardMaterial({ map: (() => { const t = new THREE.CanvasTexture(drawBack()); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; })(), roughness: 0.9 });
   resize();
   newShoe();
-  setTier('lounge');
+  setTier('lounge', { review: false });
   applyDay(tod);
   frame();
   $('#loading').classList.add('gone');

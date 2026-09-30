@@ -59,6 +59,8 @@ import { createDailyStore } from '../ui/daily.js';
 import { buildLevel } from '../world/LevelBuilder.js';
 import { LEVELS } from '../world/Levels.js';
 import { createProgress } from '../ui/progress.js';
+import { leaveToHub } from '@sundown/shared/leave-guard';
+import { trackPlaytime, updateGame } from '@sundown/shared/profile';
 import { WHEEL_HUB, EYE, RIDE_HEIGHT } from '../vehicle/Dimensions.js';
 import { createSettings } from '../ui/settings.js';
 import { createTutorial, TUTORIAL_LEVEL } from '../game/Tutorial.js';
@@ -73,6 +75,21 @@ export function createGame({ container }) {
   const physics = createPhysicsWorld();
   const audio = createAudioSystem();
   const progress = createProgress();
+  // Sundown Club profile: play time while this page is visible, plus the
+  // summary the hub shows (packages/shared/profile.js, apps/hub/SPEC.md §8).
+  const playtime = trackPlaytime('parking');
+  function saveToClub() {
+    playtime.flush();
+    const records = Object.values(progress.all());
+    const stars = records.reduce((n, r) => n + (r.stars || 0), 0);
+    const best = records.reduce((n, r) => Math.max(n, r.score ?? 0), 0);
+    const next = LEVELS.findIndex((l) => !progress.isCompleted(String(l.id)));
+    updateGame('parking', {
+      resume: `Continue · Level ${(next === -1 ? LEVELS.length : next + 1)}`,
+      facts: [[`${stars} / ${LEVELS.length * 3}`, 'Stars'], [String(best), 'Best park']],
+      ledger: { stars, starsMax: LEVELS.length * 3, best },
+    });
+  }
   const dailyStore = createDailyStore();
   const settings = createSettings();
   // After settings: Input reads the player's key bindings from it and rebuilds
@@ -263,6 +280,8 @@ export function createGame({ container }) {
         drive();
       },
       resume: () => drive(),
+      // Second Escape from the pause menu: save and go back to Sundown Club.
+      leave: () => leaveToHub({ save: saveToClub }),
       pause,
       quitToMenu: () => {
         loadLevel(levelIndex);

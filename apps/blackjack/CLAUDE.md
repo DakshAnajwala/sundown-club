@@ -32,7 +32,10 @@ count; no DOM, runnable in node), `src/scene/`, `src/anim/Timeline.js`
 `src/store.js`, bundled with Vite like Parking. The prototype's numbers
 (positions, colours, timings) are the starting point.
 
-## Escape to leave (requested 30 Sep)
+## Escape to leave (built 30 Sep)
 
-First Esc shows "Leave the table?", second Esc saves and returns to `/`. To be
-built once in `packages/shared` and used by every game.
+First Esc opens the shared "Leave Blackjack?" card (`/shared/leave-guard.js`),
+second Esc voids a round still waiting on the player (stake returned), saves
+`bj.v1.main` (bankroll, peak, hands, naturals) and the hub summary, then goes
+to `/`. The page imports `/shared/*.js` by site path, so open it through the
+built site (`npm run build && npm run serve`), not as a loose file.
