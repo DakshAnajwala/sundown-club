@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>The Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Mock of "The board" section as it sits on the hub (night part of the scroll). Sample data only. */
+:root {
+  --bg: #0b0d1a; --ink: #f3e7d8; --ink-2: #b9a896; --ink-3: #8a7c70; --line: rgba(243,231,216,.12);
+  --amber: #f0a868; --bj: #f0a868; --pk: #8fe3cf; --accent: var(--amber);
+  --serif: "Young Serif", Georgia, serif; --sans: "Schibsted Grotesk", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; color: var(--ink); font-family: var(--sans); padding: 10vh clamp(16px, 4.5vw, 64px);
+  background: radial-gradient(90% 60% at 80% 0%, #171a36 0%, transparent 70%), linear-gradient(180deg, #0d1024, #070914); }
+.note { font: 500 11px var(--mono); color: var(--ink-3); border: 1px dashed var(--line); padding: 3px 9px; border-radius: 999px; display: inline-block; margin-bottom: 26px; }
+.head { display: flex; justify-content: space-between; align-items: end; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); transition: color .4s; }
+h2 { margin: 10px 0 0; font: 400 clamp(40px, 5vw, 68px)/1 var(--serif); }
+.sub { margin: 12px 0 0; color: var(--ink-2); max-width: 50ch; line-height: 1.55; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { font: 500 13px var(--sans); color: var(--ink-2); background: rgba(243,231,216,.05); border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: #1b1209; background: var(--accent); border-color: transparent; }
+.tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.window { display: flex; gap: 4px; margin-top: 10px; justify-content: flex-end; }
+.window button { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); background: none; border: 0; padding: 4px 8px; cursor: pointer; border-radius: 6px; }
+.window button[aria-pressed="true"] { color: var(--ink); background: rgba(243,231,216,.08); }
+.grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 44px); align-items: start; }
+.board { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: rgba(12, 12, 22, .72); }
+.row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--line); position: relative; }
+.row:first-child { border-top: 0; }
+.row .rk { font: 500 14px var(--mono); color: var(--ink-3); }
+.row .nm { font: 500 16px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .dots { display: flex; gap: 5px; }
+.row .dots i { width: 7px; height: 7px; border-radius: 50%; }
+.row .val { font: 500 18px var(--mono); font-variant-numeric: tabular-nums; text-align: right; min-width: 90px; }
+.row.top::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); opacity: var(--o, 1); }
+.row.top .rk { color: var(--accent); }
+.row.you { background: rgba(240,168,104,.12); }
+.row.you .nm::after { content: "You"; margin-left: 10px; font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); border: 1px solid currentColor; padding: 1px 6px; border-radius: 999px; }
+.gap { padding: 6px 20px; border-top: 1px solid var(--line); font: 500 12px var(--mono); color: var(--ink-3); text-align: center; letter-spacing: .3em; }
+.side { display: grid; gap: 14px; }
+.card { border: 1px solid var(--line); border-radius: 16px; padding: 20px; background: rgba(12, 12, 22, .6); }
+.card .lab { font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.card .big { font: 400 30px/1.1 var(--serif); margin-top: 8px; }
+.card p { margin: 8px 0 0; color: var(--ink-2); line-height: 1.5; font-size: 14px; }
+.toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; font-size: 14px; }
+.sw { width: 42px; height: 24px; border-radius: 999px; background: var(--accent); position: relative; border: 0; cursor: pointer; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 21px; width: 18px; height: 18px; border-radius: 50%; background: #1b1209; transition: left .2s; }
+.sw[aria-checked="false"] { background: rgba(243,231,216,.14); } .sw[aria-checked="false"]::after { left: 3px; background: var(--ink-2); }
+.btn { margin-top: 12px; font: 600 13px var(--sans); color: var(--ink); background: rgba(243,231,216,.06); border: 1px solid var(--line); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.unv { font: 500 11px var(--mono); color: var(--ink-3); margin-top: 12px; }
+.row.in { animation: rise .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 40ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+@media (prefers-reduced-motion: reduce) { .row.in { animation: none; } }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } .window { justify-content: flex-start; } }
+</style>
+</head>
+<body>
+<span class="note">Design mock · sample data · not connected to a server</span>
+<div class="head">
+  <div>
+    <div class="eyebrow" id="eyebrow">The board · resets Mondays</div>
+    <h2>Who's been here longest.</h2>
+    <p class="sub" id="sub">Minutes actually played across every game, counted by the server. Idle tabs don't count.</p>
+  </div>
+  <div>
+    <div class="tabs" role="tablist" aria-label="Boards" id="tabs"></div>
+    <div class="window" id="window"><button aria-pressed="true" data-w="week">This week</button><button aria-pressed="false" data-w="all">All time</button></div>
+  </div>
+</div>
+<div class="grid">
+  <div class="board" id="board" aria-live="polite"></div>
+  <aside class="side">
+    <div class="card">
+      <div class="lab">Your name on the boards</div>
+      <div class="big">Amber Heron 42</div>
+      <p>Names are made up for you, so nobody can post anything rude. Same name in every game.</p>
+      <button class="btn" type="button" id="reroll">New name</button>
+      <div class="toggle"><span>Show me on the boards</span><button class="sw" role="switch" aria-checked="true" id="optin" aria-label="Show me on the boards"></button></div>
+    </div>
+    <div class="card">
+      <div class="lab">This week, you</div>
+      <div class="big">#14 · 3h 34m</div>
+      <p>1h 39m behind #10. Blackjack 2h 20m, Parking 1h 14m.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+const G = { bj: '#f0a868', pk: '#8fe3cf' };
+const names = ['Velvet Kestrel 7','Quiet Harbour 19','Copper Lantern 3','Sleepy Otter 88','Midnight Birch 21','Golden Wren 5','Swift Delta 64','Hazel Comet 12','Tidy Pelican 40','Solar Maple 9','Brisk Fjord 77','Mellow Ibis 30','Noble Quartz 2','Amber Heron 42'];
+const BOARDS = {
+  time: { label: 'Play time', accent: '#f0a868', eyebrow: 'The board · resets Mondays', title: "Who's been here longest.", sub: 'Minutes actually played across every game, counted by the server. Idle tabs don’t count.', window: true,
+    rows: (w) => names.map((n, i) => [n, (w === 'week' ? 520 - i * 23 - (i % 3) * 7 : 4200 - i * 260), i % 4 === 1 ? ['pk'] : i % 5 === 2 ? ['bj'] : ['bj', 'pk']]), fmt: (m) => `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`, you: 13 },
+  bj: { label: 'Blackjack', accent: '#f0a868', eyebrow: 'Blackjack · peak chips · unverified', title: 'Best night at the table.', sub: 'Highest chip count ever reached in the main game. Practice mode never counts.',
+    rows: () => names.map((n, i) => [n, Math.round(184000 / (1 + i * 0.55)), ['bj']]), fmt: (v) => v.toLocaleString('en-US'), you: 13 },
+  pk: { label: 'Parking', accent: '#8fe3cf', eyebrow: 'Parking Precision · stars · unverified', title: 'Tidiest drivers.', sub: 'Stars across all 17 levels (51 is perfect). Ties go to the higher total score.',
+    rows: () => names.map((n, i) => [n, Math.max(12, 51 - i * 2 - (i > 6 ? 3 : 0)), ['pk']]), fmt: (v) => `${v} / 51`, you: 13 },
+  streak: { label: 'Streak', accent: '#f0a868', eyebrow: 'Streak · days in a row', title: 'Regulars.', sub: 'Most days in a row with at least five minutes of play.',
+    rows: () => names.map((n, i) => [n, Math.max(1, 42 - i * 3), ['bj', 'pk']]), fmt: (v) => `${v} day${v === 1 ? '' : 's'}`, you: 13 },
+};
+let cur = 'time', win = 'week';
+const $ = (s) => document.querySelector(s);
+const tabs = $('#tabs');
+Object.entries(BOARDS).forEach(([k, b]) => { const t = document.createElement('button'); t.type = 'button'; t.role = 'tab'; t.dataset.k = k; t.textContent = b.label; t.addEventListener('click', () => show(k)); tabs.appendChild(t); });
+$('#window').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; win = b.dataset.w; [...$('#window').children].forEach((x) => x.setAttribute('aria-pressed', x === b)); show(cur); });
+$('#optin').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-checked') !== 'true'; e.currentTarget.setAttribute('aria-checked', on); });
+const words = [['Amber','Quiet','Copper','Velvet','Golden'],['Heron','Lantern','Comet','Wren','Otter']];
+$('#reroll').addEventListener('click', () => { $('.card .big').textContent = `${words[0][Math.floor(Math.random()*5)]} ${words[1][Math.floor(Math.random()*5)]} ${Math.floor(Math.random()*99)+1}`; });
+function show(k) {
+  cur = k; const b = BOARDS[k];
+  document.documentElement.style.setProperty('--accent', b.accent);
+  [...tabs.children].forEach((t) => t.setAttribute('aria-selected', t.dataset.k === k));
+  $('#window').style.visibility = b.window ? 'visible' : 'hidden';
+  $('#eyebrow').textContent = b.eyebrow; $('h2').textContent = b.title; $('#sub').textContent = b.sub;
+  const rows = b.rows(win), top = rows.slice(0, 10), you = rows[b.you];
+  const html = top.map((r, i) => row(r, i, b)).join('') + `<div class="gap">· · ·</div>` + row(you, b.you, b, true);
+  $('#board').innerHTML = html;
+  [...$('#board').querySelectorAll('.row')].forEach((el, i) => { el.style.setProperty('--i', i); el.classList.add('in'); });
+}
+function row([n, v, games], i, b, isYou = false) {
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return `<div class="row${i < 3 ? ' top' : ''}${isYou || n === names[b.you] ? ' you' : ''}" style="--o:${1 - i * 0.25}"><span class="rk">${String(i + 1).padStart(2, '0')}</span><span class="nm">${esc(n)}</span><span class="dots">${games.map((g) => `<i style="background:${G[g]}" title="${g === 'bj' ? 'Blackjack' : 'Parking'}"></i>`).join('')}</span><span class="val">${esc(b.fmt(v))}</span></div>`;
+}
+show('time');
+</script>
+</body>
+</html>

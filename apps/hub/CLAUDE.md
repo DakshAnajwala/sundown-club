@@ -11,7 +11,8 @@ shared profile.
 | `index.html` | The whole page: styles, markup and script in one file (static, no build step yet) |
 | `media/` | Backdrop and chapter images (real in-game frames, no HUD) |
 | `SPEC.md` | Hub spec: tokens, first screen, rail, profile/XP storage (`hub.v1.*`), verification |
-| `design/` | Direction samples. `d-mix.html` is the approved first screen; A/B/C are rejected, kept for reference |
+| `SPEC-leaderboard.md` | Club leaderboard ("The board") design, not built |
+| `design/` | Direction samples, `leaderboard.html` board mock. `d-mix.html` is the approved first screen; A/B/C are rejected, kept for reference |
 
 ## The page, top to bottom
 
@@ -44,5 +45,5 @@ end state. Keep that fallback working when adding sections.
 ## Open
 
 - Real profile data (read `hub.v1.profile`), sorting the rail by last played.
-- Leaderboard (play time and more) — requested 30 Sep, not designed yet.
+- Leaderboard: designed in `SPEC-leaderboard.md` (mock `design/leaderboard.html`), waiting on the owner's answers (§9).
 - Own privacy/terms pages, robots.txt and sitemap at the site root.
