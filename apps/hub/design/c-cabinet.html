@@ -1,0 +1,202 @@
+<meta charset="utf-8">
+<title>Cabinet Board</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600&display=swap">
+<style>
+/* Layout: a bento board. You and your last game come first; every game, stat and badge is a block on one screen. */
+:root {
+  --bg: #0b0b0d;
+  --card: #151518;
+  --card-2: #1c1c21;
+  --ink: #efece6;
+  --ink-2: #93908b;
+  --line: rgba(239, 236, 230, 0.09);
+  --bj: #f2b36b;
+  --pk: #8fe3cf;
+  --display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --sans: "Schibsted Grotesk", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); padding: 0 clamp(16px, 3vw, 40px); }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-block: 22px 18px; flex-wrap: wrap; }
+.word { font: 900 34px/1 var(--display); letter-spacing: .02em; text-transform: uppercase; }
+.word span { color: var(--ink-2); font-weight: 700; }
+.meta { font: 500 12px var(--mono); color: var(--ink-2); display: flex; gap: 18px; flex-wrap: wrap; }
+.sample { border: 1px dashed var(--line); padding: 1px 8px; border-radius: 999px; }
+
+.board { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 12px; padding-bottom: 28px; }
+.b { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; position: relative; overflow: hidden; min-width: 0; }
+.lab { font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; }
+.num { font: 600 28px var(--mono); font-variant-numeric: tabular-nums; }
+.dim { color: var(--ink-2); }
+.s7 { grid-column: span 7; } .s5 { grid-column: span 5; } .s4 { grid-column: span 4; } .s3 { grid-column: span 3; } .s6 { grid-column: span 6; }
+
+.cont { padding: 0; min-height: 340px; display: grid; cursor: pointer; }
+.cont img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.2,.8,.2,1); }
+.cont:hover img { transform: scale(1.04); }
+.cont::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(11,11,13,.95) 8%, rgba(11,11,13,.2) 60%, rgba(11,11,13,.4)); }
+.cont .in { position: relative; z-index: 1; align-self: end; padding: 22px; display: grid; gap: 8px; }
+.cont h2 { margin: 0; font: 900 clamp(40px, 5vw, 64px)/.9 var(--display); text-transform: uppercase; }
+.cont .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 11px 18px; border-radius: 10px; border: 0; font: 600 15px var(--sans); cursor: pointer; background: var(--bj); color: #1a1208; }
+.btn.ghost { background: rgba(239,236,230,.08); color: var(--ink); }
+.btn kbd { font: 500 11px var(--mono); opacity: .6; }
+.pill { font: 500 11px var(--mono); padding: 3px 9px; border-radius: 999px; background: rgba(242,179,107,.14); color: var(--bj); }
+
+.prof { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.ring { width: 118px; height: 118px; }
+.ring text { font: 600 26px var(--mono); fill: var(--ink); }
+.ring .sm { font: 500 10px var(--mono); fill: var(--ink-2); letter-spacing: .1em; }
+.prof h3 { margin: 0 0 4px; font: 800 30px/1 var(--display); text-transform: uppercase; }
+.prof .kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; margin-top: 14px; }
+.kv b { display: block; font: 600 18px var(--mono); font-variant-numeric: tabular-nums; }
+.kv span { font-size: 12px; color: var(--ink-2); }
+.streak { display: flex; gap: 5px; margin-top: 16px; }
+.streak i { flex: 1; height: 22px; border-radius: 5px; background: var(--card-2); }
+.streak i.on { background: linear-gradient(180deg, #f5c286, var(--bj)); }
+.streak i.today { outline: 1px solid var(--ink); outline-offset: 1px; }
+
+.game { padding: 0; min-height: 230px; display: grid; cursor: pointer; }
+.game img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .9; }
+.game::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(11,11,13,.92) 10%, transparent 70%); }
+.game .in { position: relative; z-index: 1; align-self: end; padding: 16px 18px; display: flex; justify-content: space-between; align-items: end; gap: 10px; }
+.game h4 { margin: 0; font: 800 28px/.95 var(--display); text-transform: uppercase; }
+.game p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+.game .tag { font: 500 11px var(--mono); padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.game:hover { border-color: rgba(239,236,230,.3); }
+.game:focus-visible, .cont:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.spark { width: 100%; height: 120px; display: block; margin-top: 12px; }
+.bars { display: grid; gap: 8px; margin-top: 14px; }
+.bars div { display: grid; grid-template-columns: 90px minmax(0, 1fr) 44px; gap: 10px; align-items: center; font-size: 12px; color: var(--ink-2); }
+.bars i { height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
+.bars i b { display: block; height: 100%; background: var(--pk); }
+.bars em { font: 500 12px var(--mono); font-style: normal; color: var(--ink); text-align: right; }
+
+.soon { border-style: dashed; background: transparent; min-height: 150px; display: grid; align-content: space-between; gap: 14px; }
+.soon h4 { margin: 0; font: 800 26px/.95 var(--display); text-transform: uppercase; color: var(--ink-2); }
+.soon p { margin: 0; font-size: 13px; color: var(--ink-2); }
+.soon .bar { height: 4px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
+.soon .bar b { display: block; height: 100%; background: var(--ink-2); }
+
+.badges { display: grid; gap: 10px; margin-top: 14px; }
+.badge { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.badge .glyph { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font: 800 18px var(--display); background: var(--card-2); }
+.badge b { font-weight: 600; font-size: 14px; display: block; }
+.badge span { font-size: 12px; color: var(--ink-2); }
+.badge time { font: 500 11px var(--mono); color: var(--ink-2); }
+
+footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 0 30px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
+footer nav { display: flex; gap: 16px; flex-wrap: wrap; } footer a { color: var(--ink-2); }
+#toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); padding: 10px 16px; border-radius: 10px; background: var(--ink); color: #111; font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+#toast.on { opacity: 1; }
+@media (max-width: 1000px) { .s7, .s5, .s6 { grid-column: span 12; } .s4 { grid-column: span 6; } .s3 { grid-column: span 6; } }
+@media (max-width: 620px) { .s4, .s3 { grid-column: span 12; } .prof { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .cont img { transition: none; } }
+</style>
+
+<div class="top">
+  <div class="word">Cabinet <span>/ games</span></div>
+  <div class="meta"><span id="clock">Tue 30 Sep · 18:07</span><span>2 games · 2 in the workshop</span><span class="sample">Sample profile data</span></div>
+</div>
+
+<main class="board">
+  <article class="b s7 cont" tabindex="0" data-go="/design/blackjack/room.html" data-name="Blackjack">
+    <img src="media/bj-clean.jpg" alt="The Blackjack room at golden hour">
+    <div class="in">
+      <div class="lab"><span>Last played · 22 min ago</span></div>
+      <h2>Blackjack</h2>
+      <div class="dim">The Lounge · 10–500 · you were up 380 this session</div>
+      <div class="row"><button class="btn">Continue · 2,450 chips <kbd>Enter</kbd></button><span class="pill">3 hands to "Nerve"</span></div>
+    </div>
+  </article>
+
+  <section class="b s5 prof" aria-label="Profile">
+    <svg class="ring" viewBox="0 0 120 120" aria-label="Level 7, 67 percent to level 8">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#1c1c21" stroke-width="10"/>
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#f2b36b" stroke-width="10" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="103.7" transform="rotate(-90 60 60)"/>
+      <text x="60" y="64" text-anchor="middle">7</text><text class="sm" x="60" y="84" text-anchor="middle">LEVEL</text>
+    </svg>
+    <div>
+      <h3>daksh</h3>
+      <div class="dim" style="font: 500 12px var(--mono)">1,340 / 2,000 XP to level 8</div>
+      <div class="kv">
+        <div><b>4h 12m</b><span>Played</span></div>
+        <div><b>11 / 30</b><span>Achievements</span></div>
+        <div><b>4,100</b><span>Blackjack peak</span></div>
+        <div><b>38 / 51</b><span>Parking stars</span></div>
+      </div>
+      <div class="streak" aria-label="Played 3 days in a row"><i></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on today"></i></div>
+    </div>
+  </section>
+
+  <article class="b s4 game" tabindex="0" data-go="/play/" data-name="Parking Precision">
+    <img src="media/rooftop-dusk.webp" alt="Rooftop car park at dusk">
+    <div class="in"><div><h4>Parking Precision</h4><p>Level 7 of 17 · Rooftop</p></div><span class="tag" style="background: rgba(143,227,207,.14); color: var(--pk)">Driving</span></div>
+  </article>
+  <article class="b s4 game" tabindex="0" data-go="/design/blackjack/room.html" data-name="Blackjack">
+    <img src="media/bj-dusk.jpg" alt="The Blackjack room after sunset">
+    <div class="in"><div><h4>Blackjack</h4><p>312 hands · 3 rooms</p></div><span class="tag" style="background: rgba(242,179,107,.14); color: var(--bj)">Cards · New</span></div>
+  </article>
+  <section class="b s4" aria-label="Blackjack chips, last 40 hands">
+    <div class="lab"><span>Chips · last 40 hands</span><span style="color: var(--bj)">+380</span></div>
+    <svg class="spark" id="spark" viewBox="0 0 400 120" preserveAspectRatio="none" role="img" aria-label="Chip count over the last 40 hands, from 2,070 to 2,450"></svg>
+    <div class="lab"><span>2,070</span><span>2,450</span></div>
+  </section>
+
+  <section class="b s6" aria-label="Parking stars by car park">
+    <div class="lab"><span>Parking · stars by car park</span><span>38 / 51</span></div>
+    <div class="bars">
+      <div>Open deck<i><b style="width: 93%"></b></i><em>14/15</em></div>
+      <div>Underground<i><b style="width: 75%"></b></i><em>9/12</em></div>
+      <div>Rooftop<i><b style="width: 67%"></b></i><em>8/12</em></div>
+      <div>City<i><b style="width: 58%"></b></i><em>7/12</em></div>
+    </div>
+  </section>
+  <section class="b s6" aria-label="Recent achievements">
+    <div class="lab"><span>Recent</span><span>11 / 30</span></div>
+    <div class="badges">
+      <div class="badge"><span class="glyph" style="color: var(--bj)">21</span><div><b>Natural</b><span>Blackjack · first blackjack</span></div><time>today</time></div>
+      <div class="badge"><span class="glyph" style="color: var(--bj)">5</span><div><b>Five-Card Charlie</b><span>Blackjack · 21 or under with five cards</span></div><time>yesterday</time></div>
+      <div class="badge"><span class="glyph" style="color: var(--pk)">P</span><div><b>Dead Centre</b><span>Parking · a 100-point park</span></div><time>28 Sep</time></div>
+    </div>
+  </section>
+
+  <section class="b s3 soon"><div class="lab"><span>In the workshop</span></div><div><h4>Hold'em</h4><p>Heads-up poker with the regulars.</p></div><div class="bar"><b style="width: 20%"></b></div></section>
+  <section class="b s3 soon"><div class="lab"><span>In the workshop</span></div><div><h4>Night Drive</h4><p>The car, out of the car park.</p></div><div class="bar"><b style="width: 10%"></b></div></section>
+  <section class="b s6" aria-label="About">
+    <div class="lab"><span>About</span></div>
+    <p style="margin: 12px 0 0; line-height: 1.6; color: var(--ink-2); max-width: 60ch">Browser games by Daksh Anajwala. Free, nothing to install, and your progress stays on this device. <span style="color: var(--ink)">github.com/DakshAnajwala</span></p>
+  </section>
+</main>
+
+<footer><span>Cabinet · a working name</span><nav aria-label="Legal"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Third-party notices</a></nav></footer>
+<div id="toast" role="status"></div>
+
+<script>
+// Sample bankroll path, 40 hands (example data).
+const pts = [2070,2095,2070,2120,2145,2095,2045,2070,2120,2170,2145,2195,2245,2220,2170,2145,2195,2270,2245,2295,2345,2320,2270,2320,2395,2370,2345,2295,2345,2420,2470,2445,2395,2420,2470,2520,2495,2445,2420,2450];
+{
+  const svg = document.getElementById('spark'), lo = 2000, hi = 2560, W = 400, H = 120;
+  const xy = pts.map((v, i) => [i * W / (pts.length - 1), H - ((v - lo) / (hi - lo)) * H]);
+  const line = xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join('');
+  svg.innerHTML = `<defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f2b36b" stop-opacity=".35"/><stop offset="1" stop-color="#f2b36b" stop-opacity="0"/></linearGradient></defs>
+    ${[30, 60, 90].map((y) => `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="rgba(239,236,230,.06)"/>`).join('')}
+    <path d="${line}L${W},${H}L0,${H}Z" fill="url(#g)"/><path d="${line}" fill="none" stroke="#f2b36b" stroke-width="2" vector-effect="non-scaling-stroke"/>
+    <circle cx="${xy.at(-1)[0] - 3}" cy="${xy.at(-1)[1]}" r="4" fill="#f2b36b"/>`;
+}
+const local = /^(localhost|127\.)/.test(location.hostname);
+let tt;
+function toast(t) { const el = document.getElementById('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2200); }
+function go(el) { if (local) location.href = el.dataset.go; else toast(`In the real hub this opens ${el.dataset.name}.`); }
+document.addEventListener('click', (e) => { const a = e.target.closest('[data-go]'); if (a) go(a); });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const a = document.activeElement?.closest?.('[data-go]') || document.querySelector('.cont');
+  go(a);
+});
+</script>

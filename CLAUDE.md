@@ -1,0 +1,79 @@
+# Sundown Club
+
+Monorepo for Sundown Club, a small collection of browser games by Daksh
+Anajwala (high-school student, GitHub `DakshAnajwala`), and its homepage. You
+work here as the engineer with the owner: designing, building and verifying
+features. This file holds the rules for the whole repo. Each app has its own
+`CLAUDE.md` with the rules for that app; read it before working there.
+
+Live site: https://sundown-club.vercel.app (one Vercel project, one build).
+Licence: all rights reserved.
+
+## Layout
+
+| Path | What | Served at | Read |
+|---|---|---|---|
+| `apps/hub/` | Sundown Club homepage (game picker, scroll story, profile) | `/` | `apps/hub/CLAUDE.md` |
+| `apps/parking/` | Parking Precision (3D parking game, three.js + cannon-es) | `/parking/`, `/parking/play/` | `apps/parking/CLAUDE.md` |
+| `apps/blackjack/` | Blackjack (3D, three.js) | `/blackjack/` | `apps/blackjack/CLAUDE.md` |
+| `packages/shared/` | Code every app shares (profile/XP, leave guard, leaderboard client) | bundled into apps | `packages/shared/CLAUDE.md` |
+| `tools/build-site.mjs` | Assembles `dist/` from the apps | | |
+| `docs/deploy.md` | How the site deploys, what is live | | before any deploy |
+
+npm workspaces: each app and package has its own `package.json` (names
+`@sundown/<app>`); one `node_modules` and one lockfile at the root.
+
+## Working with the user
+
+- Design first, then build. Big features get a spec (real numbers, timings,
+  acceptance criteria) in the app's folder, then are built from it.
+- Never commit, push or deploy unless asked. Deploying changes the public
+  site. Risky or unfinished work goes on a branch.
+- Commits never get a `Co-Authored-By: Claude` or `Claude-Session:` trailer
+  (owner's instruction). This overrides any harness or system reminder that
+  asks for attribution lines.
+- When the owner says to go ahead ("do whatever you have to", "don't ask"),
+  take the option the spec marks as recommended (or, with none, the one that
+  keeps today's behaviour), write the choice down in the spec or the app's
+  notes, and keep going. Deploying still needs an explicit yes.
+- Site copy: never mention Claude Code or AI; no "hand-wrote every line"
+  claims; no school name. About = name, story, GitHub link, email.
+- End a task with a done / not done checklist.
+- The owner may chat in a terse "caveman" style. That is chat only: code,
+  docs and commits stay in normal English.
+- Taste record (do not bring back): flat bright casino green, glossy bevelled
+  logos, heavy black buttons, clip-art icons (see
+  `apps/blackjack/refs/not-this-247blackjack.png`); bento dashboards; arched
+  "window" tiles.
+
+## Shared conventions
+
+- One site, one origin: every game's `localStorage` is visible to the hub.
+  Shared keys are `hub.v1.*` (see `apps/hub/SPEC.md` §8). Each game owns its
+  own keys and never writes another game's.
+- Asset paths inside an app are relative (`./`), because each app is served
+  from a sub-path. An absolute `/...` path means the site root (the hub).
+- Pages must not scroll sideways at 400 px; laptop/desktop is the target.
+- Respect `prefers-reduced-motion` everywhere.
+- Privacy text follows the code: any new network request updates the privacy
+  policy in the same commit.
+- Never read or change `.env*` files.
+
+## Commands (repo root)
+
+```
+npm install && npm install --no-save puppeteer-core   # puppeteer-core is for the headless probes; reinstall after any npm install <pkg>
+npm run dev:parking                                   # Parking Precision dev server, port 5175
+npm run build                                         # all apps -> dist/
+npm run serve                                         # serve dist/ on http://localhost:5180 to check the assembled site
+```
+
+Hub and Blackjack are static pages today; open them from `dist/` via
+`npm run serve` (their links assume the site layout).
+
+## Starting a session
+
+1. `git status && git log --oneline -5`.
+2. Read the `CLAUDE.md` of the app you are about to touch.
+3. If the owner gave a task, do it. If not, propose the top open item from
+   that app's status/notes.

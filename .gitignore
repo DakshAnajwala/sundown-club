@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.log
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+.vercel
+.env*
+
+# Regenerable output from verification tools
+apps/*/tools/shots/
+apps/parking/design/level13/dist-sheet/
+graphify-out/

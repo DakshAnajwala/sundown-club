@@ -1,0 +1,156 @@
+<meta charset="utf-8">
+<title>Afterglow Console</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: console dashboard. The focused game fills the screen as a live backdrop; a tile rail along the bottom picks it. */
+:root {
+  --bg: #0c0e13;
+  --ink: #f1ede6;
+  --ink-2: #a9a6a2;
+  --line: rgba(241, 237, 230, 0.14);
+  --glass: rgba(14, 16, 22, 0.55);
+  --accent: #f2b36b;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Archivo", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); overflow-x: hidden; }
+.stage { position: relative; min-height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+.bg { position: fixed; inset: 0; z-index: 0; }
+.bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .7s ease; transform: scale(1.04); }
+.bg img.on { opacity: 1; animation: drift 24s ease-in-out infinite alternate; }
+@keyframes drift { to { transform: scale(1.1) translate(-1.5%, -1%); } }
+.bg::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(12,14,19,.92) 0%, rgba(12,14,19,.6) 38%, rgba(12,14,19,.05) 70%),
+              linear-gradient(0deg, rgba(12,14,19,.95) 0%, rgba(12,14,19,.0) 42%),
+              linear-gradient(180deg, rgba(12,14,19,.7) 0%, rgba(12,14,19,0) 18%); }
+
+header, main, footer { position: relative; z-index: 1; padding-inline: clamp(16px, 4vw, 56px); }
+header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 22px; flex-wrap: wrap; }
+.word { font-family: var(--display); font-stretch: 125%; font-weight: 800; letter-spacing: .08em; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+.word i { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffd9a3, var(--accent) 60%, #b06a3a); box-shadow: 0 0 18px var(--accent); transition: background .6s, box-shadow .6s; }
+nav { display: flex; gap: 4px; }
+nav a { color: var(--ink-2); text-decoration: none; font-size: 14px; padding: 8px 14px; border-radius: 999px; }
+nav a.cur { color: var(--ink); background: rgba(241,237,230,.08); }
+.me { display: flex; align-items: center; gap: 12px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(10px); }
+.me .av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 13px; background: #2a2e38; }
+.me .lv { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+.me .xp { width: 72px; height: 4px; border-radius: 4px; background: rgba(241,237,230,.14); overflow: hidden; }
+.me .xp b { display: block; height: 100%; width: 67%; background: var(--accent); transition: background .6s; }
+
+main { display: flex; align-items: center; padding-block: 2vh 4vh; }
+.hero { max-width: 620px; display: grid; gap: 18px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); transition: color .6s; }
+h1 { margin: 0; font-family: var(--display); font-stretch: 118%; font-weight: 900; font-size: clamp(44px, 7vw, 96px); line-height: .92; letter-spacing: -.01em; text-wrap: balance; text-transform: uppercase; }
+.blurb { margin: 0; font-size: 18px; line-height: 1.5; color: #d6d1ca; max-width: 46ch; }
+.ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 12px; padding: 14px 22px; border-radius: 10px; font: 600 16px var(--body); cursor: pointer; border: 1px solid var(--line); color: var(--ink); background: var(--glass); backdrop-filter: blur(10px); text-decoration: none; }
+.btn.play { background: var(--ink); color: #111; border-color: transparent; }
+.btn kbd { font: 500 11px var(--mono); padding: 2px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: .55; }
+.btn:disabled { opacity: .45; cursor: default; }
+.facts { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 10px; }
+.facts div { display: grid; gap: 2px; }
+.facts b { font: 600 20px var(--mono); font-variant-numeric: tabular-nums; }
+.facts span { font-size: 12px; color: var(--ink-2); }
+
+footer { padding-block: 0 26px; display: grid; gap: 16px; }
+.railhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.railhead h2 { margin: 0; font: 600 13px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.keys { font-size: 12px; color: var(--ink-2); display: flex; gap: 14px; flex-wrap: wrap; }
+.keys kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); margin-right: 4px; color: var(--ink); }
+.rail { display: flex; gap: 14px; overflow-x: auto; padding: 10px 2px 14px; scrollbar-width: none; }
+.tile { flex: 0 0 auto; width: clamp(200px, 19vw, 280px); aspect-ratio: 16 / 9; border-radius: 12px; position: relative; overflow: hidden; cursor: pointer; border: 0; padding: 0; background: #1a1d25; color: var(--ink);
+  transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; outline: none; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: filter .3s; }
+.tile .cap { position: absolute; inset: auto 0 0 0; padding: 22px 12px 10px; text-align: left; font: 600 14px var(--body); background: linear-gradient(0deg, rgba(0,0,0,.75), transparent); display: flex; justify-content: space-between; align-items: end; gap: 8px; }
+.tile .cap small { font: 500 11px var(--mono); color: var(--ink-2); }
+.tile.soon img { filter: grayscale(1) brightness(.45) blur(2px); }
+.tile.soon .lock { position: absolute; top: 10px; left: 10px; font: 500 11px var(--mono); padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.5); border: 1px solid var(--line); }
+.tile[aria-selected="true"] { transform: translateY(-6px) scale(1.04); box-shadow: 0 0 0 2px var(--tile-accent), 0 18px 40px -12px var(--tile-accent); }
+.tile:focus-visible { box-shadow: 0 0 0 3px #fff; }
+.sample { font: 500 11px var(--mono); color: var(--ink-2); border: 1px dashed var(--line); padding: 2px 8px; border-radius: 999px; }
+#toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 5; padding: 10px 16px; border-radius: 10px; background: #f1ede6; color: #111; font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+#toast.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .bg img.on { animation: none; } .tile { transition: none; } }
+@media (max-width: 720px) { nav { display: none; } .blurb { font-size: 16px; } }
+</style>
+
+<div class="bg" id="bg"></div>
+<div class="stage">
+  <header>
+    <div class="word"><i></i>AFTERGLOW</div>
+    <nav aria-label="Hub"><a href="#" class="cur">Games</a><a href="#">Profile</a><a href="#">Settings</a><a href="#">About</a></nav>
+    <div class="me" title="Sample profile"><span class="av">DA</span><div><div class="lv">daksh · Lv 7</div><div class="xp"><b></b></div></div></div>
+  </header>
+  <main>
+    <section class="hero" aria-live="polite">
+      <div class="eyebrow" id="eyebrow"></div>
+      <h1 id="title"></h1>
+      <p class="blurb" id="blurb"></p>
+      <div class="ctas">
+        <button class="btn play" id="play">Play <kbd>Enter</kbd></button>
+        <button class="btn" id="resume"></button>
+      </div>
+      <div class="facts" id="facts"></div>
+    </section>
+  </main>
+  <footer>
+    <div class="railhead"><div style="display:flex;gap:12px;align-items:baseline"><h2>Library</h2><span class="sample">Sample profile data</span></div><div class="keys"><span><kbd>←</kbd><kbd>→</kbd>choose</span><span><kbd>Enter</kbd>play</span><span><kbd>C</kbd>continue</span></div></div>
+    <div class="rail" id="rail" role="tablist" aria-label="Games"></div>
+  </footer>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+const GAMES = [
+  { id: 'blackjack', name: 'Blackjack', accent: '#f2b36b', img: 'media/bj-clean.jpg', eyebrow: 'Cards · New', go: '/design/blackjack/room.html',
+    blurb: 'Six decks, one seat, and a dealer with no face. Golden hour through the window, chips that click.',
+    resume: 'Continue · 2,450 chips', facts: [['2,450', 'Chips'], ['4,100', 'Peak'], ['312', 'Hands']] },
+  { id: 'parking', name: 'Parking Precision', accent: '#8fe3cf', img: 'media/rooftop-dusk.webp', eyebrow: 'Driving · 17 car parks', go: '/play/',
+    blurb: 'Park a real-sized car in a glowing bay, first person, scored out of 100. Mirrors, sensors and a reversing camera.',
+    resume: 'Continue · Level 7, Rooftop', facts: [['38 / 51', 'Stars'], ['94', 'Best score'], ['2h 40m', 'Played']] },
+  { id: 'holdem', name: "Hold'em", accent: '#d98a93', img: 'media/bj-dusk.jpg', eyebrow: 'Cards · Coming soon', soon: true,
+    blurb: 'Heads-up poker at the same table, against faceless regulars with their own habits.', facts: [] },
+  { id: 'drive', name: 'Night Drive', accent: '#8e9bff', img: 'media/rooftop-lane.webp', eyebrow: 'Driving · Coming soon', soon: true,
+    blurb: 'The parking car, let out of the car park. A long road after dark.', facts: [] },
+];
+const $ = (s) => document.querySelector(s);
+const bg = $('#bg'), rail = $('#rail');
+let cur = 0;
+GAMES.forEach((g, i) => {
+  const im = document.createElement('img'); im.src = g.img; im.alt = ''; bg.appendChild(im); g.bgEl = im;
+  const t = document.createElement('button');
+  t.className = 'tile' + (g.soon ? ' soon' : ''); t.setAttribute('role', 'tab'); t.style.setProperty('--tile-accent', g.accent);
+  t.innerHTML = `<img src="${g.img}" alt="">${g.soon ? '<span class="lock">Coming soon</span>' : ''}<span class="cap">${g.name}<small>${g.soon ? '' : g.eyebrow.split(' · ')[0]}</small></span>`;
+  t.addEventListener('click', () => select(i)); t.addEventListener('dblclick', () => play());
+  rail.appendChild(t); g.tileEl = t;
+});
+function select(i) {
+  cur = (i + GAMES.length) % GAMES.length;
+  const g = GAMES[cur];
+  GAMES.forEach((x, j) => { x.bgEl.classList.toggle('on', j === cur); x.tileEl.setAttribute('aria-selected', j === cur); });
+  document.documentElement.style.setProperty('--accent', g.accent);
+  $('#eyebrow').textContent = g.eyebrow; $('#title').textContent = g.name; $('#blurb').textContent = g.blurb;
+  $('#play').disabled = !!g.soon; $('#play').firstChild.textContent = g.soon ? 'In the workshop ' : 'Play ';
+  $('#resume').hidden = !g.resume; $('#resume').innerHTML = `${g.resume || ''} <kbd>C</kbd>`;
+  $('#facts').innerHTML = g.facts.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('');
+  g.tileEl.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+}
+const local = /^(localhost|127\.)/.test(location.hostname);
+let tt;
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2200); }
+function play() { const g = GAMES[cur]; if (g.soon) return; if (local) location.href = g.go; else toast(`In the real hub this opens ${g.name}.`); }
+$('#play').addEventListener('click', play); $('#resume').addEventListener('click', play);
+addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { e.preventDefault(); select(cur + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); select(cur - 1); }
+  else if (e.key === 'Enter' || e.key.toLowerCase() === 'c') play();
+});
+select(0);
+</script>

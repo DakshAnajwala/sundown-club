@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<title>Fail and daily cards</title>
+<link rel="stylesheet" href="./hud-base.css">
+<link rel="stylesheet" href="./retention.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<header class="proto-head">
+  <h1>Fail card and daily card <a href="./index.html">← all prototypes</a></h1>
+  <p>SPEC §2 and §6.3. The fail card gains the retry key hint and responds to it from its first frame; after the retry the car is
+  back in the gear you drove off in, held on the brake ("In Drive — press W to go"). The daily card has no "Next level" and is never posted.</p>
+</header>
+<div class="hud proto">
+
+  <section class="hud-card hud-review-card" aria-label="Fail card">
+    <div class="tag fail">Not parked</div>
+    <h2>Roof Three</h2>
+    <p>Out of time — the limit on this level is 45 s.</p>
+    <div class="stop-sentence">6.2 m from the bay</div>
+    <div class="hud-actions">
+      <button class="hud-btn is-on">Try again<kbd>B</kbd></button>
+      <button class="hud-btn">Level select</button>
+      <button class="hud-btn">Hide panel</button>
+    </div>
+  </section>
+
+  <section class="hud-card hud-review-card" aria-label="Daily fail card">
+    <div class="tag fail">Not parked · Daily #12</div>
+    <h2>Deck Two — no contact</h2>
+    <p>Contact — this daily is no-contact.</p>
+    <div class="stop-sentence">3.4 m from the bay</div>
+    <div class="hud-actions">
+      <button class="hud-btn is-on">Try again<kbd>B</kbd></button>
+      <button class="hud-btn">Main menu</button>
+    </div>
+  </section>
+
+  <!-- Daily parked: 91. lat 0.08/0.57 (25.79), lon 0.06 short/0.56 (17.86), 1.2°/11 (22.27), 38.2 s/par 60 (15), clean (10) = 90.92 -->
+  <section class="hud-card hud-review-card" aria-label="Daily results card">
+    <div class="tag">Daily #12</div>
+    <h2>Deck Two — no contact</h2>
+    <div class="hud-stars-row"><span class="hud-stars">★★★</span></div>
+    <div class="hud-delta up"><b>+5</b> on your best today (86)</div>
+    <div class="hud-break v2">
+      <span class="big">Placement in bay</span><span class="d big">8 cm right of centre</span><span class="p big">26 / 30</span><span class="l big">−4</span>
+      <span>Depth</span><span class="d">6 cm short</span><span class="p">18 / 20</span><span class="l">−2</span>
+      <span>Alignment</span><span class="d">1.2° nose left</span><span class="p">22 / 25</span><span class="l">−3</span>
+      <span>Time</span><span class="d">38.2 s (par 60 s)</span><span class="p">15 / 15</span><span class="l"></span>
+      <span>Clean run</span><span class="d">no contact</span><span class="p">10 / 10</span><span class="l"></span>
+      <span class="hr"></span><span class="tot lab">Score</span><span class="tot val">91 / 100</span>
+    </div>
+    <div class="hud-fix"><b>8 cm right of centre cost you 4 points.</b> Aim for equal gaps both sides before you stop.</div>
+    <div class="hud-next"><b>4 points to Gold</b></div>
+    <div class="hud-actions">
+      <button class="hud-btn is-on">Retry<kbd>B</kbd></button>
+      <button class="hud-btn">Share result</button>
+      <button class="hud-btn">Main menu</button>
+    </div>
+  </section>
+
+  <p class="proto-note">Daily numbers: 25.79 + 17.86 + 22.27 + 15 + 10 = 90.92 → 91. Placement at full marks re-sums to 95.13 → 95, so fixing it is worth 4, and 95 is Gold.</p>
+</div>
+</body>
+</html>

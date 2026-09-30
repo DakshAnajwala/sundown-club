@@ -1,0 +1,325 @@
+<meta charset="utf-8">
+<title>Parking Precision Sky</title>
+<meta name="description" content="Direction C of 3 for the Parking Precision homepage: bright sky and concrete, with a title that squeezes into its painted bay as you scroll.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Direction C commits to one world (an open deck under a pale afternoon
+     sky, the game's daylight palette), so it is a deliberate single light theme. */
+  :root {
+    --sky-top: #b9d2e5;
+    --sky-low: #e8eff1;
+    --air: #eef3f2;
+    --deck: #cfcac1;
+    --deck-dark: #bdb8ae;
+    --paint: #fbfaf6;
+    --ink: #1f2b34;
+    --ink-soft: #56646e;
+    --bay: #2f9d76;
+    --bay-glow: #76d6a8;
+    --clay: #d98b7e;
+
+    --display: "Anybody", "Arial Black", "Helvetica Neue", sans-serif;
+    --body: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    --gutter: clamp(16px, 5vw, 76px);
+    --wdth: 150;
+    --wght: 260;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--air); }
+  body {
+    margin: 0; background: var(--air); color: var(--ink);
+    font-family: var(--body); font-size: clamp(16px, 0.35vw + 14.5px, 19px); line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--bay); outline-offset: 4px; }
+
+  .eyebrow {
+    margin: 0; font-family: var(--display); font-variation-settings: "wdth" 125, "wght" 600;
+    font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft);
+  }
+
+  /* ----------------------------------------------------------------- hero */
+  /* Hero = a band of sky with the parapet and lamp posts along its bottom
+     edge, then the concrete deck the title is painted onto. Fixed band, not a
+     percentage split, so nothing on the deck ever collides with the horizon. */
+  .hero {
+    position: relative; overflow: hidden;
+    background: linear-gradient(180deg, var(--deck) 0%, var(--deck-dark) 100%);
+  }
+  .sky {
+    position: relative; height: clamp(170px, 26vh, 250px);
+    padding: 0 var(--gutter);
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-low) 100%);
+  }
+  .bar {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding-block: 22px;
+  }
+  .wordmark {
+    font-family: var(--display); font-variation-settings: "wdth" 130, "wght" 700;
+    font-size: 17px; letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none;
+  }
+  .parapet {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 22px;
+    background: linear-gradient(180deg, #d9d4ca, #c9c4ba);
+    box-shadow: 0 1px 0 rgba(31,43,52,0.08);
+  }
+  .posts { position: absolute; left: 0; right: 0; bottom: 22px; height: 56px; display: flex; justify-content: space-around; pointer-events: none; }
+  .posts span { width: 4px; height: 56px; background: #7f7a72; position: relative; }
+  .posts span::before { content: ""; position: absolute; top: -3px; left: -7px; width: 18px; height: 5px; background: #fff7e6; border-radius: 1px; }
+
+  .hero-body {
+    position: relative; z-index: 1;
+    padding: clamp(44px, 8vh, 80px) var(--gutter) clamp(96px, 16vh, 170px);
+    display: grid; gap: clamp(22px, 3vh, 34px); justify-items: start;
+  }
+  .bay {
+    display: inline-block; position: relative;
+    border: 7px solid var(--paint); border-bottom: 0;
+    padding: clamp(18px, 2.4vw, 34px) clamp(18px, 2.2vw, 34px) clamp(10px, 1.6vw, 22px);
+    box-shadow: 0 -6px 30px -10px rgba(118,214,168,0.0);
+    transition: box-shadow 300ms ease;
+  }
+  .bay.target { box-shadow: 0 0 0 1px rgba(118,214,168,0.35), 0 0 42px -6px rgba(118,214,168,0.75); border-color: #eafff4; }
+  h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-variation-settings: "wdth" var(--wdth), "wght" var(--wght);
+    font-size: clamp(42px, 8.6vw, 158px);
+    line-height: 0.9; letter-spacing: -0.015em; text-transform: uppercase;
+  }
+  h1 span { display: block; }
+  .lede { margin: 0; max-width: 40ch; font-size: clamp(19px, 0.6vw + 16px, 23px); line-height: 1.45; }
+  .measure {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 13px; letter-spacing: 0.04em; color: var(--ink-soft); font-variant-numeric: tabular-nums;
+  }
+  .measure i { display: inline-block; width: 90px; height: 1px; background: var(--ink-soft); position: relative; }
+  .measure i::before, .measure i::after { content: ""; position: absolute; top: -5px; width: 1px; height: 11px; background: var(--ink-soft); }
+  .measure i::before { left: 0; } .measure i::after { right: 0; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; }
+  .cta {
+    display: inline-flex; align-items: center; gap: 12px; text-decoration: none;
+    font-family: var(--body); font-weight: 600; font-size: 18px; letter-spacing: 0.01em;
+    color: #f6faf9; background: var(--ink); padding: 16px 26px; border-radius: 3px;
+    box-shadow: inset 0 -4px 0 var(--bay-glow);
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+  .cta:hover { background: var(--bay); transform: translateY(-1px); }
+  .cta-note { font-size: 14px; color: var(--ink-soft); }
+
+  /* ------------------------------------------------------------- window */
+  .window { padding: 0 var(--gutter); margin-top: calc(clamp(40px, 8vh, 90px) * -1); position: relative; z-index: 2; }
+  .window figure { margin: 0; overflow: hidden; border-radius: 2px; background: var(--deck); box-shadow: 0 30px 60px -34px rgba(31,43,52,0.45); aspect-ratio: 16 / 8; }
+  .window img { width: 100%; height: 118%; object-fit: cover; object-position: 50% 62%; }
+  .window figcaption { margin-top: 12px; font-size: 14px; color: var(--ink-soft); }
+
+  /* -------------------------------------------------------------- story */
+  .story {
+    padding: clamp(80px, 14vh, 150px) var(--gutter);
+    display: grid; grid-template-columns: minmax(120px, 0.28fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 64px);
+  }
+  .story aside { display: grid; align-content: start; gap: 10px; padding-top: 10px; }
+  .sentences { display: grid; gap: 0.6em; max-width: 30ch; }
+  .sentence {
+    margin: 0; font-weight: 400; font-size: clamp(26px, 2.3vw + 15px, 48px);
+    line-height: 1.2; letter-spacing: -0.018em; text-wrap: balance;
+  }
+  .sentence.key { color: var(--bay); font-weight: 600; }
+  .sentence .aside-measure { display: block; margin-top: 10px; }
+  .signature { margin: 8px 0 0; font-size: 15px; color: var(--ink-soft); }
+
+  /* ----------------------------------------------------------- showcase */
+  .row-section { background: linear-gradient(180deg, var(--air) 0%, var(--deck) 12%, var(--deck-dark) 100%); padding: clamp(72px, 12vh, 130px) 0 clamp(80px, 13vh, 140px); overflow: hidden; }
+  .row-head { padding: 0 var(--gutter); display: grid; gap: 12px; margin-bottom: clamp(36px, 6vh, 64px); }
+  h2 {
+    margin: 0; font-family: var(--display); font-variation-settings: "wdth" 88, "wght" 640;
+    font-size: clamp(38px, 4.4vw + 12px, 86px); line-height: 0.95; letter-spacing: -0.012em;
+    text-transform: uppercase; max-width: 16ch; text-wrap: balance;
+  }
+  .row {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(18px, 2.6vw, 40px); padding: 0 var(--gutter);
+  }
+  .lot { display: grid; gap: 14px; }
+  .lot .dim { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .lot .dim::before, .lot .dim::after { content: ""; height: 1px; flex: 1; background: rgba(31,43,52,0.4); }
+  .stall {
+    position: relative; border: 6px solid var(--paint); border-bottom: 0;
+    padding: 14px 14px 0; transition: box-shadow 400ms ease, border-color 400ms ease;
+  }
+  .stall img { aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
+  .lot.target .stall { border-color: #e9fff3; box-shadow: 0 0 0 1px rgba(118,214,168,0.35), 0 0 48px -8px rgba(118,214,168,0.85); }
+  .lot h3 { margin: 4px 0 0; font-family: var(--display); font-variation-settings: "wdth" 100, "wght" 650; font-size: 24px; text-transform: uppercase; letter-spacing: 0.01em; }
+  .lot p { margin: 0; color: var(--ink); max-width: 36ch; }
+  .lot .spec { color: var(--ink-soft); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  /* -------------------------------------------------------------- final */
+  .final { padding: clamp(80px, 13vh, 140px) var(--gutter) 36px; background: linear-gradient(180deg, var(--deck-dark) 0%, var(--sky-low) 38%, var(--sky-top) 100%); display: grid; gap: 24px; justify-items: start; }
+  .final h2 { max-width: 14ch; }
+  .foot { width: 100%; margin-top: clamp(40px, 8vh, 90px); padding-top: 16px; border-top: 1px solid rgba(31,43,52,0.16); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: 14px; color: var(--ink-soft); }
+
+  @media (max-width: 767px) {
+    .sky { height: 150px; }
+    .story { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 1fr; }
+    .window figure { aspect-ratio: 4 / 3; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cta, .bay, .stall { transition: none; }
+  }
+</style>
+
+<header class="hero">
+  <div class="sky">
+    <nav class="bar" aria-label="Site">
+      <a class="wordmark" href="#top">Parking Precision</a>
+      <p class="eyebrow">Direction C · Bright sky</p>
+    </nav>
+    <div class="posts" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="parapet" aria-hidden="true"></div>
+  </div>
+  <div class="hero-body" id="top">
+    <p class="eyebrow">A first-person parking game</p>
+    <div class="bay" id="title-bay">
+      <h1><span>Parking</span><span>Precision</span></h1>
+    </div>
+    <p class="measure"><i aria-hidden="true"></i> 0.82 m to spare, if you're centred</p>
+    <p class="lede">Twelve car parks, one glowing bay, and a steering wheel that turns 720° lock to lock. Straighten up, stop, shift to P.</p>
+    <div class="cta-row">
+      <a class="cta" href="https://parking-precision.vercel.app/">Begin to play</a>
+      <span class="cta-note">Free · in your browser · keyboard needed</span>
+    </div>
+  </div>
+</header>
+
+<div class="window">
+  <figure>
+    <img src="media/rooftop-lane.webp" alt="A red car in a glowing green bay on a rooftop car park, rows of pastel cars on both sides">
+  </figure>
+  <p class="measure" style="margin-top:12px"><i aria-hidden="true"></i> Roof One · the lane is too narrow to U-turn</p>
+</div>
+
+<section class="story" aria-labelledby="story-eyebrow">
+  <aside>
+    <p class="eyebrow" id="story-eyebrow">Why it exists</p>
+    <p class="signature">Daksh Anajwala</p>
+  </aside>
+  <div class="sentences">
+    <p class="sentence">I was supposed to be studying for a physics test.</p>
+    <p class="sentence">Inclines. Friction. The forces on a car parked on a ramp.</p>
+    <p class="sentence">I got bored and went looking for a parking game to play for five minutes.</p>
+    <p class="sentence">None of them felt right.</p>
+    <p class="sentence key">So I closed the textbook and made my own.</p>
+  </div>
+</section>
+
+<section class="row-section" aria-labelledby="row-title">
+  <div class="row-head">
+    <p class="eyebrow">Twelve car parks</p>
+    <h2 id="row-title">Every bay is a different problem.</h2>
+  </div>
+  <div class="row">
+    <article class="lot target">
+      <p class="dim">2.6 m</p>
+      <div class="stall"><img src="media/rooftop-dusk.webp" alt="The red car reversed into a narrow rooftop bay beside a pickup at dusk"></div>
+      <h3>The roof</h3>
+      <p>The last lots are up top, where the bays are narrowest.</p>
+      <p class="spec">8° heading tolerance · 2 minutes</p>
+    </article>
+    <article class="lot">
+      <p class="dim">2.75 m</p>
+      <div class="stall"><img src="media/underground.webp" alt="An underground bay between a white van and a concrete pilaster"></div>
+      <h3>Underground</h3>
+      <p>A van on one side, a concrete pilaster on the other.</p>
+      <p class="spec">0.45 m to the pilaster</p>
+    </article>
+    <article class="lot">
+      <p class="dim">3.0 m</p>
+      <div class="stall"><img src="media/open-deck.webp" alt="An open-air deck with cars parked in angled bays"></div>
+      <h3>Open deck</h3>
+      <p>Sun through the pillars, and bays set at a 45° angle.</p>
+      <p class="spec">1.22 m door gap · echelon row</p>
+    </article>
+  </div>
+</section>
+
+<section class="final" aria-labelledby="final-title">
+  <p class="eyebrow">Your bay is waiting</p>
+  <h2 id="final-title">Park it perfectly.</h2>
+  <div class="cta-row">
+    <a class="cta" href="https://parking-precision.vercel.app/">Begin to play</a>
+    <span class="cta-note">No account · nothing to install</span>
+  </div>
+  <div class="foot">
+    <span>Direction C of 3 · placeholder stills rendered in the game</span>
+    <span>© 2026 Daksh Anajwala</span>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  const mm = gsap.matchMedia();
+  mm.add(
+    { motion: '(prefers-reduced-motion: no-preference)', wide: '(min-width: 768px)' },
+    ({ conditions }) => {
+      if (!conditions.motion) {
+        document.getElementById('title-bay').classList.add('target');
+        return;
+      }
+
+      // Signature: the title narrows and gets heavier, so its painted bay
+      // closes in around it, as if it's pulling into a tight space. The bay
+      // lights up once it's "parked".
+      const title = document.querySelector('h1');
+      const bay = document.getElementById('title-bay');
+      gsap.to(title, {
+        '--wdth': 58, '--wght': 780, ease: 'power1.inOut',
+        scrollTrigger: {
+          trigger: '.hero', start: 'top top', end: 'bottom 35%', scrub: 0.6,
+          onUpdate: (self) => bay.classList.toggle('target', self.progress > 0.92),
+        },
+      });
+
+      // The photo sits below the deck and rises into place, slightly slower than the page.
+      gsap.fromTo('.window img', { yPercent: -12 }, {
+        yPercent: 0, ease: 'none',
+        scrollTrigger: { trigger: '.window', start: 'top bottom', end: 'bottom top', scrub: true },
+      });
+
+      // Story: sentences settle up into place and brighten as you read them.
+      gsap.utils.toArray('.sentence').forEach((s) => {
+        gsap.fromTo(s, { opacity: 0.35, y: 28 }, {
+          opacity: 1, y: 0, ease: 'none',
+          scrollTrigger: { trigger: s, start: 'top 88%', end: 'top 58%', scrub: 0.4 },
+        });
+      });
+
+      // Row of bays: the "target" glow moves along the row as you scroll past it.
+      const lots = gsap.utils.toArray('.lot');
+      ScrollTrigger.create({
+        trigger: '.row', start: 'top 70%', end: 'bottom 40%',
+        onUpdate: (self) => {
+          const i = Math.min(lots.length - 1, Math.floor(self.progress * lots.length));
+          lots.forEach((lot, j) => lot.classList.toggle('target', j === i));
+        },
+      });
+      if (conditions.wide) {
+        gsap.fromTo('.row', { x: 60 }, {
+          x: -60, ease: 'none',
+          scrollTrigger: { trigger: '.row-section', start: 'top bottom', end: 'bottom top', scrub: true },
+        });
+      }
+    }
+  );
+</script>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<title>Mastery map</title>
+<link rel="stylesheet" href="./hud-base.css">
+<link rel="stylesheet" href="./retention.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<header class="proto-head">
+  <h1>Mastery map and start menu <a href="./index.html">← all prototypes</a></h1>
+  <p>SPEC §5 and §6.5. Levels stay unlocked. Every parked level shows its medal, best score and time, and one next goal
+  from the ladder in SPEC §4.2. The daily is a strip above the grid; "new daily in 7 h" is small, plain information,
+  and never appears on a results card.</p>
+</header>
+<div class="hud proto">
+  <section class="hud-panel" style="flex:0 0 440px" aria-labelledby="start-title">
+    <div class="tag">Multi-storey</div>
+    <h1 id="start-title">Parking Precision</h1>
+    <p>Sixteen lots, from the open deck down to the basement and up to the roof at dusk, and then a drive across town. Park inside the glowing bay, straighten up, and shift to P.</p>
+    <div class="hud-actions">
+      <button class="hud-btn is-on">Start driving</button>
+      <button class="hud-btn">Today's daily</button>
+      <button class="hud-btn">Level select</button>
+      <button class="hud-btn">Tutorial</button>
+    </div>
+    <div class="hud-actions">
+      <button class="hud-btn">Settings</button>
+      <button class="hud-btn">Controls</button>
+      <button class="hud-btn">Leaderboard</button>
+    </div>
+    <p class="hud-dailyline">Daily #12: Deck Two — no contact · dailies parked: 4 · new daily in 7 h</p>
+  </section>
+
+  <section class="hud-panel wide" style="flex:1 1 700px" aria-labelledby="ls-title">
+    <h2 id="ls-title">Level select</h2>
+    <div class="hud-summary">★★★ <b>7</b>/17 · Gold <b>3</b>/17 · Platinum <b>1</b>/17</div>
+    <button class="hud-daily"><span class="k">Today's daily</span><span class="t">Daily #12 · Deck Two — no contact</span><span class="m">your best 91</span></button>
+    <div class="hud-soon">new daily in 7 h</div>
+    <div class="hud-levels">
+      <button class="hud-lv"><span class="n">Level 1</span><span class="t">Deck One</span><span class="s">Forward pull-in</span><span class="chip">Open deck</span><span class="b"><span class="stars">★★★ <span class="hud-medal platinum">PLATINUM</span></span><span class="best">best 99 · 18.9 s</span></span><span class="goal">→ Beat your 18.9 s</span></button>
+      <button class="hud-lv"><span class="n">Level 2</span><span class="t">Deck Two</span><span class="s">Reverse bay park</span><span class="chip">Open deck</span><span class="b"><span class="stars">★★★ <span class="hud-medal gold">GOLD</span></span><span class="best">best 96 · 52.0 s</span></span><span class="goal">→ Platinum: 98+ in under 28.1 s</span></button>
+      <button class="hud-lv current"><span class="n">Level 3</span><span class="t">Deck Three</span><span class="s">Parallel, kerbside</span><span class="chip">Open deck</span><span class="b"><span class="stars">★★★ </span><span class="best">best 91 · 66.3 s</span></span><span class="goal">→ 4 points to Gold</span></button>
+      <button class="hud-lv"><span class="n">Level 4</span><span class="t">Level B1</span><span class="s">Reverse bay, tight</span><span class="chip">Underground</span><span class="b"><span class="stars">★★☆ </span><span class="best">best 84 · 71.0 s</span></span><span class="goal">→ 4 points to ★★★</span></button>
+      <button class="hud-lv"><span class="n">Level 5</span><span class="t">Level B2</span><span class="s">Parallel, driver side</span><span class="chip">Underground</span><span class="b"><span class="stars">★★☆ </span><span class="best">best 72 · 104.6 s</span></span><span class="goal">→ 16 points to ★★★</span></button>
+      <button class="hud-lv"><span class="n">Level 6</span><span class="t">Deck Four</span><span class="s">Echelon bay</span><span class="chip">Open deck</span><span class="b"><span class="stars">★★★ <span class="hud-medal gold">GOLD</span></span><span class="best">best 98 · 17.9 s</span></span><span class="goal">→ Platinum: beat 15.4 s (your fastest 17.9 s)</span></button>
+      <button class="hud-lv"><span class="n">Level 7</span><span class="t">Deck Five</span><span class="s">Service lane</span><span class="chip">Open deck</span><span class="b"><span class="stars">★★★ </span><span class="best">best 89 · 58.2 s</span></span><span class="goal">→ 6 points to Gold</span></button>
+      <button class="hud-lv"><span class="n">Level 8</span><span class="t">Level B3</span><span class="s">Pillar slalom</span><span class="chip">Underground</span><span class="b"><span class="stars">★★★ </span><span class="best">best 93 · 61.7 s</span></span><span class="goal">→ 2 points to Gold</span></button>
+      <button class="hud-lv"><span class="n">Level 9</span><span class="t">Level B5</span><span class="s">Echelon, the other way</span><span class="chip">Underground</span><span class="b"><span class="stars">★☆☆ </span><span class="best">best 61 · 49.0 s</span></span><span class="goal">→ 27 points to ★★★</span></button>
+      <button class="hud-lv"><span class="n">Level 10</span><span class="t">Level B4</span><span class="s">End stall beside a van</span><span class="chip">Underground</span><span class="b"><span class="stars none">☆☆☆</span><span></span></span><span class="goal none">Not parked yet</span></button>
+      <button class="hud-lv"><span class="n">Level 11</span><span class="t">Level B6</span><span class="s">Against the clock · 110s limit</span><span class="chip">Underground</span><span class="b"><span class="stars none">☆☆☆</span><span></span></span><span class="goal none">Not parked yet</span></button>
+      <button class="hud-lv"><span class="n">Level 12</span><span class="t">Roof One</span><span class="s">Three-point turn</span><span class="chip">Rooftop</span><span class="b"><span class="stars">★★☆ </span><span class="best">best 80 · 55.5 s</span></span><span class="goal">→ 8 points to ★★★</span></button>
+      <button class="hud-lv"><span class="n">Level 13</span><span class="t">Roof Two</span><span class="s">Corner stall</span><span class="chip">Rooftop</span><span class="b"><span class="stars none">☆☆☆</span><span></span></span><span class="goal none">Not parked yet</span></button>
+      <button class="hud-lv"><span class="n">Level 14</span><span class="t">Roof Four</span><span class="s">Parallel on the parapet</span><span class="chip">Rooftop</span><span class="b"><span class="stars none">☆☆☆</span><span></span></span><span class="goal none">Not parked yet</span></button>
+      <button class="hud-lv"><span class="n">Level 15</span><span class="t">Roof Three</span><span class="s">Timed valet · 45s limit</span><span class="chip">Rooftop</span><span class="b"><span class="stars">★★★ </span><span class="best">best 88 · 29.4 s</span></span><span class="goal">→ 7 points to Gold</span></button>
+      <button class="hud-lv"><span class="n">Level 16</span><span class="t">Final Exam</span><span class="s">Slalom, then a 2.6 m bay · 120s limit</span><span class="chip">Rooftop</span><span class="b"><span class="stars none">☆☆☆</span><span></span></span><span class="goal none">Not parked yet</span></button>
+      <button class="hud-lv"><span class="n">Level 17</span><span class="t">City Drive</span><span class="s">Across town, up four floors, park on the roof · 420s limit</span><span class="chip">city</span><span class="b"><span class="stars none">☆☆☆</span><span></span></span><span class="goal none">Not parked yet</span></button>
+    </div>
+    <div class="hud-actions"><button class="hud-btn">Back</button></div>
+  </section>
+</div>
+</body>
+</html>

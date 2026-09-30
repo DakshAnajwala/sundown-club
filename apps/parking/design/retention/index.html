@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<title>Retention prototypes</title>
+<link rel="stylesheet" href="./proto.css">
+<style>
+  ul { list-style: none; padding: 0; max-width: 900px; margin: 18px auto; display: grid; gap: 10px; }
+  a.card { display: block; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(190,210,208,.16);
+    background: rgba(16,21,24,.72); color: inherit; text-decoration: none; }
+  a.card:hover, a.card:focus-visible { border-color: #8fe6bb; outline: none; }
+  a.card b { display: block; font-size: 15px; margin-bottom: 3px; }
+  a.card small { opacity: .7; font-size: 12.5px; }
+</style>
+</head>
+<body>
+<header class="proto-head">
+  <h1>Retention prototypes</h1>
+  <p>Static mock-ups for <code>design/SPEC-retention.md</code>, built with the game's own HUD CSS
+  (<code>hud-base.css</code> is a verbatim copy of the block in <code>src/ui/Hud.js</code>; the new classes are in
+  <code>retention.css</code>). Every number on these pages is worked through the real scoring formula.</p>
+</header>
+<ul>
+  <li><a class="card" href="./results-card.html"><b>Results card v2</b><small>Where the points went, the one fix, next tier, medals, personal-best delta, key hints.</small></a></li>
+  <li><a class="card" href="./failed-card.html"><b>Fail card and daily card</b><small>One retry key everywhere; the daily's own card.</small></a></li>
+  <li><a class="card" href="./mastery-map.html"><b>Mastery map and start menu</b><small>Level select with medals, bests and next goals; the daily strip.</small></a></li>
+  <li><a class="card" href="./share.html"><b>Share output</b><small>The Wordle-style result row, for a level and for a daily.</small></a></li>
+  <li><a class="card" href="./medals.html"><b>Medals</b><small>Stars, Gold, Platinum, and the ladder of next goals.</small></a></li>
+  <li><a class="card" href="./ghost.html"><b>Personal-best ghost</b><small>Tier (i) footprint in the review; tier (ii) live ghost while driving.</small></a></li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<meta charset="utf-8">
+<title>Parking Precision Dusk</title>
+<meta name="description" content="Direction A of 3 for the Parking Precision homepage: rooftop dusk, car-park signage type, a floor indicator that climbs as you scroll.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600&display=swap">
+<style>
+  /* Direction A commits to one visual world (the game's rooftop at dusk), so
+     it is deliberately single-theme and paints every colour explicitly. */
+  :root {
+    --asphalt: #15161d;
+    --asphalt-2: #1c1d26;
+    --slab: #2a2834;
+    --sky: #7d86b3;
+    --haze: #f1c7a8;
+    --ink: #f4eee8;
+    --ink-dim: rgba(244, 238, 232, 0.68);
+    --ink-faint: rgba(244, 238, 232, 0.34);
+    --rule: rgba(244, 238, 232, 0.14);
+    --bay: #76d6a8;
+    --bay-deep: #0f2a1f;
+    --lamp: #ffd9a0;
+
+    --display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", sans-serif;
+    --body: "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --gutter: clamp(16px, 4.5vw, 64px);
+    --step--1: clamp(13px, 0.2vw + 12px, 14px);
+    --step-0: clamp(16px, 0.35vw + 14.5px, 19px);
+    --step-1: clamp(20px, 0.8vw + 17px, 26px);
+    --step-2: clamp(28px, 2vw + 20px, 44px);
+    --step-3: clamp(40px, 5vw + 18px, 92px);
+    --step-4: clamp(72px, 12vw, 208px);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--asphalt); }
+  body {
+    margin: 0;
+    background: var(--asphalt);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: var(--step-0);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--lamp); outline-offset: 3px; }
+
+  .label {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0;
+  }
+  .label b { color: var(--bay); font-weight: 500; }
+
+  /* ---------------------------------------------------------------- top bar */
+  .bar {
+    position: absolute; inset: 0 0 auto 0; z-index: 3;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding: 22px var(--gutter);
+  }
+  .wordmark {
+    font-family: var(--display); font-weight: 800; font-size: 22px;
+    letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .wordmark .p {
+    display: inline-grid; place-items: center; width: 30px; height: 30px;
+    background: var(--ink); color: var(--asphalt); border-radius: 6px;
+    font-size: 20px; line-height: 1;
+  }
+
+  /* ------------------------------------------------------------------- hero */
+  .hero {
+    position: relative; overflow: hidden;
+    min-height: clamp(620px, 92vh, 940px);
+    display: grid; align-items: end;
+    isolation: isolate;
+  }
+  .hero-img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: 50% 58%;
+    z-index: -2; transform-origin: 50% 70%;
+  }
+  .hero-shade {
+    position: absolute; inset: 0; z-index: -1;
+    background:
+      linear-gradient(180deg, rgba(21,22,29,0.35) 0%, rgba(21,22,29,0) 22%, rgba(21,22,29,0) 42%, rgba(21,22,29,0.72) 76%, var(--asphalt) 100%),
+      linear-gradient(90deg, rgba(21,22,29,0.55) 0%, rgba(21,22,29,0) 55%);
+  }
+  .hero-copy {
+    padding: 0 var(--gutter) clamp(40px, 7vh, 88px);
+    display: grid; gap: 22px; max-width: 1180px;
+  }
+  .kicker { display: flex; align-items: center; gap: 10px; }
+  .kicker .dot {
+    width: 9px; height: 9px; border-radius: 50%; background: var(--bay);
+    box-shadow: 0 0 0 4px rgba(118,214,168,0.22), 0 0 18px var(--bay);
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--display); font-weight: 900; text-transform: uppercase;
+    font-size: var(--step-4); line-height: 0.84; letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+  h1 .glow { color: var(--lamp); }
+  .lede { margin: 0; max-width: 46ch; font-size: var(--step-1); line-height: 1.4; color: var(--ink); }
+  .lede em { font-style: normal; color: var(--lamp); }
+  .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-top: 6px; }
+  .cta {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-family: var(--display); font-weight: 800; font-size: 24px;
+    letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none;
+    color: var(--bay-deep); background: var(--bay);
+    padding: 14px 26px 14px 22px; border-radius: 6px;
+    box-shadow: 0 0 0 1px rgba(118,214,168,0.6), 0 12px 40px -12px rgba(118,214,168,0.7);
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+  .cta:hover { background: var(--lamp); transform: translateY(-1px); }
+  .cta svg { width: 20px; height: 20px; }
+  .cta-note { font-family: var(--mono); font-size: var(--step--1); color: var(--ink-dim); }
+
+  /* ---------------------------------------------------------- floor ribbon */
+  .floors {
+    position: fixed; right: clamp(12px, 2vw, 28px); top: 50%; z-index: 5;
+    transform: translateY(-50%);
+    list-style: none; margin: 0; padding: 10px 8px;
+    display: grid; gap: 4px;
+    background: rgba(21,22,29,0.55); border: 1px solid var(--rule); border-radius: 10px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .floors li {
+    font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: 0.06em;
+    text-transform: uppercase; text-align: center; min-width: 46px; padding: 5px 6px;
+    color: var(--ink-faint); border-radius: 5px; transition: color 200ms, background-color 200ms;
+  }
+  .floors li.on { color: var(--bay-deep); background: var(--bay); }
+
+  /* ------------------------------------------------------------------ story */
+  .story { position: relative; overflow: hidden; isolation: isolate; }
+  .story-bg { position: absolute; inset: 0; z-index: -1; }
+  .story-bg img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.3) saturate(0.8); }
+  .story-bg::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, var(--asphalt) 0%, rgba(21,22,29,0.25) 30%, rgba(21,22,29,0.25) 70%, var(--asphalt) 100%);
+  }
+  .story-inner {
+    min-height: 100vh; padding: clamp(96px, 16vh, 160px) var(--gutter);
+    display: grid; align-content: center; gap: 34px; max-width: 1100px;
+  }
+  .lines { display: grid; gap: 0.5em; }
+  .line {
+    margin: 0; font-weight: 500; font-size: var(--step-2); line-height: 1.16;
+    letter-spacing: -0.012em; max-width: 26ch; text-wrap: balance;
+  }
+  .line.strong { color: var(--lamp); font-weight: 600; }
+  .sign { margin: 0; font-family: var(--mono); color: var(--ink-dim); font-size: var(--step--1); letter-spacing: 0.06em; }
+
+  /* --------------------------------------------------------------- showcase */
+  .showcase { padding-block: clamp(72px, 12vh, 120px) 0; overflow: hidden; }
+  .show-head {
+    padding: 0 var(--gutter); display: grid; gap: 14px; max-width: 1100px;
+    margin-bottom: clamp(28px, 5vh, 52px);
+  }
+  h2 {
+    margin: 0; font-family: var(--display); font-weight: 900; text-transform: uppercase;
+    font-size: var(--step-3); line-height: 0.9; letter-spacing: 0; text-wrap: balance;
+  }
+  /* At rest (and with reduced motion) the lots stack vertically; the script
+     switches to a pinned horizontal drive only when motion is allowed. */
+  .strip {
+    display: grid; gap: clamp(40px, 7vh, 72px);
+    padding: 0 var(--gutter) clamp(72px, 12vh, 120px);
+    max-width: 1180px;
+  }
+  .strip.is-horizontal { display: flex; gap: clamp(18px, 2.4vw, 34px); width: max-content; max-width: none; }
+  .panel { width: 100%; display: grid; gap: 18px; }
+  .strip.is-horizontal .panel { width: min(74vw, 940px); }
+  .panel figure { margin: 0; position: relative; border-radius: 10px; overflow: hidden; background: var(--slab); aspect-ratio: 16 / 9; }
+  .panel figure img { width: 100%; height: 100%; object-fit: cover; }
+  .panel .floor-tag {
+    position: absolute; left: 14px; top: 14px;
+    font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--asphalt); background: var(--ink);
+    padding: 4px 9px; border-radius: 5px;
+  }
+  .cap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 28px; align-items: baseline; }
+  .cap h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: var(--step-2); text-transform: uppercase; letter-spacing: 0.01em; line-height: 1; }
+  .cap p { margin: 0; color: var(--ink-dim); max-width: 52ch; }
+  .cap h3, .cap p:not(.spec) { grid-column: 1; }
+  .cap .spec {
+    grid-column: 2; grid-row: 1 / span 2; align-self: start;
+    font-family: var(--mono); font-size: var(--step--1); color: var(--ink);
+    display: grid; gap: 4px; text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .spec span { white-space: nowrap; }
+  .spec span::before { content: "— "; color: var(--bay); }
+
+  /* ------------------------------------------------------------------- roof */
+  .roof {
+    border-top: 1px solid var(--rule);
+    padding: clamp(80px, 14vh, 140px) var(--gutter) 40px;
+    display: grid; gap: 26px;
+    background: radial-gradient(120% 90% at 20% 0%, rgba(125,134,179,0.28) 0%, rgba(241,199,168,0.08) 45%, transparent 70%), var(--asphalt);
+  }
+  .roof h2 { max-width: 16ch; }
+  .foot {
+    margin-top: clamp(48px, 9vh, 96px); padding-top: 22px; border-top: 1px solid var(--rule);
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px;
+    font-family: var(--mono); font-size: var(--step--1); color: var(--ink-faint);
+  }
+
+  /* ---------------------------------------------------------------- narrow */
+  @media (max-width: 767px) {
+    .floors { top: auto; bottom: 14px; right: 50%; transform: translateX(50%); grid-auto-flow: column; padding: 6px; }
+    .floors li { min-width: 40px; font-size: 13px; }
+    .cap { grid-template-columns: 1fr; }
+    .cap .spec { grid-column: 1; grid-row: auto; text-align: left; }
+    .story-inner { min-height: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cta, .floors li { transition: none; }
+  }
+</style>
+
+<header class="hero" data-floor="G">
+  <img class="hero-img" src="media/rooftop-lane.webp" alt="A red car in a glowing green bay on a rooftop car park at dusk, between two rows of parked cars and lamp posts">
+  <div class="hero-shade"></div>
+  <nav class="bar" aria-label="Site">
+    <a class="wordmark" href="#top"><span class="p" aria-hidden="true">P</span>Parking Precision</a>
+    <p class="label">Direction <b>A</b> · Rooftop dusk</p>
+  </nav>
+  <div class="hero-copy" id="top">
+    <p class="label kicker"><span class="dot" aria-hidden="true"></span>A first-person parking game</p>
+    <h1>Park it <span class="glow">perfectly.</span></h1>
+    <p class="lede">Twelve car parks, one glowing bay, and a steering wheel that turns <em>720°</em> lock to lock. Straighten up, stop, shift to P.</p>
+    <div class="cta-row">
+      <a class="cta" href="https://parking-precision.vercel.app/">
+        Begin to play
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>
+      </a>
+      <span class="cta-note">Free · runs in your browser · keyboard needed</span>
+    </div>
+  </div>
+</header>
+
+<ol class="floors" aria-label="Where you are on the page">
+  <li data-floor="Roof">Roof</li>
+  <li data-floor="3">3</li>
+  <li data-floor="2">2</li>
+  <li data-floor="1">1</li>
+  <li data-floor="G" class="on">G</li>
+</ol>
+
+<section class="story" data-floor="1" aria-labelledby="story-label">
+  <div class="story-bg"><img src="media/underground.webp" alt=""></div>
+  <div class="story-inner">
+    <p class="label" id="story-label">Level 1 · Why this exists</p>
+    <div class="lines">
+      <p class="line">I was supposed to be studying for a physics test.</p>
+      <p class="line">Inclines. Friction. The forces on a car parked on a ramp.</p>
+      <p class="line">I got bored and went looking for a parking game to play for five minutes.</p>
+      <p class="line">None of them felt right.</p>
+      <p class="line strong">So I closed the textbook and made my own.</p>
+    </div>
+    <p class="sign">— Daksh Anajwala</p>
+  </div>
+</section>
+
+<section class="showcase" data-floor="2" aria-labelledby="show-title">
+  <div class="show-head">
+    <p class="label">Level 2 · Twelve car parks</p>
+    <h2 id="show-title">Every lot is a different problem.</h2>
+  </div>
+  <div class="strip">
+    <article class="panel">
+      <figure><img src="media/rooftop-dusk.webp" alt="The player's red car reversed into a narrow rooftop bay beside a pickup truck, at dusk"><span class="floor-tag">Roof</span></figure>
+      <div class="cap">
+        <h3>The final exam</h3>
+        <p>The last lots are on the roof, where the sun sits low and every shadow is long.</p>
+        <p class="spec"><span>2.6 m bay</span><span>8° heading tolerance</span><span>2 min limit</span></p>
+      </div>
+    </article>
+    <article class="panel">
+      <figure><img src="media/underground.webp" alt="An underground car park under fluorescent light, the red car backed into the last bay beside a white van"><span class="floor-tag">B4</span></figure>
+      <div class="cap">
+        <h3>Underground</h3>
+        <p>Fluorescent tubes, a van on one side and a concrete pilaster on the other.</p>
+        <p class="spec"><span>0.45 m to the pilaster</span><span>2.75 m bays</span></p>
+      </div>
+    </article>
+    <article class="panel">
+      <figure><img src="media/driver-seat.webp" alt="The view from the driver's seat: hands on the wheel, analog speedometer and rev counter, rear-view mirror, a rooftop car park ahead"><span class="floor-tag">Seat</span></figure>
+      <div class="cap">
+        <h3>From the driver's seat</h3>
+        <p>You only ever see what a driver sees: the bonnet, the mirrors, the dials.</p>
+        <p class="spec"><span>720° steering</span><span>live mirrors</span><span>analog dials</span></p>
+      </div>
+    </article>
+    <article class="panel">
+      <figure><img src="media/reverse-camera.webp" alt="The dashboard screen showing the reversing camera with coloured guidelines, seen from the driver's seat"><span class="floor-tag">R</span></figure>
+      <div class="cap">
+        <h3>Reverse gear</h3>
+        <p>The dash screen wakes up with guidelines that bend as you steer, and the sensors beep faster as you close in.</p>
+        <p class="spec"><span>beeps under 1.5 m</span><span>solid tone under 0.3 m</span></p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="roof" data-floor="Roof" aria-labelledby="roof-title">
+  <p class="label">Roof · You made it up here</p>
+  <h2 id="roof-title">Find the glowing bay.</h2>
+  <div class="cta-row">
+    <a class="cta" href="https://parking-precision.vercel.app/">
+      Begin to play
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>
+    </a>
+    <span class="cta-note">No account · nothing to install</span>
+  </div>
+  <div class="foot">
+    <span>Direction A of 3 · placeholder stills rendered in the game</span>
+    <span>© 2026 Daksh Anajwala</span>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Floor ribbon: the page climbs from G (hero) to the roof (final CTA).
+  const floorItems = document.querySelectorAll('.floors li');
+  const setFloor = (name) => floorItems.forEach((li) => li.classList.toggle('on', li.dataset.floor === name));
+  document.querySelectorAll('[data-floor]').forEach((section) => {
+    if (section.tagName === 'LI') return;
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top 55%',
+      end: 'bottom 55%',
+      onToggle: (self) => self.isActive && setFloor(section.dataset.floor),
+    });
+  });
+
+  const mm = gsap.matchMedia();
+  mm.add(
+    { motion: '(prefers-reduced-motion: no-preference)', wide: '(min-width: 768px)' },
+    ({ conditions }) => {
+      if (!conditions.motion) return;
+
+      // Hero: the photo drifts and the title lifts away as you leave.
+      gsap.to('.hero-img', {
+        yPercent: 10, scale: 1.08, ease: 'none',
+        scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true },
+      });
+      gsap.to('.hero-copy', {
+        y: -70, opacity: 0.25, ease: 'none',
+        scrollTrigger: { trigger: '.hero', start: '35% top', end: 'bottom top', scrub: true },
+      });
+
+      // Story: each sentence brightens in turn while the section holds still.
+      const lines = gsap.utils.toArray('.line');
+      const story = gsap.timeline({
+        scrollTrigger: {
+          trigger: '.story', start: 'top top',
+          end: conditions.wide ? '+=140%' : 'bottom 60%',
+          scrub: 0.6, pin: conditions.wide,
+        },
+      });
+      story.fromTo('.story-bg img', { scale: 1.16 }, { scale: 1, ease: 'none', duration: lines.length }, 0);
+      lines.forEach((line, i) => {
+        story.fromTo(line, { opacity: 0.34, y: 10 }, { opacity: 1, y: 0, ease: 'power1.out', duration: 0.8 }, i);
+      });
+
+      // Showcase: a horizontal drive past four lots.
+      if (conditions.wide) {
+        const strip = document.querySelector('.strip');
+        strip.classList.add('is-horizontal');
+        const distance = () => strip.scrollWidth - window.innerWidth;
+        gsap.to(strip, {
+          x: () => -distance(), ease: 'none',
+          scrollTrigger: {
+            trigger: '.showcase', start: 'top top',
+            end: () => '+=' + distance(), scrub: 0.5, pin: true, invalidateOnRefresh: true,
+          },
+        });
+        return () => strip.classList.remove('is-horizontal');
+      }
+    }
+  );
+</script>

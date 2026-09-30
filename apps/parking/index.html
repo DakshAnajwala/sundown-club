@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parking Precision: free 3D car parking game in your browser</title>
+<meta name="description" content="A free 3D car parking game you play in your browser, from the driver's seat: 17 car parks, bay, reverse and parallel parking. No download, no account.">
+<meta name="theme-color" content="#15161d">
+<link rel="canonical" href="https://parking-precision.vercel.app/">
+<meta name="google-site-verification" content="gzERGqtfI1EL9hZiQrzSa81HgkiJHWCK6eY-N2lbS8U">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Parking Precision">
+<meta property="og:title" content="Parking Precision — park it perfectly">
+<meta property="og:description" content="A free first-person 3D car parking game in your browser. Seventeen car parks, a 720° steering wheel, mirrors, a reversing camera and a score out of 100.">
+<meta property="og:url" content="https://parking-precision.vercel.app/">
+<meta property="og:image" content="https://parking-precision.vercel.app/media/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A red car parked in a glowing green bay on a rooftop car park at dusk, with the words Park it perfectly">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Parking Precision — park it perfectly">
+<meta name="twitter:description" content="A free first-person 3D car parking game in your browser.">
+<meta name="twitter:image" content="https://parking-precision.vercel.app/media/og-card.jpg">
+<meta name="twitter:image:alt" content="A red car parked in a glowing green bay on a rooftop car park at dusk">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Parking Precision",
+  "url": "https://parking-precision.vercel.app/",
+  "alternateName": "Parking Precision car parking game",
+  "keywords": "car parking game, parking game online, 3D parking game, parallel parking game, reverse parking, driving game, browser game",
+  "description": "A free first-person 3D car parking game that runs in your browser: seventeen car parks, a 720° steering wheel, live mirrors, a reversing camera and a score out of 100.",
+  "image": "https://parking-precision.vercel.app/media/og-card.jpg",
+  "genre": ["Driving", "Simulation", "Puzzle"],
+  "gamePlatform": "Web browser",
+  "operatingSystem": "Any (desktop browser with WebGL and a keyboard)",
+  "applicationCategory": "Game",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Daksh Anajwala", "url": "https://github.com/DakshAnajwala" }
+}
+</script>
+<!-- The hero is bottom-aligned, so text that reflows when a web font arrives
+     moves the whole block (CLS). Preload the four faces above the fold. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource/big-shoulders-display/files/big-shoulders-display-latin-900-normal.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource/big-shoulders-display/files/big-shoulders-display-latin-800-normal.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource/schibsted-grotesk/files/schibsted-grotesk-latin-400-normal.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2">
+<script type="module" src="/src/site/home.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="hero" data-floor="G">
+  <img class="hero-img" src="media/rooftop-lane.webp" width="1600" height="900" fetchpriority="high" alt="A red car parked in a glowing green bay on a rooftop car park at dusk, in a row of parked cars under lamp posts">
+  <div class="hero-shade"></div>
+  <nav class="bar" aria-label="Site">
+    <a class="wordmark" href="#top"><span class="p" aria-hidden="true">P</span>Parking Precision</a>
+    <ul class="nav-links">
+      <li><a href="#how">How to play</a></li>
+      <li><a href="#made">How it's made</a></li>
+      <li><a href="#who">Who made it</a></li>
+    </ul>
+  </nav>
+  <div class="hero-copy" id="top">
+    <p class="label kicker"><span class="dot" aria-hidden="true"></span>A free first-person car parking game</p>
+    <h1>Park it <span class="glow">perfectly.</span></h1>
+    <p class="lede">Seventeen car parks, one glowing bay, and a steering wheel that turns <em>720°</em> lock to lock. Straighten up, stop, shift to P.</p>
+    <div class="cta-row">
+      <a class="cta" href="./play/">
+        Start driving
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>
+      </a>
+      <a class="cta-2" href="#lots">See the car parks</a>
+    </div>
+    <p class="cta-note">Runs in your browser · no download, no account · <span class="keyboard-note">keyboard needed</span></p>
+    <div class="touch-note" role="note">
+      <p>You're on a touch screen. The game is driven with a keyboard, so it plays on a computer. Send yourself the link for later:</p>
+      <button class="share" type="button" data-share aria-live="polite">Send me the link</button>
+    </div>
+  </div>
+</header>
+
+<ol class="floors" aria-label="Where you are on the page">
+  <li data-floor="Roof">Roof</li>
+  <li data-floor="4">4</li>
+  <li data-floor="3">3</li>
+  <li data-floor="2">2</li>
+  <li data-floor="1">1</li>
+  <li data-floor="G" class="on" aria-current="location">G</li>
+</ol>
+
+<main id="main">
+<section class="story" data-floor="1" aria-labelledby="story-label">
+  <div class="story-bg"><img src="media/underground.webp" alt="" loading="lazy"></div>
+  <div class="story-inner">
+    <p class="label" id="story-label">Level 1 · Why this exists</p>
+    <div class="lines">
+      <p class="line">I was supposed to be studying for a physics test.</p>
+      <p class="line">Inclines. Friction. The forces on a car parked on a ramp.</p>
+      <p class="line">I got bored and went looking for a parking game to play for five minutes.</p>
+      <p class="line">None of them felt right.</p>
+      <p class="line strong">So I closed the textbook and made my own.</p>
+    </div>
+    <p class="sign">— Daksh Anajwala</p>
+  </div>
+</section>
+
+<section class="showcase" id="lots" data-floor="2" aria-labelledby="show-title">
+  <div class="show-head">
+    <p class="label">Level 2 · Seventeen car parks</p>
+    <h2 id="show-title">Every lot is a different problem.</h2>
+  </div>
+  <div class="strip">
+    <article class="panel">
+      <figure><img src="media/rooftop-dusk.webp" width="1600" height="900" loading="lazy" alt="The player's red car reversed into a narrow rooftop bay beside a pickup truck, at dusk"><span class="floor-tag">Roof</span></figure>
+      <div class="cap">
+        <h3>The final exam</h3>
+        <p>The last lots are on the roof, where the sun sits low and every shadow is long.</p>
+        <p class="spec"><span>2.6 m bay</span><span>8° heading tolerance</span><span>2 min limit</span></p>
+      </div>
+    </article>
+    <article class="panel">
+      <figure><img src="media/underground.webp" width="1600" height="900" loading="lazy" alt="An underground car park under fluorescent light, the red car backed into the last bay beside a white van"><span class="floor-tag">B4</span></figure>
+      <div class="cap">
+        <h3>Underground</h3>
+        <p>Fluorescent tubes, a van on one side and a concrete pilaster on the other.</p>
+        <p class="spec"><span>0.45 m to the pilaster</span><span>2.75 m bays</span></p>
+      </div>
+    </article>
+    <article class="panel">
+      <figure><img src="media/driver-seat.webp" width="1600" height="900" loading="lazy" alt="The view from the driver's seat: hands on the wheel, analog speedometer and rev counter, rear-view mirror, a rooftop car park ahead"><span class="floor-tag">Seat</span></figure>
+      <div class="cap">
+        <h3>From the driver's seat</h3>
+        <p>You only ever see what a driver sees: the bonnet, the mirrors, the dials.</p>
+        <p class="spec"><span>720° steering</span><span>live mirrors</span><span>analog dials</span></p>
+      </div>
+    </article>
+    <article class="panel">
+      <figure><img src="media/reverse-camera.webp" width="1600" height="900" loading="lazy" alt="The dashboard screen showing the reversing camera with coloured guidelines, seen from the driver's seat"><span class="floor-tag">R</span></figure>
+      <div class="cap">
+        <h3>Reverse gear</h3>
+        <p>The dash screen wakes up with guidelines that bend as you steer, and the sensors beep faster as you close in.</p>
+        <p class="spec"><span>beeps under 1.5 m</span><span>solid tone under 0.3 m</span></p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="how" id="how" data-floor="3" aria-labelledby="how-title">
+  <div class="how-head">
+    <p class="label">Level 3 · How to play</p>
+    <h2 id="how-title">Stop inside the lines. Then shift to P.</h2>
+    <p class="how-lede">Each level puts one bay in front of you, glowing green. Drive to it, park straight, come to a stop and select Park. You're scored out of 100.</p>
+  </div>
+
+  <div class="how-grid">
+    <div class="keys" aria-labelledby="keys-title">
+      <h3 id="keys-title" class="sub">Controls</h3>
+      <dl class="keymap">
+        <div><dt><kbd>W</kbd><kbd>S</kbd></dt><dd>Accelerate · brake</dd></div>
+        <div><dt><kbd>A</kbd><kbd>D</kbd></dt><dd>Steer left · right</dd></div>
+        <div><dt><kbd>P</kbd><kbd>R</kbd><kbd>N</kbd><kbd>F</kbd></dt><dd>Park · Reverse · Neutral · Drive</dd></div>
+        <div><dt><kbd class="wide">Space</kbd></dt><dd>Handbrake</dd></div>
+        <div><dt><kbd>Q</kbd><kbd>E</kbd></dt><dd>Lean out of either window</dd></div>
+        <div><dt><kbd class="wide">Right mouse</kbd></dt><dd>Look back over your shoulder</dd></div>
+        <div><dt><kbd>C</kbd></dt><dd>Driver's seat · chase camera</dd></div>
+        <div><dt><kbd class="wide">Esc</kbd></dt><dd>Pause</dd></div>
+      </dl>
+      <p class="fine">Arrow keys steer and drive too; <kbd>1</kbd>–<kbd>4</kbd> pick gears in gate order. Every key here can be remapped in Settings.</p>
+    </div>
+
+    <div class="score" aria-labelledby="score-title">
+      <h3 id="score-title" class="sub">The score</h3>
+      <ul class="bars">
+        <li style="--w:30"><span class="n">30</span><span class="t">Placement</span><span class="d">Side to side in the bay</span></li>
+        <li style="--w:25"><span class="n">25</span><span class="t">Alignment</span><span class="d">Straight with the lines</span></li>
+        <li style="--w:20"><span class="n">20</span><span class="t">Depth</span><span class="d">Not too far in, not hanging out</span></li>
+        <li style="--w:15"><span class="n">15</span><span class="t">Time</span><span class="d">Against the level's par</span></li>
+        <li style="--w:10"><span class="n">10</span><span class="t">Finesse</span><span class="d">Nothing touched, no cones down</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="assists" aria-labelledby="assists-title">
+    <h3 id="assists-title" class="sub">If the driver's seat is too hard</h3>
+    <ul class="assist-list">
+      <li><b>Chase camera</b><span>Sit behind the car instead of inside it. Press <kbd>C</kbd> any time.</span></li>
+      <li><b>Proximity radar</b><span>A top-down view on the dash screen showing everything close to the car.</span></li>
+      <li><b>Parking sensors</b><span>Beeps that quicken as a bumper closes in, and a reversing camera in R.</span></li>
+      <li><b>Your own HUD</b><span>Turn any panel off, resize it, remap every key, pick your dials.</span></li>
+    </ul>
+  </div>
+
+  <div class="board" aria-labelledby="board-title">
+    <div class="board-copy">
+      <p class="label">Leaderboard</p>
+      <h3 id="board-title">Every level has a board.</h3>
+      <p>Finish a level and your score goes up automatically, under a name the game picks for you. No account, nothing to type, and you can switch it off in Settings. Scores are worked out in your browser, so treat the board as a bit of fun rather than a record.</p>
+    </div>
+    <figure class="board-eg">
+    <figcaption class="board-note">What a board looks like</figcaption>
+    <ol class="board-rows" aria-label="Example leaderboard">
+      <li><span class="r">1</span><span class="h">Swift Otter 412</span><span class="s">97</span></li>
+      <li><span class="r">2</span><span class="h">Copper Kestrel 118</span><span class="s">95</span></li>
+      <li><span class="r">3</span><span class="h">Quiet Juniper 730</span><span class="s">94</span></li>
+      <li><span class="r">4</span><span class="h">Amber Plover 265</span><span class="s">91</span></li>
+    </ol>
+    </figure>
+  </div>
+</section>
+
+<section class="made" id="made" data-floor="4" aria-labelledby="made-title">
+  <div class="made-head">
+    <p class="label">Level 4 · How it's made</p>
+    <h2 id="made-title">No models. No textures. All code.</h2>
+    <p class="made-lede">Every car, wall and parking line in the game is built from code as simple shapes, and every sound is synthesised live in your browser. Nothing is downloaded but the game itself.</p>
+  </div>
+  <ul class="facts">
+    <li><b>three.js</b><span>draws the 3D world, the mirrors and the reversing-camera picture</span></li>
+    <li><b>cannon-es</b><span>simulates the car: four raycast wheels, springs and grip, stepped 120 times a second</span></li>
+    <li><b>Web Audio</b><span>makes the engine note and the sensor beeps on the fly, no sound files</span></li>
+    <li><b>4.20 × 1.78 m</b><span>the car's footprint, which every bay and aisle in the game is measured against</span></li>
+    <li><b>3.56 m</b><span>turning radius at full 42° lock, measured in the physics engine, not guessed</span></li>
+    <li><b>10 rays</b><span>two five-ray fans, one on each bumper, feed the parking sensors</span></li>
+    <li><b>137 cars</b><span>parked across City Drive, merged into a handful of draw calls to hold 60 fps</span></li>
+    <li><b>0 assets</b><span>no models, textures, sound files or fonts inside the game — only code</span></li>
+  </ul>
+
+  <aside class="next" aria-labelledby="next-title">
+    <div class="next-copy">
+      <p class="label"><b>The last level</b> · Level 17</p>
+      <h3 id="next-title">City Drive</h3>
+      <p>Start across town, follow the signs to the multi-storey, climb four floors of ramps and park on the roof. 427 metres of driving, and the only level with traffic lights.</p>
+    </div>
+    <ol class="climb" aria-label="City Drive route">
+      <li>Street</li><li>G</li><li>1</li><li>2</li><li>3</li><li>Roof</li>
+    </ol>
+  </aside>
+</section>
+
+<section class="roof" id="who" data-floor="Roof" aria-labelledby="who-title">
+  <div class="who">
+    <p class="label">Roof · Who made it</p>
+    <h2 id="who-title">Daksh Anajwala</h2>
+    <p class="who-body">High school student. Made Parking Precision instead of revising for a physics test, and kept going. Bugs, ideas or a level you'd like to see: get in touch.</p>
+    <ul class="contact">
+      <li><a href="https://github.com/DakshAnajwala" rel="noopener">GitHub · DakshAnajwala</a></li>
+      <li><a href="mailto:daksh.anajwala@gmail.com">daksh.anajwala@gmail.com</a></li>
+    </ul>
+  </div>
+
+  <div class="faq" aria-labelledby="faq-title">
+    <h3 id="faq-title" class="sub">Before you start</h3>
+    <dl>
+      <div><dt>Is it free?</dt><dd>Yes. No ads, no account, nothing to buy.</dd></div>
+      <div><dt>Do I need to download anything?</dt><dd>No. It runs in an up-to-date desktop browser with WebGL switched on.</dd></div>
+      <div><dt>Can I play on my phone?</dt><dd>Not yet. The car is driven with a keyboard, so it needs a computer.</dd></div>
+      <div><dt>I've never parked a car. Is it too hard?</dt><dd>Start with the tutorial: it walks you through gears, steering and reversing in a few minutes. If the driver's seat is too hard, press <kbd>C</kbd> for the chase camera.</dd></div>
+      <div><dt>What do you collect?</dt><dd>Your progress and settings stay in your browser. Only a finished run's score goes to the leaderboard, and you can switch that off. The <a href="./privacy.html">privacy policy</a> has the details.</dd></div>
+    </dl>
+  </div>
+
+  <div class="final">
+    <h2 class="final-title">Find the glowing bay.</h2>
+    <div class="cta-row">
+      <a class="cta" href="./play/">
+        Start driving
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>
+      </a>
+      <span class="cta-note">No account · nothing to install</span>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <nav aria-label="Legal">
+      <a href="./privacy.html">Privacy</a>
+      <a href="./terms.html">Terms</a>
+      <a href="./notices.html">Third-party notices</a>
+      <a href="https://github.com/DakshAnajwala" rel="noopener">GitHub</a>
+    </nav>
+    <span>© 2026 Daksh Anajwala. All rights reserved.</span>
+  </footer>
+</section>
+</main>
+</body>
+</html>

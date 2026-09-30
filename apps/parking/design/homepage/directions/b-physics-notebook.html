@@ -1,0 +1,391 @@
+<meta charset="utf-8">
+<title>Parking Precision Notebook</title>
+<meta name="description" content="Direction B of 3 for the Parking Precision homepage: the origin story as a physics worksheet, with a real free-body diagram of the game's car on a ramp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Kalam:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+<style>
+  /* Direction B commits to one world (a physics exercise book), so it is a
+     deliberate single light theme with every colour painted explicitly. */
+  :root {
+    --paper: #f2f6f8;
+    --plate: #ffffff;
+    --grid: rgba(71, 120, 150, 0.12);
+    --grid-major: rgba(71, 120, 150, 0.22);
+    --ink: #1b2830;
+    --pencil: #5b6b74;
+    --pen: #2b5c9e;
+    --red: #c9473b;
+    --margin-line: rgba(201, 71, 59, 0.5);
+    --hl: rgba(143, 230, 187, 0.66);
+    --tape: rgba(241, 199, 168, 0.62);
+
+    --head: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+    --hand: "Kalam", "Comic Neue", "Segoe Print", cursive;
+
+    --margin-x: clamp(26px, 6vw, 92px);
+    --content-l: calc(var(--margin-x) + clamp(20px, 3vw, 44px));
+    --content-r: clamp(16px, 5vw, 72px);
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--paper); }
+  body {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: clamp(17px, 0.4vw + 15px, 20px);
+    line-height: 1.6;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+    background-position: -1px -1px;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--pen); outline-offset: 4px; }
+
+  .page { position: relative; }
+  .page::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: var(--margin-x);
+    width: 2px; background: var(--margin-line); pointer-events: none;
+  }
+  .sheet { padding: 0 var(--content-r) 0 var(--content-l); }
+
+  .label {
+    margin: 0; font-family: var(--head); font-weight: 600; font-size: 15px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--pencil);
+  }
+  .problem {
+    margin: 0; font-family: var(--head); font-weight: 700; font-size: 18px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--pen);
+  }
+  .hand { font-family: var(--hand); color: var(--pen); font-weight: 400; }
+  var { font-style: italic; font-family: var(--serif); }
+  .num { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+
+  /* highlighter: full by default (the page reads at rest); scroll sweeps it on */
+  .hl {
+    background-image: linear-gradient(var(--hl), var(--hl));
+    background-repeat: no-repeat;
+    background-size: 100% 0.52em;
+    background-position: 0 88%;
+    padding: 0 0.08em;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  }
+
+  /* --------------------------------------------------------------- header */
+  .meta {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+    gap: 8px 24px; padding-block: 26px 10px;
+  }
+  .meta .hand { font-size: 22px; }
+
+  .hero {
+    display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+    gap: clamp(28px, 5vw, 72px); align-items: center;
+    padding-block: clamp(28px, 6vh, 64px) clamp(56px, 10vh, 110px);
+  }
+  .q { display: grid; gap: 20px; }
+  h1 {
+    margin: 0; font-family: var(--head); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(66px, 9.4vw, 148px); line-height: 0.86; letter-spacing: -0.005em;
+  }
+  h1 .hl { background-size: 100% 0.36em; background-position: 0 84%; }
+  .prompt { margin: 0; max-width: 36ch; font-size: clamp(21px, 1.2vw + 15px, 27px); line-height: 1.42; }
+  .aside { margin: 0; font-size: clamp(22px, 1.2vw + 16px, 30px); transform: rotate(-2deg); transform-origin: left center; }
+  .answer {
+    justify-self: start;
+    display: inline-flex; align-items: center; gap: 12px;
+    font-family: var(--head); font-weight: 700; font-size: 30px; line-height: 1;
+    letter-spacing: 0.03em; text-transform: uppercase; text-decoration: none;
+    color: var(--ink); background: var(--plate);
+    border: 2.5px solid var(--ink); padding: 14px 24px 13px;
+    box-shadow: 5px 5px 0 var(--pen);
+    transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+  }
+  .answer .therefore { color: var(--red); font-family: var(--serif); font-size: 34px; }
+  .answer:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--pen); background: #e9fbf2; }
+  .hint { margin: 0; font-size: 15px; color: var(--pencil); }
+
+  .fbd { margin: 0; display: grid; gap: 10px; }
+  .fbd svg { width: 100%; height: auto; overflow: visible; }
+  .fbd figcaption, .plate figcaption, .section-drawing figcaption {
+    font-size: 15px; line-height: 1.45; color: var(--pencil);
+  }
+  .fig { font-family: var(--head); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); margin-right: 6px; }
+
+  /* ---------------------------------------------------------------- story */
+  .story {
+    display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    gap: clamp(28px, 5vw, 80px); align-items: start;
+    padding-block: clamp(56px, 10vh, 110px);
+    border-top: 2px solid var(--grid-major);
+  }
+  .entries { display: grid; gap: 0.85em; }
+  .entries .problem { margin-bottom: 6px; }
+  .entry { margin: 0; font-weight: 500; font-size: clamp(25px, 1.7vw + 16px, 40px); line-height: 1.26; letter-spacing: -0.01em; max-width: 27ch; }
+  .entry s { text-decoration-color: var(--red); text-decoration-thickness: 3px; color: var(--pencil); }
+  .entry .hand { font-size: 0.78em; display: inline-block; transform: rotate(-3deg); margin-left: 0.25em; }
+  .entry.last { color: var(--ink); }
+  .sign { margin: 6px 0 0; font-size: 30px; transform: rotate(-2deg); transform-origin: left; }
+  .section-drawing { margin: 0; position: sticky; top: 24px; display: grid; gap: 10px; }
+  .section-drawing svg { width: 100%; height: auto; overflow: visible; }
+
+  /* -------------------------------------------------------------- figures */
+  .figures { padding-block: clamp(56px, 10vh, 110px); border-top: 2px solid var(--grid-major); }
+  .figures header { display: grid; gap: 12px; margin-bottom: clamp(28px, 5vh, 56px); max-width: 60ch; }
+  h2 {
+    margin: 0; font-family: var(--head); font-weight: 700; text-transform: uppercase;
+    font-size: clamp(40px, 4.4vw + 14px, 84px); line-height: 0.92; text-wrap: balance;
+  }
+  .plates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 44px); align-items: start; }
+  .plate {
+    margin: 0; position: relative; background: var(--plate); padding: 12px 12px 16px;
+    box-shadow: 0 1px 0 rgba(27, 40, 48, 0.05), 0 18px 30px -20px rgba(27, 40, 48, 0.45);
+    transform: rotate(var(--r, 0deg)); display: grid; gap: 12px;
+  }
+  .plate::before {
+    content: ""; position: absolute; top: -12px; left: 50%; width: 96px; height: 26px;
+    transform: translateX(-50%) rotate(-3deg); background: var(--tape);
+  }
+  .plate img { aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
+  .plate .spec { display: block; margin-top: 6px; font-family: var(--head); font-weight: 600; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pen); }
+
+  /* --------------------------------------------------------------- answer */
+  .final { padding-block: clamp(56px, 10vh, 110px) 32px; border-top: 2px solid var(--grid-major); display: grid; gap: 22px; }
+  .final .aside { color: var(--pencil); }
+  .foot {
+    margin-top: clamp(40px, 8vh, 90px); padding-top: 16px; border-top: 1px solid var(--grid-major);
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+    font-size: 14px; color: var(--pencil);
+  }
+
+  @media (max-width: 900px) {
+    .hero, .story { grid-template-columns: 1fr; }
+    .section-drawing { position: static; max-width: 420px; }
+    .plates { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .answer { transition: none; }
+  }
+</style>
+
+<div class="page">
+  <div class="sheet">
+    <div class="meta">
+      <span class="hand">Physics — Ch. 4 · Forces on an incline</span>
+      <p class="label">Direction B · Physics notebook</p>
+    </div>
+
+    <header class="hero">
+      <div class="q">
+        <p class="problem">Problem 4.7</p>
+        <h1>Parking <span class="hl">Precision</span></h1>
+        <p class="prompt">A <span class="num"><var>m</var> = 900 kg</span> car climbs an 11% ramp to the roof of a car park. Find the force it needs, then park it in a <span class="num">2.6 m</span> bay without touching the van next to it.</p>
+        <p class="aside hand">…or skip the working and just play it →</p>
+        <a class="answer" href="https://parking-precision.vercel.app/"><span class="therefore" aria-hidden="true">∴</span> Begin to play</a>
+        <p class="hint">A first-person parking game in your browser. Keyboard needed.</p>
+      </div>
+
+      <figure class="fbd">
+        <svg viewBox="0 0 580 440" role="img" aria-labelledby="fbd-title">
+          <title id="fbd-title">Free-body diagram of the car on the ramp: weight 8838 newtons straight down, normal force 8785 newtons perpendicular to the ramp, engine force 4800 newtons up the ramp, and the downhill component of weight, 966 newtons.</title>
+          <defs>
+            <marker id="ah-pen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2b5c9e"/></marker>
+            <marker id="ah-ink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1b2830"/></marker>
+            <marker id="ah-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c9473b"/></marker>
+            <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect width="10" height="10" fill="#f2f6f8"/>
+              <line x1="0" y1="0" x2="0" y2="10" stroke="#5b6b74" stroke-width="1.2" stroke-opacity="0.45"/>
+            </pattern>
+          </defs>
+
+          <!-- ground and ramp (drawn steeper than 6.3° so the forces are legible, as textbooks do) -->
+          <line x1="16" y1="360" x2="566" y2="360" stroke="#1b2830" stroke-width="2.5"/>
+          <path d="M40,360 L515.5,205.5 L515.5,360 Z" fill="url(#hatch)" stroke="#1b2830" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M110,360 A70,70 0 0,0 106.6,338.4" fill="none" stroke="#1b2830" stroke-width="2"/>
+          <text x="122" y="352" font-family="Newsreader, Georgia, serif" font-style="italic" font-size="22" fill="#1b2830">θ</text>
+
+          <!-- the car -->
+          <g transform="translate(280.5 258.8) rotate(-18)">
+            <rect x="-58" y="-24" width="116" height="40" rx="6" fill="#ffffff" stroke="#1b2830" stroke-width="2.5"/>
+            <path d="M-30,-24 L-18,-40 L22,-40 L36,-24" fill="#ffffff" stroke="#1b2830" stroke-width="2.5" stroke-linejoin="round"/>
+            <circle cx="-34" cy="18" r="11" fill="#1b2830"/>
+            <circle cx="34" cy="18" r="11" fill="#1b2830"/>
+            <circle cx="0" cy="-4" r="4" fill="#c9473b"/>
+          </g>
+
+          <!-- forces, from the centre of mass -->
+          <path class="force" d="M280.5,258.8 L394.6,221.7" fill="none" stroke="#2b5c9e" stroke-width="3.5" marker-end="url(#ah-pen)"/>
+          <path class="force" d="M280.5,258.8 L246.5,154.2" fill="none" stroke="#2b5c9e" stroke-width="3.5" marker-end="url(#ah-pen)"/>
+          <path class="force" d="M280.5,258.8 L280.5,382" fill="none" stroke="#1b2830" stroke-width="3.5" marker-end="url(#ah-ink)"/>
+          <path class="force" d="M280.5,258.8 L190.2,288.2" fill="none" stroke="#c9473b" stroke-width="3" stroke-dasharray="7 6" marker-end="url(#ah-red)"/>
+
+          <g class="flabels" font-family="Newsreader, Georgia, serif" font-size="19">
+            <text x="292" y="212" fill="#2b5c9e"><tspan font-style="italic">F</tspan> = 4800 N</text>
+            <text x="150" y="146" fill="#2b5c9e"><tspan font-style="italic">N</tspan> = 8785 N</text>
+            <text x="292" y="405" fill="#1b2830"><tspan font-style="italic">mg</tspan> = 8838 N</text>
+            <text x="30" y="318" fill="#c9473b"><tspan font-style="italic">mg</tspan> sin <tspan font-style="italic">θ</tspan> = 966 N</text>
+          </g>
+
+          <!-- the working, in pen -->
+          <g class="working" font-family="Kalam, cursive" fill="#2b5c9e">
+            <text x="318" y="64" font-size="22">net = 4800 − 966</text>
+            <text x="318" y="94" font-size="22">≈ 3834 N up the ramp ✓</text>
+            <text x="318" y="124" font-size="18" fill="#5b6b74">a ≈ 4.3 m/s² — easy</text>
+            <path d="M392,132 C 404,158 404,180 390,214" fill="none" stroke="#2b5c9e" stroke-width="2" marker-end="url(#ah-pen)"/>
+          </g>
+          <text x="566" y="430" text-anchor="end" font-family="Newsreader, Georgia, serif" font-style="italic" font-size="14" fill="#5b6b74">not to scale</text>
+        </svg>
+        <figcaption><span class="fig">Fig. 4.7</span> Free-body diagram. <var>g</var> = 9.82 m/s², 11% grade so <var>θ</var> = 6.3°. Mass and drive force are the game's own numbers.</figcaption>
+      </figure>
+    </header>
+
+    <section class="story" aria-labelledby="notes-title">
+      <div class="entries">
+        <p class="problem" id="notes-title">4.8 · Notes (not on the test)</p>
+        <p class="entry"><span class="hl">I was supposed to be studying for a physics test.</span></p>
+        <p class="entry">Inclines. Friction. The forces on a car parked on a ramp.</p>
+        <p class="entry"><s>Revise chapter 4.</s><span class="hand">got bored</span></p>
+        <p class="entry">Went looking for a parking game to play for five minutes. <span class="hl">None of them felt right.</span></p>
+        <p class="entry last"><span class="hl">So I closed the textbook and made my own.</span></p>
+        <p class="sign hand">— Daksh</p>
+      </div>
+
+      <figure class="section-drawing">
+        <svg viewBox="0 0 360 480" role="img" aria-labelledby="sec-title">
+          <title id="sec-title">Section drawing of a five-level car park: ground, levels 1 to 3 and the roof, joined by alternating ramps, with a car parked on the roof.</title>
+          <g stroke="#1b2830" stroke-width="3" stroke-linecap="round">
+            <line class="draw" x1="40" y1="420" x2="340" y2="420"/>
+            <line class="draw" x1="40" y1="330" x2="340" y2="330"/>
+            <line class="draw" x1="40" y1="240" x2="340" y2="240"/>
+            <line class="draw" x1="40" y1="150" x2="340" y2="150"/>
+            <line class="draw" x1="40" y1="60" x2="340" y2="60"/>
+          </g>
+          <g stroke="#2b5c9e" stroke-width="3" stroke-linecap="round" fill="none">
+            <path class="draw" d="M80,420 L260,330"/>
+            <path class="draw" d="M320,330 L140,240"/>
+            <path class="draw" d="M80,240 L260,150"/>
+            <path class="draw" d="M320,150 L140,60"/>
+          </g>
+          <g font-family="Kalam, cursive" font-size="20" fill="#5b6b74">
+            <text x="4" y="426">G</text>
+            <text x="8" y="336">1</text>
+            <text x="8" y="246">2</text>
+            <text x="8" y="156">3</text>
+            <text x="0" y="52">Roof</text>
+          </g>
+          <!-- the bay on the roof -->
+          <rect x="246" y="38" width="44" height="22" fill="rgba(143,230,187,0.66)"/>
+          <rect x="252" y="44" width="32" height="12" rx="3" fill="#c9473b"/>
+          <path d="M40,402 L76,402" stroke="#c9473b" stroke-width="2.5" marker-end="url(#ah-red-2)"/>
+          <text x="84" y="408" font-family="Kalam, cursive" font-size="16" fill="#c9473b">in from the city</text>
+          <defs><marker id="ah-red-2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c9473b"/></marker></defs>
+          <g font-family="Kalam, cursive" fill="#2b5c9e">
+            <text x="190" y="30" font-size="19">park here ↓</text>
+            <text x="40" y="462" font-size="19">11% ramps · 3.2 m per floor</text>
+          </g>
+        </svg>
+        <figcaption><span class="fig">Fig. 4.8</span> Planned for Level 13: start in the city, climb every ramp, park on the roof.</figcaption>
+      </figure>
+    </section>
+
+    <section class="figures" aria-labelledby="fig-title">
+      <header>
+        <p class="problem">4.9 · Figures</p>
+        <h2 id="fig-title">Twelve car parks, three kinds of hard.</h2>
+      </header>
+      <div class="plates">
+        <figure class="plate" style="--r: -1.4deg">
+          <img src="media/rooftop-dusk.webp" alt="The player's red car reversed into a narrow rooftop bay beside a pickup truck at dusk">
+          <figcaption><span class="fig">Fig. 1</span> The roof at dusk. The last lots, where the bays are narrowest.<span class="spec">2.6 m bay · 8° tolerance · 2 min</span></figcaption>
+        </figure>
+        <figure class="plate" style="--r: 0.9deg">
+          <img src="media/underground.webp" alt="An underground car park, the red car backed into the last bay beside a white van">
+          <figcaption><span class="fig">Fig. 2</span> Underground. A van on one side, a concrete pilaster on the other.<span class="spec">0.45 m to the pilaster</span></figcaption>
+        </figure>
+        <figure class="plate" style="--r: -0.6deg">
+          <img src="media/driver-seat.webp" alt="The driver's view: hands on the wheel, analog dials, rear-view mirror, a rooftop car park ahead">
+          <figcaption><span class="fig">Fig. 3</span> From the driver's seat. Mirrors, dials and a wheel that turns two full turns.<span class="spec">720° lock to lock</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="final" aria-labelledby="final-title">
+      <p class="problem" id="final-title">Answer</p>
+      <a class="answer" href="https://parking-precision.vercel.app/"><span class="therefore" aria-hidden="true">∴</span> Begin to play</a>
+      <p class="aside hand">(show your working in the game)</p>
+      <div class="foot">
+        <span>Direction B of 3 · placeholder stills rendered in the game</span>
+        <span>© 2026 Daksh Anajwala</span>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  const mm = gsap.matchMedia();
+  mm.add({ motion: '(prefers-reduced-motion: no-preference)' }, ({ conditions }) => {
+    if (!conditions.motion) return;
+
+    // Hero diagram: the forces are drawn one by one when the page loads, and
+    // the working is written in afterwards. Everything ends fully visible.
+    const forces = gsap.utils.toArray('.fbd .force');
+    const load = gsap.timeline({ delay: 0.25 });
+    forces.forEach((path, i) => {
+      const len = path.getTotalLength();
+      const dashed = path.getAttribute('stroke-dasharray');
+      if (dashed) {
+        load.fromTo(path, { opacity: 0 }, { opacity: 1, duration: 0.35 }, 0.2 + i * 0.35);
+      } else {
+        path.style.strokeDasharray = `${len} ${len}`;
+        load.fromTo(path, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out' }, 0.2 + i * 0.35);
+      }
+    });
+    load.from('.fbd .flabels text', { opacity: 0, y: 6, stagger: 0.12, duration: 0.3 }, 0.5);
+    load.from('.fbd .working > *', { opacity: 0, x: -8, stagger: 0.18, duration: 0.35 }, 1.7);
+
+    // Notes: the highlighter sweeps across each highlighted phrase in turn.
+    gsap.utils.toArray('.story .hl').forEach((mark) => {
+      gsap.fromTo(mark, { backgroundSize: '0% 0.52em' }, {
+        backgroundSize: '100% 0.52em', ease: 'none',
+        scrollTrigger: { trigger: mark, start: 'top 78%', end: 'top 48%', scrub: 0.4 },
+      });
+    });
+
+    // The car park section drawing builds itself floor by floor as you read.
+    const draws = gsap.utils.toArray('.section-drawing .draw');
+    const build = gsap.timeline({
+      scrollTrigger: { trigger: '.story', start: 'top 70%', end: 'bottom 70%', scrub: 0.5 },
+    });
+    // Order: ground, then each ramp followed by the floor it reaches.
+    const slabs = draws.slice(0, 5);
+    const ramps = draws.slice(5);
+    const order = [slabs[0], ramps[0], slabs[1], ramps[1], slabs[2], ramps[2], slabs[3], ramps[3], slabs[4]];
+    order.forEach((el, i) => {
+      const len = el.getTotalLength();
+      el.style.strokeDasharray = `${len} ${len}`;
+      build.fromTo(el, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1, ease: 'none' }, i);
+    });
+
+    // Figure plates settle straight as they arrive, like prints being pressed flat.
+    gsap.utils.toArray('.plate').forEach((plate) => {
+      const r = parseFloat(getComputedStyle(plate).getPropertyValue('--r')) || 0;
+      gsap.fromTo(plate, { rotate: r * 3.2, y: 24 }, {
+        rotate: r, y: 0, ease: 'none',
+        scrollTrigger: { trigger: plate, start: 'top 95%', end: 'top 55%', scrub: 0.5 },
+      });
+    });
+  });
+</script>

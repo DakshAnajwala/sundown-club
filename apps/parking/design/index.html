@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parking Precision Designs</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #0d1113; --card: #151c1f; --edge: rgba(190, 210, 208, 0.16);
+    --ink: #eef3f2; --dim: #9aa9a7; --mint: #8fe6bb; --amber: #e8c98a;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding-inline: 16px; padding-block: 48px 64px;
+  }
+  main { max-width: 860px; margin: 0 auto; }
+  .tag { display: inline-block; font: 600 12px ui-monospace, Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--amber); border: 1px solid rgba(232, 201, 138, .4); border-radius: 4px; padding: 3px 8px; }
+  h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.05; margin: 14px 0 10px; text-wrap: balance; }
+  p.lede { color: var(--dim); max-width: 60ch; margin: 0 0 32px; }
+  ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  a.card { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 18px 20px; background: var(--card); border: 1px solid var(--edge); border-radius: 10px; color: inherit; text-decoration: none; }
+  a.card:hover { border-color: rgba(143, 230, 187, .5); }
+  a.card:focus-visible { outline: 2px solid var(--mint); outline-offset: 3px; }
+  a.card b { font-size: 18px; }
+  a.card span.go { grid-row: span 2; align-self: center; color: var(--mint); font-weight: 600; }
+  a.card small { color: var(--dim); font-size: 14px; }
+  h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin: 36px 0 12px; }
+  footer { margin-top: 40px; color: var(--dim); font-size: 14px; }
+  footer a { color: var(--mint); }
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">Preview · not the live game</span>
+  <h1>Parking Precision — design previews</h1>
+  <p class="lede">Work in progress for the next update. These pages are separate from the live game at parking-precision.vercel.app, so anything broken here can't affect it.</p>
+
+  <h2>Try it</h2>
+  <ul>
+    <li><a class="card" href="./wheel-lab/index.html"><b>Wheel Lab</b><span class="go">Open →</span><small>The new sport steering wheel and hand-over-hand steering. Hold A / D to steer, P R N D to shift.</small></a></li>
+    <li><a class="card" href="./level13/sheet.html"><b>Level 13 — City Drive</b><span class="go">Open →</span><small>Layout sheet for the multi-storey car park level, with a drivable 3D blockout.</small></a></li>
+  </ul>
+
+  <h2>Homepage directions</h2>
+  <ul>
+    <li><a class="card" href="./homepage/directions/a-rooftop-dusk.html"><b>A — Rooftop dusk</b><span class="go">Open →</span><small>Cinematic, signage type, a floor indicator that climbs as you scroll.</small></a></li>
+    <li><a class="card" href="./homepage/directions/b-physics-notebook.html"><b>B — Physics notebook</b><span class="go">Open →</span><small>Graph paper, a force diagram that draws itself, highlighter notes.</small></a></li>
+    <li><a class="card" href="./homepage/directions/c-bright-sky.html"><b>C — Bright sky</b><span class="go">Open →</span><small>Airy and light; the title squeezes into its parking bay.</small></a></li>
+  </ul>
+
+  <footer><a href="../">Play this preview build of the game →</a></footer>
+</main>
+</body>
+</html>

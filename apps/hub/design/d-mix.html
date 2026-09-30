@@ -1,0 +1,196 @@
+<meta charset="utf-8">
+<title>Afterglow Hub</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: A's full-screen backdrop of the chosen game + arrow-key rail, with game shots,
+   set in B's warm dusk palette and serif. Scroll down for "Your evening" and the footer. */
+:root {
+  --bg: #15100e;
+  --ink: #f3e7d8;
+  --ink-2: #b9a896;
+  --line: rgba(243, 231, 216, 0.14);
+  --glass: rgba(21, 16, 14, 0.5);
+  --wood: #3b2c24;
+  --accent: #f0a868;
+  --serif: "Young Serif", Georgia, "Times New Roman", serif;
+  --sans: "Schibsted Grotesk", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); overflow-x: hidden; }
+.pad { padding-inline: clamp(16px, 4.5vw, 64px); }
+
+/* ---- first screen */
+.screen { position: relative; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; isolation: isolate; }
+.bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s ease; transform: scale(1.04); }
+.bg img.on { opacity: 1; animation: drift 26s ease-in-out infinite alternate; }
+@keyframes drift { to { transform: scale(1.1) translate(-1.5%, -1%); } }
+.bg::after { content: ""; position: absolute; inset: 0; background:
+  radial-gradient(70% 60% at 85% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+  linear-gradient(90deg, rgba(21,16,14,.93) 0%, rgba(21,16,14,.62) 38%, rgba(21,16,14,.08) 72%),
+  linear-gradient(0deg, rgba(21,16,14,1) 0%, rgba(21,16,14,.55) 26%, rgba(21,16,14,0) 50%),
+  linear-gradient(180deg, rgba(21,16,14,.65) 0%, rgba(21,16,14,0) 16%); transition: background .8s; }
+
+header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 24px; flex-wrap: wrap; }
+.word { font: 400 24px var(--serif); display: flex; align-items: center; gap: 10px; }
+.word i { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 16px var(--accent); transition: background .6s, box-shadow .6s; }
+header nav { display: flex; gap: 22px; font-size: 14px; }
+header nav a { color: var(--ink-2); text-decoration: none; } header nav a:hover { color: var(--ink); }
+.me { display: flex; align-items: center; gap: 12px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(10px); text-decoration: none; color: inherit; }
+.me .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--sans); background: var(--wood); }
+.me .lv { font: 500 12px var(--mono); color: var(--ink-2); }
+.me .xp { width: 72px; height: 4px; border-radius: 4px; background: rgba(243,231,216,.14); overflow: hidden; margin-top: 3px; }
+.me .xp b { display: block; height: 100%; width: 67%; background: var(--accent); transition: background .6s; }
+
+.hero { align-self: center; max-width: 640px; display: grid; gap: 16px; padding-block: 2vh; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); transition: color .6s; }
+h1 { margin: 0; font: 400 clamp(46px, 6.6vw, 92px)/1 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
+.blurb { margin: 0; font-size: 18px; line-height: 1.55; color: #e2d5c5; max-width: 44ch; }
+.ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.btn { display: inline-flex; align-items: center; gap: 12px; padding: 13px 20px; border-radius: 10px; font: 600 15px var(--sans); cursor: pointer; border: 1px solid var(--line); color: var(--ink); background: var(--glass); backdrop-filter: blur(10px); }
+.btn.play { background: var(--accent); color: #1b1209; border-color: transparent; transition: background .6s; }
+.btn kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: .55; }
+.btn:disabled { opacity: .5; cursor: default; }
+.facts { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 8px; }
+.facts div { display: grid; gap: 2px; }
+.facts b { font: 500 20px var(--mono); font-variant-numeric: tabular-nums; }
+.facts span { font-size: 12px; color: var(--ink-2); }
+
+/* ---- window rail */
+.railwrap { padding-bottom: 22px; display: grid; gap: 10px; }
+.railhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+.railhead kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); margin-right: 4px; color: var(--ink); }
+.keys { display: flex; gap: 14px; flex-wrap: wrap; }
+.rail { display: flex; gap: clamp(12px, 1.8vw, 24px); align-items: start; overflow-x: auto; padding: 16px 4px 0; scrollbar-width: none; position: relative; }
+
+.tile { flex: 0 0 auto; width: clamp(200px, 17vw, 260px); display: grid; gap: 10px; background: none; border: 0; padding: 0; cursor: pointer; color: inherit; text-align: left; outline: none; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.shot { position: relative; aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; background: #2a1f1a; box-shadow: 0 0 0 1px var(--line), 0 14px 30px -18px rgba(0,0,0,.8); transition: box-shadow .3s; }
+.shot img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 45%); display: block; filter: brightness(.78) saturate(.9); transition: filter .4s, transform .6s; transform: scale(1.03); }
+.shot::after { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255,230,190,.12), transparent 45%); pointer-events: none; }
+.name { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font: 400 18px var(--serif); padding-inline: 2px; }
+.name small { font: 500 10px var(--mono); color: var(--ink-2); letter-spacing: .06em; text-transform: uppercase; }
+.bar { height: 2px; border-radius: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .35s cubic-bezier(.2,.8,.2,1), background .6s; margin-inline: 2px; }
+.tile[aria-selected="true"] { transform: translateY(-6px); }
+.tile[aria-selected="true"] .shot { box-shadow: 0 0 0 2px var(--accent), 0 22px 44px -16px var(--accent); }
+.tile[aria-selected="true"] .bar { transform: scaleX(1); }
+.tile[aria-selected="true"] .shot img, .tile:hover .shot img { filter: brightness(1.02) saturate(1.05); transform: scale(1.08); }
+.tile:focus-visible .shot { box-shadow: 0 0 0 3px var(--ink); }
+.soon .shot img { filter: grayscale(.7) brightness(.42) blur(1.5px); }
+.soon .shot .lock { position: absolute; left: 10px; top: 10px; z-index: 1; font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(21,16,14,.7); border: 1px solid var(--line); color: var(--ink-2); }
+
+/* ---- below the fold */
+.evening { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(20px, 4vw, 60px); padding-block: 64px 40px; border-top: 1px solid var(--line); }
+.evening h2 { margin: 0; font: 400 32px/1.15 var(--serif); }
+.who { display: grid; gap: 10px; align-content: start; }
+.who .lvl { font: 500 13px var(--mono); color: var(--ink-2); }
+.xpbar { height: 6px; border-radius: 6px; background: rgba(243,231,216,.1); overflow: hidden; max-width: 280px; }
+.xpbar b { display: block; height: 100%; width: 67%; background: linear-gradient(90deg, #c9733f, var(--accent)); }
+.sample { font: 500 11px var(--mono); color: var(--ink-2); border: 1px dashed var(--line); padding: 2px 8px; border-radius: 999px; justify-self: start; }
+.ledger { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ledger div { background: var(--bg); padding: 16px 18px; display: grid; gap: 4px; }
+.ledger b { font: 500 22px var(--mono); font-variant-numeric: tabular-nums; }
+.ledger span { font-size: 13px; color: var(--ink-2); }
+.ledger em { font: 500 11px var(--mono); font-style: normal; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; }
+footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 28px 40px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+footer nav { display: flex; gap: 18px; flex-wrap: wrap; } footer a { color: var(--ink-2); }
+#toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 5; padding: 10px 16px; border-radius: 10px; background: var(--ink); color: #1b1411; font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+#toast.on { opacity: 1; }
+@media (max-width: 820px) { header nav { display: none; } .evening { grid-template-columns: 1fr; } .ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); } .blurb { font-size: 16px; } }
+@media (prefers-reduced-motion: reduce) { .bg img.on { animation: none; } .tile, .shot img, .bar { transition: none; } html { scroll-behavior: auto; } }
+</style>
+
+<section class="screen">
+  <div class="bg" id="bg"></div>
+  <header class="pad">
+    <div class="word"><i></i>afterglow</div>
+    <nav aria-label="Hub"><a href="#">Games</a><a href="#evening">Your evening</a><a href="#">Settings</a><a href="#about">About</a></nav>
+    <a class="me" href="#evening" title="Sample profile"><span class="av">DA</span><div><div class="lv">daksh · Lv 7</div><div class="xp"><b></b></div></div></a>
+  </header>
+  <div class="hero pad" aria-live="polite">
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="title"></h1>
+    <p class="blurb" id="blurb"></p>
+    <div class="ctas"><button class="btn play" id="play">Play <kbd>Enter</kbd></button><button class="btn" id="resume"></button></div>
+    <div class="facts" id="facts"></div>
+  </div>
+  <div class="railwrap pad">
+    <div class="railhead"><span>Games <span class="sample" style="margin-left: 8px">Sample profile data</span></span><div class="keys"><span><kbd>←</kbd><kbd>→</kbd>choose</span><span><kbd>Enter</kbd>play</span><span><kbd>C</kbd>continue</span></div></div>
+    <div class="rail" id="rail" role="tablist" aria-label="Games"></div>
+  </div>
+</section>
+
+<section class="evening pad" id="evening">
+  <div class="who">
+    <h2>Your evening, daksh</h2>
+    <div class="lvl">Level 7 · 1,340 / 2,000 XP</div>
+    <div class="xpbar"><b></b></div>
+    <span class="sample">Sample profile data</span>
+  </div>
+  <div class="ledger">
+    <div><em>Blackjack</em><b>4,100</b><span>Peak chips</span></div>
+    <div><em>Blackjack</em><b>312</b><span>Hands played</span></div>
+    <div><em>Parking</em><b>38 / 51</b><span>Stars</span></div>
+    <div><em>Parking</em><b>94</b><span>Best park</span></div>
+    <div><em>Everything</em><b>4h 12m</b><span>Time played</span></div>
+    <div><em>Everything</em><b>3 days</b><span>Current streak</span></div>
+  </div>
+</section>
+<footer class="pad" id="about">
+  <span>Browser games by Daksh Anajwala · github.com/DakshAnajwala · progress stays on this device</span>
+  <nav aria-label="Legal"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Third-party notices</a></nav>
+</footer>
+<div id="toast" role="status"></div>
+
+<script>
+const GAMES = [
+  { name: 'Blackjack', accent: '#f0a868', img: 'media/bj-clean.jpg', pos: '50% 35%', tag: 'Cards', eyebrow: 'Cards · New', go: '/design/blackjack/room.html',
+    blurb: 'Six decks, one seat, and a dealer with no face. Golden hour through the window, chips that click.',
+    resume: 'Continue · 2,450 chips', facts: [['2,450', 'Chips'], ['4,100', 'Peak'], ['312', 'Hands']] },
+  { name: 'Parking Precision', accent: '#8fe3cf', img: 'media/rooftop-dusk.webp', pos: '55% 55%', tag: 'Driving', eyebrow: 'Driving · 17 car parks', go: '/play/',
+    blurb: 'Park a real-sized car in a glowing bay, first person, scored out of 100. Mirrors, sensors and a reversing camera.',
+    resume: 'Continue · Level 7, Rooftop', facts: [['38 / 51', 'Stars'], ['94', 'Best park'], ['2h 40m', 'Played']] },
+  { name: "Hold'em", accent: '#d98a93', img: 'media/bj-dusk.jpg', pos: '30% 45%', tag: 'Soon', eyebrow: 'Cards · Coming soon', soon: true,
+    blurb: 'Heads-up poker at the same table, against faceless regulars with their own habits.', facts: [] },
+  { name: 'Night Drive', accent: '#9aa6ff', img: 'media/rooftop-lane.webp', pos: '50% 50%', tag: 'Soon', eyebrow: 'Driving · Coming soon', soon: true,
+    blurb: 'The parking car, let out of the car park. A long road after dark.', facts: [] },
+];
+const $ = (s) => document.querySelector(s);
+const bg = $('#bg'), rail = $('#rail');
+let cur = 0;
+GAMES.forEach((g, i) => {
+  const im = document.createElement('img'); im.src = g.img; im.alt = ''; bg.appendChild(im); g.bgEl = im;
+  const w = document.createElement('button');
+  w.className = 'tile' + (g.soon ? ' soon' : ''); w.setAttribute('role', 'tab'); w.setAttribute('aria-label', g.name + (g.soon ? ', coming soon' : ''));
+  w.innerHTML = `<div class="shot" style="--pos:${g.pos}"><img src="${g.img}" alt="">${g.soon ? '<span class="lock">Coming soon</span>' : ''}</div><div class="name">${g.name}<small>${g.tag}</small></div><div class="bar"></div>`;
+  w.addEventListener('click', () => (cur === i ? play() : select(i)));
+  rail.appendChild(w); g.el = w;
+});
+function select(i) {
+  cur = (i + GAMES.length) % GAMES.length;
+  const g = GAMES[cur];
+  GAMES.forEach((x, j) => { x.bgEl.classList.toggle('on', j === cur); x.el.setAttribute('aria-selected', j === cur); });
+  document.documentElement.style.setProperty('--accent', g.accent);
+  $('#eyebrow').textContent = g.eyebrow; $('#title').textContent = g.name; $('#blurb').textContent = g.blurb;
+  $('#play').disabled = !!g.soon; $('#play').firstChild.textContent = g.soon ? 'In the workshop ' : 'Play ';
+  $('#resume').hidden = !g.resume; $('#resume').innerHTML = `${g.resume || ''} <kbd>C</kbd>`;
+  $('#facts').innerHTML = g.facts.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('');
+}
+const local = /^(localhost|127\.)/.test(location.hostname);
+let tt;
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2200); }
+function play() { const g = GAMES[cur]; if (g.soon) return; if (local) location.href = g.go; else toast(`In the real hub this opens ${g.name}.`); }
+$('#play').addEventListener('click', play); $('#resume').addEventListener('click', play);
+addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') { e.preventDefault(); select(cur + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); select(cur - 1); }
+  else if (e.key === 'Enter' && !e.target.closest?.('.tile')) play();
+  else if (e.key.toLowerCase() === 'c') play();
+});
+select(0);
+</script>

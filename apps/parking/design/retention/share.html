@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<title>Share output</title>
+<link rel="stylesheet" href="./hud-base.css">
+<link rel="stylesheet" href="./retention.css">
+<link rel="stylesheet" href="./proto.css">
+<style>
+  .bubble { flex: 0 0 360px; background: #2b3a41; border-radius: 18px 18px 18px 4px; padding: 12px 14px;
+    font-size: 14.5px; line-height: 1.45; white-space: pre-wrap; box-shadow: 0 2px 10px rgba(0,0,0,.3); }
+  .bubble a { color: #8fd3ff; }
+  .rule { flex: 1 1 100%; font-size: 13px; opacity: .8; line-height: 1.6; }
+  .rule table { border-collapse: collapse; margin-top: 6px; }
+  .rule td, .rule th { padding: 3px 12px 3px 0; text-align: left; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<header class="proto-head">
+  <h1>Share output <a href="./index.html">← all prototypes</a></h1>
+  <p>SPEC §7. Text only, built on the device from the run's real numbers, handed to the clipboard (or the share sheet on touch).
+  No name, no identifier. Below: what it looks like pasted into a chat.</p>
+</header>
+<div class="hud proto">
+  <div><p class="cap">A level (example B, Gold 96)</p>
+  <div class="bubble">Parking Precision · Deck Two
+96/100 ★★★ GOLD · 52.0 s
+🟩🟩🟩🟩🟩
+Free in your browser: <a>https://parking-precision.vercel.app/</a></div></div>
+
+  <div><p class="cap">A level (example A, 84)</p>
+  <div class="bubble">Parking Precision · Deck One
+84/100 ★★☆ · 31.4 s
+🟨🟩🟨🟩🟩
+Free in your browser: <a>https://parking-precision.vercel.app/</a></div></div>
+
+  <div><p class="cap">A daily</p>
+  <div class="bubble">Parking Precision · Daily #12
+Deck Two — no contact
+91/100 ★★★ · 38.2 s
+🟨🟨🟨🟩🟩
+Free in your browser: <a>https://parking-precision.vercel.app/</a></div></div>
+
+  <div class="rule">
+    Cells, in order: Placement, Depth, Alignment, Time, Clean run. Each is the part's points over its maximum:
+    <table>
+      <tr><th>Cell</th><th>Rule</th><th></th></tr>
+      <tr><td>🟩</td><td>≥ 90 % of the part's maximum</td><td></td></tr>
+      <tr><td>🟨</td><td>≥ 60 %</td><td></td></tr>
+      <tr><td>⬛</td><td>below 60 %</td><td></td></tr>
+      <tr><th>Run</th><th>Placement · Depth · Alignment · Time · Clean</th><th>Row</th></tr>
+      <tr><td>A, 84</td><td>18.42/30 = 61 % · 18.57/20 = 93 % · 22.29/25 = 89 % · 15/15 · 10/10</td><td>🟨🟩🟨🟩🟩</td></tr>
+      <tr><td>B, 96</td><td>28.95/30 = 97 % · 18.21/20 = 91 % · 24.32/25 = 97 % · 15/15 · 10/10</td><td>🟩🟩🟩🟩🟩</td></tr>
+      <tr><td>Daily, 91</td><td>25.79/30 = 86 % · 17.86/20 = 89 % · 22.27/25 = 89 % · 15/15 · 10/10</td><td>🟨🟨🟨🟩🟩</td></tr>
+    </table>
+  </div>
+</div>
+</body>
+</html>

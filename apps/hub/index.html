@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Sundown Club: small browser games, made slowly. Blackjack and Parking Precision, free, nothing to install.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23f0a868'/%3E%3C/svg%3E">
+<title>Sundown Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: one long evening. A fixed sky behind the page sets as you scroll (golden hour -> dusk -> night).
+   Lobby (approved first screen) -> the door (manifesto) -> Blackjack chapter (pinned, image opens to full bleed)
+   -> Parking chapter (pinned, horizontal filmstrip) -> workshop teasers -> your evening -> the house -> night footer. */
+:root {
+  --bg: #15100e;
+  --ink: #f3e7d8;
+  --ink-2: #b9a896;
+  --ink-3: #8a7c70;
+  --line: rgba(243, 231, 216, 0.14);
+  --glass: rgba(21, 16, 14, 0.5);
+  --wood: #3b2c24;
+  --accent: #f0a868;
+  --bj: #f0a868;
+  --pk: #8fe3cf;
+  --serif: "Young Serif", Georgia, "Times New Roman", serif;
+  --sans: "Schibsted Grotesk", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --gutter: clamp(16px, 4.5vw, 64px);
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+html { scroll-behavior: auto; }
+body { margin: 0; background: #0d0b12; color: var(--ink); font-family: var(--sans); overflow-x: clip; }
+a { color: inherit; }
+.pad { padding-inline: var(--gutter); }
+.mono { font-family: var(--mono); }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.sample { font: 500 11px var(--mono); color: var(--ink-2); border: 1px dashed var(--line); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: .6; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* ------------------------------------------------------------------ sky (fixed, sets with scroll) */
+.sky { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none;
+  --top: #1a1210; --mid: #3a2218; --bot: #7a4424; --hill-far: #2a1b18; --hill-near: #1b1210; --sun-a: #ffd49a; --sun-b: #f0a868;
+  background: linear-gradient(180deg, var(--top) 0%, var(--mid) 55%, var(--bot) 100%); }
+.sun { position: absolute; left: 66%; top: 16vh; width: 46vmin; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, 0);
+  background: radial-gradient(circle, var(--sun-a) 0%, var(--sun-b) 22%, color-mix(in srgb, var(--sun-b) 30%, transparent) 42%, transparent 68%); opacity: .9; }
+.stars { position: absolute; inset: 0 0 30% 0; opacity: 0; }
+.stars i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #e9ecff; animation: twinkle var(--d, 4s) ease-in-out infinite; animation-delay: var(--dl, 0s); }
+@keyframes twinkle { 50% { opacity: .25; } }
+.moon { position: absolute; left: 82%; top: 12vh; width: 7vmin; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 60% 40%, #eef0f8 0 45%, #c9cde0 60%, transparent 62%); box-shadow: 0 0 60px 10px rgba(200,210,255,.12); opacity: 0; transform: translateY(8vh); }
+.hills { position: absolute; left: 0; right: 0; bottom: 0; height: 26vh; }
+.hills svg { position: absolute; bottom: 0; left: -2%; width: 104%; height: 100%; }
+.hills .far { fill: var(--hill-far); } .hills .near { fill: var(--hill-near); }
+
+/* ------------------------------------------------------------------ header */
+.bar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 20px var(--gutter); transition: background .4s, padding .4s, border-color .4s; border-bottom: 1px solid transparent; }
+.bar.solid { background: rgba(16, 12, 14, .72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding-block: 12px; border-color: var(--line); }
+.word { display: flex; align-items: center; gap: 10px; font: 400 22px var(--serif); text-decoration: none; color: var(--ink); white-space: nowrap; }
+.word svg { width: 28px; height: 18px; overflow: visible; }
+.word .disc { fill: var(--accent); transition: fill .6s; }
+.word .line { stroke: var(--ink); stroke-width: 1.6; }
+.bar nav { display: flex; gap: 4px; }
+.bar nav a { font-size: 14px; color: var(--ink-2); text-decoration: none; padding: 7px 12px; border-radius: 999px; transition: color .2s, background .2s; }
+.bar nav a:hover { color: var(--ink); }
+.bar nav a.on { color: var(--ink); background: rgba(243,231,216,.08); }
+.me { display: flex; align-items: center; gap: 12px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(10px); text-decoration: none; }
+.me .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--sans); background: var(--wood); }
+.me .lv { font: 500 12px var(--mono); color: var(--ink-2); }
+.me .xp { width: 72px; height: 4px; border-radius: 4px; background: rgba(243,231,216,.14); overflow: hidden; margin-top: 3px; }
+.me .xp b { display: block; height: 100%; width: 67%; background: var(--accent); transition: background .6s; }
+
+/* ------------------------------------------------------------------ lobby (approved first screen) */
+.lobby { position: relative; min-height: 100vh; display: grid; grid-template-rows: 88px 1fr auto; isolation: isolate; }
+.lobby .bg { position: absolute; inset: 0; z-index: -1; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%); mask-image: linear-gradient(180deg, #000 72%, transparent 100%); }
+.lobby .bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s ease; transform: scale(1.04); }
+.lobby .bg img.on { opacity: 1; animation: drift 26s ease-in-out infinite alternate; }
+@keyframes drift { to { transform: scale(1.1) translate(-1.5%, -1%); } }
+.lobby .bg::after { content: ""; position: absolute; inset: 0; background:
+  radial-gradient(70% 60% at 85% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+  linear-gradient(90deg, rgba(21,16,14,.93) 0%, rgba(21,16,14,.62) 38%, rgba(21,16,14,.08) 72%),
+  linear-gradient(0deg, rgba(21,16,14,.9) 0%, rgba(21,16,14,.5) 26%, rgba(21,16,14,0) 50%),
+  linear-gradient(180deg, rgba(21,16,14,.65) 0%, rgba(21,16,14,0) 16%); }
+.hero { align-self: center; max-width: 640px; display: grid; gap: 16px; padding-block: 2vh; }
+.hero h1 { margin: 0; font: 400 clamp(46px, 6.6vw, 92px)/1 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
+.hero .blurb { margin: 0; font-size: 18px; line-height: 1.55; color: #e2d5c5; max-width: 44ch; }
+.ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.btn { display: inline-flex; align-items: center; gap: 12px; padding: 13px 20px; border-radius: 10px; font: 600 15px var(--sans); cursor: pointer; border: 1px solid var(--line); color: var(--ink); background: var(--glass); backdrop-filter: blur(10px); text-decoration: none; white-space: nowrap; }
+.btn.fill { background: var(--accent); color: #1b1209; border-color: transparent; transition: background .6s, transform .2s; }
+.btn.fill:hover { transform: translateY(-1px); }
+.btn:disabled { opacity: .5; cursor: default; }
+.facts { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 8px; }
+.facts div { display: grid; gap: 2px; }
+.facts b { font: 500 20px var(--mono); font-variant-numeric: tabular-nums; }
+.facts span { font-size: 12px; color: var(--ink-2); }
+.railwrap { padding-bottom: 22px; display: grid; gap: 10px; }
+.railhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+.railhead kbd { color: var(--ink); opacity: 1; border-color: var(--line); margin-right: 4px; }
+.keys { display: flex; gap: 14px; flex-wrap: wrap; }
+.rail { display: flex; gap: clamp(12px, 1.8vw, 24px); align-items: start; overflow-x: auto; padding: 16px 4px 0; scrollbar-width: none; }
+.tile { flex: 0 0 auto; width: clamp(200px, 17vw, 260px); display: grid; gap: 10px; background: none; border: 0; padding: 0; cursor: pointer; color: inherit; text-align: left; outline: none; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.shot { position: relative; aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; background: #2a1f1a; box-shadow: 0 0 0 1px var(--line), 0 14px 30px -18px rgba(0,0,0,.8); transition: box-shadow .3s; }
+.shot img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 45%); display: block; filter: brightness(.78) saturate(.9); transition: filter .4s, transform .6s; transform: scale(1.03); }
+.tile .name { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font: 400 18px var(--serif); padding-inline: 2px; }
+.tile .name small { font: 500 10px var(--mono); color: var(--ink-2); letter-spacing: .06em; text-transform: uppercase; }
+.tile .bar2 { height: 2px; border-radius: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .35s cubic-bezier(.2,.8,.2,1), background .6s; margin-inline: 2px; }
+.tile[aria-selected="true"] { transform: translateY(-6px); }
+.tile[aria-selected="true"] .shot { box-shadow: 0 0 0 2px var(--accent), 0 22px 44px -16px var(--accent); }
+.tile[aria-selected="true"] .bar2 { transform: scaleX(1); }
+.tile[aria-selected="true"] .shot img, .tile:hover .shot img { filter: brightness(1.02) saturate(1.05); transform: scale(1.08); }
+.tile:focus-visible .shot { box-shadow: 0 0 0 3px var(--ink); }
+.soon .shot img { filter: grayscale(.7) brightness(.42) blur(1.5px); }
+.lock { position: absolute; left: 10px; top: 10px; z-index: 1; font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(21,16,14,.7); border: 1px solid var(--line); color: var(--ink-2); }
+.cue { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: grid; justify-items: center; gap: 8px; font: 500 10px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); pointer-events: none; }
+.cue i { width: 1px; height: 34px; background: linear-gradient(var(--ink-2), transparent); transform-origin: top; animation: cue 2.2s ease-in-out infinite; }
+@keyframes cue { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+
+/* ------------------------------------------------------------------ the door (manifesto, words light up) */
+.door { height: 230vh; position: relative; }
+.door .stick { position: sticky; top: 0; height: 100vh; display: grid; place-items: center; }
+.door p { margin: 0; max-width: 22ch; font: 400 clamp(28px, 3.7vw, 56px)/1.16 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
+.door p .w { display: inline-block; }
+.door p .hl { color: var(--bj); }
+.door .kick { margin-top: 28px; font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+
+/* ------------------------------------------------------------------ chapters */
+.chapter { position: relative; }
+.chapter .stick { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+.chap-num { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); display: flex; gap: 12px; align-items: center; }
+.chap-num::after { content: ""; width: 48px; height: 1px; background: currentColor; opacity: .6; }
+.chapter h2 { margin: 12px 0 0; font: 400 clamp(52px, 8vw, 120px)/.95 var(--serif); letter-spacing: -.015em; }
+.chapter .lead { margin: 18px 0 0; font-size: 18px; line-height: 1.55; color: #e2d5c5; max-width: 40ch; }
+
+/* Blackjack: image opens from a card on the right to full bleed, then callouts, then the sun sets in the room */
+.bj { height: 340vh; --accent: var(--bj); }
+.bj .media { position: absolute; inset: 0; clip-path: inset(15% 5% 15% 52% round 22px); will-change: clip-path; }
+.bj .media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 60% 40%; transform: scale(1.22); transform-origin: 70% 50%; }
+.bj .media .night { opacity: 0; }
+.bj .shade { position: absolute; inset: 0; opacity: 0; pointer-events: none; background:
+  linear-gradient(90deg, rgba(14,10,10,.92) 0%, rgba(14,10,10,.55) 42%, rgba(14,10,10,.1) 75%),
+  linear-gradient(0deg, rgba(14,10,10,.9) 0%, rgba(14,10,10,0) 45%); }
+.bj .copy { position: absolute; left: var(--gutter); top: 50%; transform: translateY(-50%); max-width: min(560px, 44vw); z-index: 2; }
+.bj .copy .btn { margin-top: 26px; }
+.callouts { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 7vh; z-index: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 3vw, 40px); }
+.callout { border-top: 1px solid rgba(243,231,216,.3); padding-top: 14px; display: grid; gap: 6px; }
+.callout b { font: 400 22px var(--serif); }
+.callout span { font-size: 14px; line-height: 1.5; color: var(--ink-2); max-width: 34ch; }
+.callout em { font: 500 11px var(--mono); font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.nightnote { position: absolute; right: var(--gutter); top: 16vh; z-index: 2; max-width: 30ch; text-align: right; font: 400 20px/1.35 var(--serif); opacity: 0; }
+.nightnote small { display: block; margin-top: 8px; font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+
+/* Parking: horizontal filmstrip */
+.pk { height: 420vh; --accent: var(--pk); }
+.pk .stick { display: grid; grid-template-rows: auto 1fr auto; padding-top: 104px; }
+.pk .head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: end; }
+.pk h2 { font-size: clamp(44px, 6.4vw, 96px); }
+.pk .stats { display: flex; gap: 28px; flex-wrap: wrap; justify-content: flex-end; }
+.pk .stats div { display: grid; gap: 2px; text-align: right; }
+.pk .stats b { font: 500 26px var(--mono); }
+.pk .stats span { font-size: 12px; color: var(--ink-2); }
+.track { display: flex; gap: 2.4vw; align-items: center; padding-inline: var(--gutter); will-change: transform; }
+.frame { flex: 0 0 auto; width: min(60vw, calc(46vh * 1.6)); display: grid; gap: 12px; }
+.frame .pic { aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; position: relative; box-shadow: 0 0 0 1px var(--line), 0 30px 60px -30px rgba(0,0,0,.9); }
+.frame .pic img { position: absolute; inset: 0; width: 118%; height: 100%; left: -9%; object-fit: cover; }
+.frame .cap { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
+.frame .cap b { font: 400 22px var(--serif); }
+.frame .cap span { font-size: 14px; color: var(--ink-2); text-align: right; }
+.frame .cap i { font: 500 11px var(--mono); font-style: normal; color: var(--accent); margin-right: 10px; }
+.frame.end { width: min(34vw, 420px); align-self: center; display: grid; gap: 18px; }
+.frame.end p { margin: 0; font: 400 clamp(26px, 2.6vw, 38px)/1.2 var(--serif); }
+.pk .foot { display: flex; align-items: center; gap: 18px; padding: 0 var(--gutter) 5vh; }
+.pk .count { font: 500 13px var(--mono); color: var(--ink-2); min-width: 60px; }
+.pk .prog { flex: 1; height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.pk .prog b { display: block; height: 100%; background: var(--pk); transform-origin: left; transform: scaleX(0); }
+
+/* ------------------------------------------------------------------ workshop */
+.shop { padding-block: 22vh 12vh; }
+.sec-head { display: grid; gap: 12px; margin-bottom: 44px; max-width: 760px; }
+.sec-head h2 { margin: 0; font: 400 clamp(38px, 5vw, 68px)/1.02 var(--serif); letter-spacing: -.01em; }
+.sec-head p { margin: 0; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 52ch; }
+.teasers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 2.4vw, 32px); }
+.teaser { position: relative; border-radius: 18px; overflow: hidden; min-height: 360px; display: grid; align-content: end; padding: 26px; box-shadow: 0 0 0 1px var(--line); }
+.teaser img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(.6) brightness(.38) blur(3px); transform: scale(1.08); transition: filter .8s, transform .8s; }
+.teaser:hover img { filter: grayscale(.4) brightness(.46) blur(2px); transform: scale(1.12); }
+.teaser::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(12,10,14,.9), rgba(12,10,14,.1) 60%); }
+.teaser > * { position: relative; z-index: 1; }
+.teaser .lock { position: absolute; top: 20px; left: 20px; z-index: 2; }
+.teaser h3 { margin: 0; font: 400 clamp(32px, 3.4vw, 48px)/1 var(--serif); }
+.teaser p { margin: 10px 0 0; color: var(--ink-2); line-height: 1.5; max-width: 40ch; }
+.teaser .tag { margin-top: 16px; font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--t); }
+
+/* ------------------------------------------------------------------ your evening */
+.evening { padding-block: 12vh; }
+.eve { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
+.who { display: grid; gap: 14px; }
+.lvlring { display: flex; align-items: center; gap: 18px; }
+.lvlring svg { width: 108px; height: 108px; }
+.lvlring text { font: 500 30px var(--mono); fill: var(--ink); }
+.lvlring .sm { font: 500 9px var(--mono); fill: var(--ink-2); letter-spacing: .14em; }
+.who .lvl { font: 500 13px var(--mono); color: var(--ink-2); }
+.xpbar { height: 6px; border-radius: 6px; background: rgba(243,231,216,.1); overflow: hidden; max-width: 300px; }
+.xpbar b { display: block; height: 100%; width: 67%; background: linear-gradient(90deg, #c9733f, var(--bj)); transform-origin: left; }
+.streak { display: flex; gap: 6px; max-width: 300px; }
+.streak i { flex: 1; height: 26px; border-radius: 6px; background: rgba(243,231,216,.07); display: grid; place-items: center; font: 500 10px var(--mono); font-style: normal; color: var(--ink-3); }
+.streak i.on { background: linear-gradient(180deg, #f5c286, var(--bj)); color: #2a1a0c; }
+.ledger { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.ledger div { background: rgba(16, 12, 16, .82); padding: 22px 22px 20px; display: grid; gap: 6px; }
+.ledger b { font: 500 30px var(--mono); font-variant-numeric: tabular-nums; }
+.ledger > div > span { font-size: 13px; color: var(--ink-2); }
+.ledger em { font: 500 11px var(--mono); font-style: normal; letter-spacing: .1em; text-transform: uppercase; }
+
+/* ------------------------------------------------------------------ the house */
+.house { padding-block: 16vh 10vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(28px, 6vw, 96px); }
+.house h2 { margin: 12px 0 0; font: 400 clamp(38px, 4.6vw, 64px)/1.02 var(--serif); }
+.house .story { font-size: 18px; line-height: 1.6; color: #e2d5c5; max-width: 44ch; margin: 18px 0 0; }
+.contact { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 10px; font: 500 14px var(--mono); }
+.contact a { text-decoration: none; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+.contact a:hover { border-color: var(--ink); }
+.faq h3 { margin: 0 0 8px; font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.faq dl { margin: 0; }
+.faq dl > div { padding: 18px 0; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.faq dt { font: 400 20px var(--serif); }
+.faq dd { margin: 0; color: var(--ink-2); line-height: 1.55; }
+
+/* ------------------------------------------------------------------ night footer */
+.night { position: relative; padding-top: 18vh; min-height: 100vh; display: grid; align-content: end; }
+.night .last { display: flex; justify-content: space-between; align-items: end; gap: 20px; flex-wrap: wrap; }
+.night .last p { margin: 0; font: 400 clamp(22px, 2.2vw, 30px)/1.3 var(--serif); max-width: 26ch; }
+.big { margin: 6vh 0 0; font: 400 clamp(52px, 12.4vw, 220px)/.9 var(--serif); letter-spacing: -.03em; white-space: nowrap; overflow: hidden; padding-bottom: .06em; text-align: center; }
+.big .l { display: inline-block; }
+.legal { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 22px 32px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2); }
+.legal nav { display: flex; gap: 18px; flex-wrap: wrap; }
+
+#toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 30; padding: 10px 16px; border-radius: 10px; background: var(--ink); color: #1b1411; font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+#toast.on { opacity: 1; }
+
+@media (max-width: 900px) {
+  .bar nav { display: none; }
+  .callouts, .teasers, .eve, .house, .pk .head { grid-template-columns: 1fr; }
+  .pk .stats { justify-content: flex-start; } .pk .stats div { text-align: left; }
+  .bj .copy { max-width: calc(100% - 2 * var(--gutter)); top: 22%; transform: none; }
+  .ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .nightnote { display: none; }
+}
+/* Reduced motion (and no-GSAP fallback): chapters lay out as normal sections at their end state. */
+.static .door, .static .bj, .static .pk { height: auto; }
+.static .door .stick, .static .chapter .stick { position: relative; height: auto; min-height: 100vh; }
+.static .bj .media { clip-path: none; }
+.static .bj .media img { transform: none; }
+.static .bj .shade, .static .nightnote { opacity: 1; }
+.static .pk .stick { padding-block: 104px 40px; }
+.static .track { overflow-x: auto; padding-bottom: 20px; }
+@media (prefers-reduced-motion: reduce) { .lobby .bg img.on, .stars i, .cue i { animation: none; } .tile, .shot img, .tile .bar2 { transition: none; } }
+</style>
+</head>
+<body>
+<!-- ============================================================== sky -->
+<div class="sky" id="sky" aria-hidden="true">
+  <div class="stars" id="stars"></div>
+  <div class="moon" id="moon"></div>
+  <div class="sun" id="sun"></div>
+  <div class="hills">
+    <svg viewBox="0 0 1600 260" preserveAspectRatio="none"><path class="far" d="M0 150 L120 118 L230 132 L340 96 L470 124 L590 88 L720 116 L860 80 L990 112 L1110 92 L1240 120 L1370 90 L1490 112 L1600 98 L1600 260 L0 260Z"/></svg>
+    <svg viewBox="0 0 1600 260" preserveAspectRatio="none"><path class="near" d="M0 200 L140 170 L260 186 L400 150 L540 178 L660 160 L800 190 L950 158 L1080 182 L1220 150 L1360 176 L1480 164 L1600 180 L1600 260 L0 260Z"/></svg>
+  </div>
+</div>
+
+<!-- ============================================================== header -->
+<header class="bar" id="bar">
+  <a class="word" href="#lobby" aria-label="Sundown Club, back to the games">
+    <svg viewBox="0 0 28 18" aria-hidden="true"><clipPath id="hz"><rect x="0" y="0" width="28" height="13"/></clipPath><circle class="disc" cx="14" cy="13" r="8" clip-path="url(#hz)"/><line class="line" x1="1" y1="13.5" x2="27" y2="13.5"/><line class="line" x1="7" y1="17" x2="21" y2="17" opacity=".5"/></svg>
+    sundown club
+  </a>
+  <nav aria-label="Sections"><a href="#lobby" data-sec="lobby" class="on">Games</a><a href="#blackjack" data-sec="blackjack">Blackjack</a><a href="#parking" data-sec="parking">Parking</a><a href="#workshop" data-sec="workshop">Workshop</a><a href="#house" data-sec="house">About</a></nav>
+  <a class="me" href="#evening" title="Sample profile"><span class="av">DA</span><div><div class="lv">daksh · Lv 7</div><div class="xp"><b></b></div></div></a>
+</header>
+
+<main>
+<!-- ============================================================== lobby -->
+<section class="lobby" id="lobby" aria-label="Games">
+  <div class="bg" id="bg"></div>
+  <div></div>
+  <div class="hero pad" id="hero" aria-live="polite">
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="title"></h1>
+    <p class="blurb" id="blurb"></p>
+    <div class="ctas"><button class="btn fill" id="play">Play <kbd>Enter</kbd></button><button class="btn" id="resume"></button></div>
+    <div class="facts" id="facts"></div>
+  </div>
+  <div class="railwrap pad" id="railwrap">
+    <div class="railhead"><span>Games <span class="sample" style="margin-left: 8px">Sample profile data</span></span><div class="keys"><span><kbd>←</kbd><kbd>→</kbd>choose</span><span><kbd>Enter</kbd>play</span><span><kbd>C</kbd>continue</span></div></div>
+    <div class="rail" id="rail" role="tablist" aria-label="Games"></div>
+  </div>
+  <div class="cue" aria-hidden="true">Scroll<i></i></div>
+</section>
+
+<!-- ============================================================== the door -->
+<section class="door pad" id="door" aria-label="About the club">
+  <div class="stick">
+    <div>
+      <p id="words">Sundown Club is a small collection of browser games. Each one should feel like <span class="hl">the last hour of daylight:</span> warm, unhurried, a little strange. Nothing to install. No account. Come in when the sun goes down.</p>
+      <div class="kick">Two games open · two in the workshop</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== blackjack -->
+<section class="chapter bj" id="blackjack" aria-labelledby="bj-title">
+  <div class="stick">
+    <div class="media" id="bjMedia">
+      <img src="media/bj-clean.jpg" alt="The Blackjack room at golden hour: a faceless dealer in a charcoal suit behind a green table, hills through the window">
+      <img class="night" src="media/bj-night.jpg" alt="The same room at night, stars through the window">
+    </div>
+    <div class="shade" id="bjShade"></div>
+    <div class="copy" id="bjCopy">
+      <div class="chap-num">01 · Cards</div>
+      <h2 id="bj-title">Blackjack</h2>
+      <p class="lead">A quiet room at golden hour, a six-deck shoe, and a dealer in a charcoal suit who has never once shown his face.</p>
+      <a class="btn fill" href="#" data-go="/blackjack/" data-name="Blackjack">Take a seat</a>
+    </div>
+    <div class="nightnote" id="bjNight">Stay long enough and the sun sets in there too.<small>Golden hour by default · live day and night</small></div>
+    <div class="callouts" id="bjCallouts">
+      <div class="callout"><em>Rules</em><b>Vegas Strip, properly</b><span>Six decks, the dealer stands on soft 17, blackjack pays 3 to 2. Split, double, surrender, insurance.</span></div>
+      <div class="callout"><em>The dealer</em><b>No face, good manners</b><span>He deals from the shoe, peeks at his hole card and pays you out. He never says a word.</span></div>
+      <div class="callout"><em>Practice</em><b>Learn without losing</b><span>Hints, mistake flags and a card-counting trainer, kept away from your real chips.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== parking -->
+<section class="chapter pk" id="parking" aria-labelledby="pk-title">
+  <div class="stick" id="pkStick">
+    <div class="head pad">
+      <div><div class="chap-num">02 · Driving</div><h2 id="pk-title">Parking Precision</h2>
+        <p class="lead">A real-sized car and a glowing bay. First person, with mirrors, sensors and a reversing camera. Every park is scored out of 100.</p></div>
+      <div class="stats"><div><b>17</b><span>Levels</span></div><div><b>720°</b><span>Steering wheel</span></div><div><b>100</b><span>Points a park</span></div></div>
+    </div>
+    <div style="display: grid; align-items: center; overflow: hidden;">
+      <div class="track" id="track">
+        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/open-deck.webp" alt="Open-air car park deck"></div><figcaption class="cap"><b><i>01</i>Open deck</b><span>Wide bays. Where everyone starts.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/underground.webp" alt="Underground car park with pillars"></div><figcaption class="cap"><b><i>02</i>Underground</b><span>Pillars, low light, less room than you think.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/rooftop-dusk.webp" alt="Rooftop car park at dusk with a glowing bay"></div><figcaption class="cap"><b><i>03</i>Rooftop at dusk</b><span>The last spaces before the sun goes.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/rooftop-lane.webp" alt="Narrow rooftop lane between parked cars"></div><figcaption class="cap"><b><i>04</i>Rooftop lane</b><span>Tight lanes between parked cars.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/driver-seat.webp" alt="Driver's seat view with the steering wheel and dashboard"></div><figcaption class="cap"><b><i>05</i>Driver's seat</b><span>The 720° wheel, hands and all.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/reverse-camera.webp" alt="Reversing camera view with guidelines"></div><figcaption class="cap"><b><i>06</i>Reversing camera</b><span>Guidelines, and sensors that beep faster.</span></figcaption></figure>
+        <div class="frame end"><p>Find the glowing bay.</p><a class="btn fill" href="#" data-go="/parking/play/" data-name="Parking Precision" style="justify-self: start">Start driving</a></div>
+      </div>
+    </div>
+    <div class="foot"><span class="count" id="pkCount">01 / 06</span><div class="prog"><b id="pkProg"></b></div></div>
+  </div>
+</section>
+
+<!-- ============================================================== workshop -->
+<section class="shop pad" id="workshop" aria-labelledby="shop-title">
+  <div class="sec-head reveal"><div class="eyebrow">In the workshop</div><h2 id="shop-title">Two more, still being built.</h2><p>Same evening, new rooms. They'll open here when they're ready.</p></div>
+  <div class="teasers">
+    <article class="teaser" style="--t: #d98a93"><img src="media/bj-dusk.jpg" alt=""><span class="lock">Coming soon</span><h3>Hold'em</h3><p>Heads-up poker at the same table, against faceless regulars with their own habits.</p><div class="tag">Cards</div></article>
+    <article class="teaser" style="--t: #9aa6ff"><img src="media/rooftop-lane.webp" alt=""><span class="lock">Coming soon</span><h3>Night Drive</h3><p>The parking car, let out of the car park. A long road after dark.</p><div class="tag">Driving</div></article>
+  </div>
+</section>
+
+<!-- ============================================================== your evening -->
+<section class="evening pad" id="evening" aria-labelledby="eve-title">
+  <div class="sec-head reveal"><div class="eyebrow">Your evening</div><h2 id="eve-title">So far tonight, daksh.</h2><p>Everything here is read from this browser. Nothing is sent anywhere. <span class="sample">Sample profile data</span></p></div>
+  <div class="eve">
+    <div class="who">
+      <div class="lvlring">
+        <svg viewBox="0 0 120 120" aria-label="Level 7, 67 percent to level 8"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(243,231,216,.1)" stroke-width="9"/><circle id="ring" cx="60" cy="60" r="50" fill="none" stroke="#f0a868" stroke-width="9" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="103.7" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" data-count="7">7</text><text class="sm" x="60" y="86" text-anchor="middle">LEVEL</text></svg>
+        <div><div class="lvl"><span data-count="1340" data-fmt>1,340</span> / 1,750 XP</div><div class="lvl" style="margin-top: 4px">410 XP to level 8</div></div>
+      </div>
+      <div class="xpbar"><b id="xp"></b></div>
+      <div class="streak" id="streak" aria-label="Played 3 days in a row"><i>M</i><i>T</i><i>W</i><i>T</i><i class="on">F</i><i class="on">S</i><i class="on">S</i></div>
+    </div>
+    <div class="ledger">
+      <div><em style="color: var(--bj)">Blackjack</em><b data-count="4100" data-fmt>4,100</b><span>Peak chips</span></div>
+      <div><em style="color: var(--bj)">Blackjack</em><b data-count="312">312</b><span>Hands played</span></div>
+      <div><em style="color: var(--bj)">Blackjack</em><b data-count="14">14</b><span>Blackjacks</span></div>
+      <div><em style="color: var(--pk)">Parking</em><b><span data-count="38">38</span> / 51</b><span>Stars</span></div>
+      <div><em style="color: var(--pk)">Parking</em><b data-count="94">94</b><span>Best park</span></div>
+      <div><em>Everything</em><b>4h <span data-count="12">12</span>m</b><span>Time played</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== the house -->
+<section class="house pad" id="house" aria-labelledby="house-title">
+  <div class="reveal">
+    <div class="eyebrow">Who runs the club</div>
+    <h2 id="house-title">Daksh Anajwala</h2>
+    <p class="story">High school student. Made Parking Precision instead of revising for a physics test, and kept going. Sundown Club is where everything else lives now. Bugs, ideas, or a game you'd like to see: get in touch.</p>
+    <ul class="contact"><li><a href="https://github.com/DakshAnajwala" rel="noopener">GitHub · DakshAnajwala</a></li><li><span>daksh.anajwala@gmail.com</span></li></ul>
+  </div>
+  <div class="faq reveal">
+    <h3>Before you come in</h3>
+    <dl>
+      <div><dt>Is it free?</dt><dd>Yes. No ads, no account, nothing to buy. Blackjack uses play chips only.</dd></div>
+      <div><dt>Do I need to download anything?</dt><dd>No. Everything runs in an up-to-date desktop browser with WebGL switched on.</dd></div>
+      <div><dt>Can I play on my phone?</dt><dd>Not yet. The games are built for a keyboard, so they need a computer.</dd></div>
+      <div><dt>What do you collect?</dt><dd>Progress and settings stay in your browser. Only Parking Precision can send a finished run's score to its leaderboard, and you can switch that off.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- ============================================================== night -->
+<footer class="night pad" id="night">
+  <div class="last reveal"><p>The lamp stays on. Pick a game whenever you're ready.</p><a class="btn fill" href="#lobby" id="toTop">Back to the games ↑</a></div>
+  <div class="big" id="big" aria-label="sundown club">sundown club</div>
+  <div class="legal"><span>© 2026 Daksh Anajwala · Sundown Club</span><nav aria-label="Legal"><a href="/parking/privacy.html">Privacy</a><a href="/parking/terms.html">Terms</a><a href="/parking/notices.html">Third-party notices</a></nav></div>
+</footer>
+</main>
+<div id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d" crossorigin="anonymous"></script>
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const motion = !reduce && window.gsap && window.ScrollTrigger;
+if (!motion) document.documentElement.classList.add('static');
+
+/* -------------------------------------------------------------- lobby (approved behaviour) */
+const GAMES = [
+  { name: 'Blackjack', accent: '#f0a868', img: 'media/bj-clean.jpg', pos: '50% 35%', tag: 'Cards', eyebrow: 'Cards · New', go: '/blackjack/',
+    blurb: 'Six decks, one seat, and a dealer with no face. Golden hour through the window, chips that click.',
+    resume: 'Continue · 2,450 chips', facts: [['2,450', 'Chips'], ['4,100', 'Peak'], ['312', 'Hands']] },
+  { name: 'Parking Precision', accent: '#8fe3cf', img: 'media/rooftop-dusk.webp', pos: '55% 55%', tag: 'Driving', eyebrow: 'Driving · 17 levels', go: '/parking/play/',
+    blurb: 'Park a real-sized car in a glowing bay, first person, scored out of 100. Mirrors, sensors and a reversing camera.',
+    resume: 'Continue · Level 7, Rooftop', facts: [['38 / 51', 'Stars'], ['94', 'Best park'], ['2h 40m', 'Played']] },
+  { name: "Hold'em", accent: '#d98a93', img: 'media/bj-dusk.jpg', pos: '30% 45%', tag: 'Soon', eyebrow: 'Cards · Coming soon', soon: true,
+    blurb: 'Heads-up poker at the same table, against faceless regulars with their own habits.', facts: [] },
+  { name: 'Night Drive', accent: '#9aa6ff', img: 'media/rooftop-lane.webp', pos: '50% 50%', tag: 'Soon', eyebrow: 'Driving · Coming soon', soon: true,
+    blurb: 'The parking car, let out of the car park. A long road after dark.', facts: [] },
+];
+let cur = 0;
+GAMES.forEach((g, i) => {
+  const im = document.createElement('img'); im.src = g.img; im.alt = ''; $('#bg').appendChild(im); g.bgEl = im;
+  const w = document.createElement('button');
+  w.className = 'tile' + (g.soon ? ' soon' : ''); w.setAttribute('role', 'tab'); w.setAttribute('aria-label', g.name + (g.soon ? ', coming soon' : ''));
+  w.innerHTML = `<div class="shot" style="--pos:${g.pos}"><img src="${g.img}" alt="">${g.soon ? '<span class="lock">Coming soon</span>' : ''}</div><div class="name">${g.name}<small>${g.tag}</small></div><div class="bar2"></div>`;
+  w.addEventListener('click', () => (cur === i ? play() : select(i)));
+  $('#rail').appendChild(w); g.el = w;
+});
+function select(i) {
+  cur = (i + GAMES.length) % GAMES.length;
+  const g = GAMES[cur];
+  GAMES.forEach((x, j) => { x.bgEl.classList.toggle('on', j === cur); x.el.setAttribute('aria-selected', j === cur); });
+  $('#lobby').style.setProperty('--accent', g.accent);
+  $('#bar').style.setProperty('--accent', g.accent);
+  $('#eyebrow').textContent = g.eyebrow; $('#title').textContent = g.name; $('#blurb').textContent = g.blurb;
+  $('#play').disabled = !!g.soon; $('#play').firstChild.textContent = g.soon ? 'In the workshop ' : 'Play ';
+  $('#resume').hidden = !g.resume; $('#resume').innerHTML = `${g.resume || ''} <kbd>C</kbd>`;
+  $('#facts').innerHTML = g.facts.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('');
+}
+// Inside a sandboxed preview frame, links can't leave the page; everywhere else they navigate.
+const local = window.self === window.top;
+let tt;
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2200); }
+function go(url, name) { if (local) location.href = url; else toast(`In the real hub this opens ${name}.`); }
+function play() { const g = GAMES[cur]; if (!g.soon) go(g.go, g.name); }
+$('#play').addEventListener('click', play); $('#resume').addEventListener('click', play);
+document.addEventListener('click', (e) => { const a = e.target.closest('[data-go]'); if (a) { e.preventDefault(); go(a.dataset.go, a.dataset.name); } });
+addEventListener('keydown', (e) => {
+  if (scrollY > innerHeight * 0.6 || e.target.closest?.('input, select, textarea')) return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); select(cur + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); select(cur - 1); }
+  else if (e.key === 'Enter' && !e.target.closest?.('.tile, a, button')) play();
+  else if (e.key.toLowerCase() === 'c') play();
+});
+select(0);
+
+/* stars */
+{
+  const box = $('#stars'); let s = 7;
+  const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 140; i++) { const st = document.createElement('i'); const z = r(); st.style.cssText = `left:${r() * 100}%;top:${r() * 100}%;--d:${3 + r() * 4}s;--dl:${-r() * 5}s;transform:scale(${0.5 + z * 1.2});opacity:${0.35 + z * 0.65}`; box.appendChild(st); }
+}
+
+/* smooth anchor scrolling that works with pinned sections */
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return;
+  const t = $(id); if (!t) return;
+  e.preventDefault();
+  scrollTo({ top: t.getBoundingClientRect().top + scrollY - (id === '#lobby' ? 0 : 0), behavior: reduce ? 'auto' : 'smooth' });
+}));
+
+/* -------------------------------------------------------------- scroll choreography */
+if (motion) {
+  gsap.registerPlugin(ScrollTrigger);
+  const ease = 'none';
+
+  // 1. The sky sets across the whole page.
+  const sky = $('#sky');
+  gsap.timeline({ scrollTrigger: { start: 0, end: 'max', scrub: 1.2 } })
+    .to(sky, { '--top': '#1d1320', '--mid': '#4a2230', '--bot': '#b04a2c', '--hill-far': '#2b1824', '--hill-near': '#1a1016', '--sun-a': '#ffc27a', '--sun-b': '#e2703f', duration: 3, ease })
+    .to('#sun', { top: '58vh', scale: 1.25, duration: 3, ease }, 0)
+    .to(sky, { '--top': '#101230', '--mid': '#231a3c', '--bot': '#4a2a48', '--hill-far': '#1a1830', '--hill-near': '#100e1e', '--sun-a': '#ff9a6a', '--sun-b': '#a8404a', duration: 3, ease })
+    .to('#sun', { top: '96vh', scale: 1.35, opacity: .55, duration: 3, ease }, 3)
+    .to('#stars', { opacity: 1, duration: 2.4, ease }, 4.2)
+    .to(sky, { '--top': '#070914', '--mid': '#0d1024', '--bot': '#171a34', '--hill-far': '#0f1122', '--hill-near': '#080913', duration: 3, ease })
+    .to('#sun', { opacity: 0, duration: 1.2, ease }, 6)
+    .to('#moon', { opacity: 1, y: 0, duration: 2.4, ease }, 6.4);
+
+  // 2. Header turns solid after the lobby; nav follows the section in view.
+  ScrollTrigger.create({ trigger: '#door', start: 'top 80px', onEnter: () => $('#bar').classList.add('solid'), onLeaveBack: () => $('#bar').classList.remove('solid') });
+  const navMap = { lobby: '#lobby', blackjack: '#blackjack', parking: '#parking', workshop: '#workshop', house: '#house' };
+  Object.entries(navMap).forEach(([k, sel]) => ScrollTrigger.create({ trigger: sel, start: 'top 45%', end: 'bottom 45%',
+    onToggle: (st) => { if (st.isActive) $$('.bar nav a').forEach((a) => a.classList.toggle('on', a.dataset.sec === k)); } }));
+  ScrollTrigger.create({ trigger: '#blackjack', start: 'top 45%', end: 'bottom 45%', onToggle: (st) => st.isActive && $('#bar').style.setProperty('--accent', '#f0a868') });
+  ScrollTrigger.create({ trigger: '#parking', start: 'top 45%', end: 'bottom 45%', onToggle: (st) => st.isActive && $('#bar').style.setProperty('--accent', '#8fe3cf') });
+  ScrollTrigger.create({ trigger: '#lobby', start: 'top top', end: 'bottom 45%', onEnterBack: () => $('#bar').style.setProperty('--accent', GAMES[cur].accent) });
+
+  // 3. Lobby lets go: backdrop pushes in and dims, hero lifts away, rail sinks.
+  gsap.timeline({ scrollTrigger: { trigger: '#lobby', start: 'top top', end: 'bottom top', scrub: .6 } })
+    .to('#bg', { scale: 1.12, opacity: .15, ease }, 0)
+    .to('#hero', { y: -140, opacity: 0, ease }, 0)
+    .to('#railwrap', { y: 90, opacity: 0, ease }, 0)
+    .to('.cue', { opacity: 0, duration: .15, ease }, 0);
+
+  // 4. The door: words light up one by one.
+  const p = $('#words');
+  const walk = (node) => [...node.childNodes].flatMap((n) => n.nodeType === 3
+    ? n.textContent.split(/(\s+)/).map((t) => { if (!t.trim()) return document.createTextNode(t); const s = document.createElement('span'); s.className = 'w'; s.textContent = t; return s; })
+    : [(() => { const c = n.cloneNode(false); walk(n).forEach((x) => c.appendChild(x)); return c; })()]);
+  const parts = walk(p); p.textContent = ''; parts.forEach((x) => p.appendChild(x));
+  const words = $$('.w', p);
+  gsap.set(words, { opacity: .12, y: 8 });
+  gsap.to(words, { opacity: 1, y: 0, stagger: .5, ease: 'power1.out', scrollTrigger: { trigger: '#door', start: 'top top', end: 'bottom bottom', scrub: .8 } });
+  gsap.from('#door .kick', { opacity: 0, y: 16, scrollTrigger: { trigger: '#door', start: '75% bottom', end: 'bottom bottom', scrub: true } });
+
+  // 5. Blackjack: a card on the right opens to full bleed, callouts arrive, then night falls in the room.
+  gsap.set('#bjCallouts .callout', { opacity: 0, y: 40 });
+  gsap.set('#bjCopy > *', { opacity: 0, y: 30 });
+  gsap.timeline({ scrollTrigger: { trigger: '#blackjack', start: 'top top', end: 'bottom bottom', scrub: .9 } })
+    .to('#bjCopy > *', { opacity: 1, y: 0, stagger: .25, duration: 1, ease: 'power2.out' }, 0)
+    .to('#bjMedia', { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 3.2, ease: 'power2.inOut' }, .6)
+    .to('#bjMedia img', { scale: 1.02, duration: 3.2, ease: 'power2.inOut' }, .6)
+    .to('#bjShade', { opacity: 1, duration: 2.4, ease }, 1.6)
+    .to('#bjCallouts .callout', { opacity: 1, y: 0, stagger: .7, duration: 1, ease: 'power2.out' }, 3.9)
+    .to('#bjMedia .night', { opacity: 1, duration: 1.8, ease }, 6.6)
+    .to('#bjNight', { opacity: 1, duration: 1, ease }, 7.2)
+    .to('#bjMedia img', { scale: 1.08, duration: 3.4, ease }, 5.8)
+    .to({}, { duration: .8 });
+
+  // 6. Parking: the filmstrip runs sideways while the section is pinned.
+  const track = $('#track');
+  const dist = () => Math.max(0, track.scrollWidth - innerWidth);
+  const frames = $$('.frame .pic img', track);
+  gsap.set('#pkStick .head > *', { opacity: 0, y: 30 });
+  const pk = gsap.timeline({ scrollTrigger: { trigger: '#parking', start: 'top top', end: 'bottom bottom', scrub: .9, invalidateOnRefresh: true,
+    onUpdate: (st) => { const n = Math.min(6, 1 + Math.floor(st.progress * 6.4)); $('#pkCount').textContent = `${String(n).padStart(2, '0')} / 06`; } } })
+    .to('#pkStick .head > *', { opacity: 1, y: 0, stagger: .1, duration: .5, ease: 'power2.out' }, 0)
+    .fromTo(track, { x: () => innerWidth * 0.35 }, { x: () => -dist(), duration: 5, ease }, .3)
+    .fromTo(frames, { xPercent: -6 }, { xPercent: 6, duration: 5, ease }, .3)
+    .fromTo('#pkProg', { scaleX: 0 }, { scaleX: 1, duration: 5, ease }, .3)
+    .to({}, { duration: .4 });
+
+  // 7. Reveals: headings and blocks rise in once.
+  $$('.reveal').forEach((el) => gsap.from(el.children, { opacity: 0, y: 36, stagger: .08, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 82%' } }));
+  gsap.from('.teaser', { opacity: 0, y: 90, rotate: (i) => (i ? 3 : -3), stagger: .15, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '.teasers', start: 'top 80%' } });
+  gsap.from('.faq dl > div', { opacity: 0, x: 24, stagger: .08, duration: .8, ease: 'power2.out', scrollTrigger: { trigger: '.faq dl', start: 'top 80%' } });
+
+  // 8. Your evening: numbers count up, ring and bar fill, streak lights left to right.
+  const counters = $$('#evening [data-count]');
+  counters.forEach((el) => { el.dataset.final = el.textContent; el.textContent = '0'; });
+  gsap.set('#ring', { strokeDashoffset: 314.16 });
+  gsap.set('#xp', { scaleX: 0 });
+  gsap.set('#streak i.on', { opacity: .15, scale: .8 });
+  gsap.from('.ledger > div', { opacity: 0, y: 24, stagger: .06, duration: .8, ease: 'power2.out', scrollTrigger: { trigger: '.ledger', start: 'top 80%' } });
+  ScrollTrigger.create({ trigger: '#evening .eve', start: 'top 78%', once: true, onEnter: () => {
+    counters.forEach((el) => { const o = { v: 0 }, end = +el.dataset.count, f = 'fmt' in el.dataset; gsap.to(o, { v: end, duration: 1.6, ease: 'power2.out', onUpdate: () => { el.textContent = f ? Math.round(o.v).toLocaleString('en-US') : Math.round(o.v); } }); });
+    gsap.to('#ring', { strokeDashoffset: 103.7, duration: 1.8, ease: 'power2.inOut' });
+    gsap.to('#xp', { scaleX: 1, duration: 1.6, ease: 'power2.inOut', delay: .2 });
+    gsap.to('#streak i.on', { opacity: 1, scale: 1, stagger: .15, duration: .5, ease: 'back.out(2)', delay: .6 });
+  } });
+
+  // 9. Night: the giant wordmark rises letter by letter out of the horizon.
+  const big = $('#big'); const txt = big.textContent; big.textContent = '';
+  [...txt].forEach((ch) => { const s = document.createElement('span'); s.className = 'l'; s.textContent = ch === ' ' ? ' ' : ch; big.appendChild(s); });
+  gsap.from('#big .l', { yPercent: 110, stagger: .04, ease: 'power2.out', scrollTrigger: { trigger: '#big', start: 'top bottom', end: 'bottom 85%', scrub: .8 } });
+
+  addEventListener('load', () => ScrollTrigger.refresh());
+}
+</script>
+</body>
+</html>

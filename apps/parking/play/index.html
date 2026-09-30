@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Play Parking Precision — free 3D car parking game online</title>
+    <meta name="description" content="Play a free 3D car parking game online, from the driver's seat. Drive with the keyboard, park in the glowing bay, shift to P. No download." />
+    <meta name="theme-color" content="#0d1113" />
+    <link rel="canonical" href="https://parking-precision.vercel.app/play/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Parking Precision" />
+    <meta property="og:title" content="Play Parking Precision" />
+    <meta property="og:description" content="A free first-person 3D car parking game in your browser. Park in the glowing bay and shift to P." />
+    <meta property="og:url" content="https://parking-precision.vercel.app/play/" />
+    <meta property="og:image" content="https://parking-precision.vercel.app/media/og-card.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://parking-precision.vercel.app/media/og-card.jpg" />
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #0d1113;
+        /* The canvas fills the window and the game is mouse-driven, so text
+           selection only ever happens by accident while dragging to look. */
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #app { position: relative; width: 100vw; height: 100vh; }
+      canvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

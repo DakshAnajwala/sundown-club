@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Level 13 Sheet</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./sheet.css">
+</head>
+<body>
+<!--SHEET-BODY-START-->
+<main class="sheet">
+  <header class="titleblock">
+    <div class="tb-name">
+      <p class="eyebrow">Parking Precision · layout sheet</p>
+      <h1>Level 13 — City Drive</h1>
+      <p class="lede">Start across town, find the multi-storey, climb four floors and park on the roof.</p>
+    </div>
+    <dl class="tb-stats" id="stats"></dl>
+  </header>
+
+  <section class="band" aria-labelledby="h-checks">
+    <div class="band-head"><h2 id="h-checks">Checks</h2><p>The rules <code>tools/city-lint.mjs</code> will enforce, run live against this layout.</p></div>
+    <table class="checks" id="checks"></table>
+  </section>
+
+  <section class="band" aria-labelledby="h-drive">
+    <div class="band-head"><h2 id="h-drive">Blockout</h2><p>Every collider, slab and ramp from <code>layout.json</code>. <b>Drive</b> follows the route at eye height (1.20 m) to judge the signs, ramp entrances and arrows.</p></div>
+    <div class="viewer">
+      <div class="canvas-wrap" id="viewer"></div>
+      <div class="viewer-bar">
+        <div class="seg" role="group" aria-label="Camera">
+          <button type="button" id="cam-drive" class="on">Drive</button>
+          <button type="button" id="cam-orbit">Orbit</button>
+        </div>
+        <button type="button" id="play" aria-label="Play or pause">❚❚</button>
+        <div class="seg" role="group" aria-label="Speed">
+          <button type="button" data-speed="1" class="on">1×</button>
+          <button type="button" data-speed="3">3×</button>
+          <button type="button" data-speed="8">8×</button>
+        </div>
+        <label class="scrub"><span id="scrub-label">0 m</span><input type="range" id="scrub" min="0" max="1000" step="1" value="0" aria-label="Position along the route"></label>
+        <span class="floor-chip" id="floor-chip">Street</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band two" aria-labelledby="h-plan">
+    <div>
+      <div class="band-head"><h2 id="h-plan">City plan</h2><p>220 × 220 m, 12 m streets. Route in red, spawn ◆, car park hatched.</p></div>
+      <div class="drawing"><svg id="city" role="img" aria-label="City plan with the route"></svg></div>
+    </div>
+    <div>
+      <div class="band-head">
+        <h2>Car park plan</h2>
+        <div class="seg" role="group" aria-label="Floor" id="floors"></div>
+      </div>
+      <div class="drawing"><svg id="park" role="img" aria-label="Car park floor plan"></svg></div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-section">
+    <div class="band-head"><h2 id="h-section">Long sections</h2><p>Through lane A (x −4, rising north) and lane B (x +4, rising south). Vertical scale ×2.</p></div>
+    <div class="drawing wide"><svg id="section" role="img" aria-label="Long sections through the ramp lanes"></svg></div>
+  </section>
+
+  <section class="band" aria-labelledby="h-probe">
+    <div class="band-head"><h2 id="h-probe">Ramp grade, measured</h2><p>Real <code>Car.js</code> + <code>PhysicsWorld.js</code>, headless, on tilted boxes; 3 m transitions at half grade.</p></div>
+    <div class="scroll-x"><table class="probe" id="probe"></table></div>
+  </section>
+
+  <footer class="foot">
+    <p>Source: <code>design/level13/layout-model.mjs</code> → <code>layout.json</code>. Coordinates x east, z south, y up; heading 0 = north.</p>
+  </footer>
+</main>
+<script type="module" src="./sheet.js"></script>
+<!--SHEET-BODY-END-->
+</body>
+</html>

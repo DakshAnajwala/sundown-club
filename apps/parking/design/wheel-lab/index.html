@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wheel Lab</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="./lab.css">
+</head>
+<body>
+<!--LAB-BODY-START-->
+<div class="lab" id="lab">
+  <section class="stage" id="stage" aria-label="3D view">
+    <header class="stage-top">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <h1>Wheel Lab</h1>
+          <p>Parking Precision · sport wheel, hands, hand-over-hand</p>
+        </div>
+      </div>
+      <nav class="views" id="views" aria-label="Camera">
+        <button type="button" data-view="driver" class="on">Driver</button>
+        <button type="button" data-view="passenger">Passenger</button>
+        <button type="button" data-view="above">Above wheel</button>
+        <button type="button" data-view="closeup">Hand close-up</button>
+        <button type="button" data-view="orbit">Orbit</button>
+      </nav>
+    </header>
+
+    <div class="telemetry" id="telemetry" aria-live="off">
+      <div class="tele-rim">
+        <svg viewBox="-50 -50 100 100" class="dial" aria-hidden="true">
+          <circle r="42" class="dial-track"/>
+          <path id="dial-arc" class="dial-arc" d=""/>
+          <g id="dial-hand"><line x1="0" y1="0" x2="0" y2="-36"/><circle r="4"/></g>
+        </svg>
+        <div>
+          <b id="t-angle">0°</b>
+          <span id="t-omega">0 °/s</span>
+        </div>
+      </div>
+      <div class="tele-hand" id="t-left"><span class="side">L</span><span class="state">GRIP</span><span class="num">−90°</span></div>
+      <div class="tele-hand" id="t-right"><span class="side">R</span><span class="state">GRIP</span><span class="num">90°</span></div>
+      <div class="tele-kv"><span>gap</span><b id="t-sep">—</b></div>
+      <div class="tele-kv"><span>reach</span><b id="t-ext">—</b></div>
+    </div>
+
+    <div class="drive" aria-label="Steering and gears">
+      <button type="button" class="hold" id="hold-left" aria-label="Steer left (A)">◀<kbd>A</kbd></button>
+      <label class="scrub">
+        <span>Wheel position</span>
+        <input type="range" id="scrub" min="-1" max="1" step="0.001" value="0" aria-label="Steering position">
+      </label>
+      <button type="button" class="hold" id="hold-right" aria-label="Steer right (D)"><kbd>D</kbd>▶</button>
+      <div class="gears" id="gears" role="group" aria-label="Gear">
+        <button type="button" data-gear="P" class="on">P</button>
+        <button type="button" data-gear="R">R</button>
+        <button type="button" data-gear="N">N</button>
+        <button type="button" data-gear="D">D</button>
+      </div>
+      <div class="time" role="group" aria-label="Time">
+        <button type="button" data-scale="0.1">0.1×</button>
+        <button type="button" data-scale="0.25">¼×</button>
+        <button type="button" data-scale="1" class="on">1×</button>
+        <button type="button" id="pause" aria-label="Pause (Space)">❚❚</button>
+        <button type="button" id="step" aria-label="Step one frame (.)">+1f</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel" aria-label="Lab controls">
+    <nav class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="checks" aria-selected="true">Checks</button>
+      <button type="button" role="tab" data-tab="sweep" aria-selected="false">Sweep</button>
+      <button type="button" role="tab" data-tab="tune" aria-selected="false">Tune</button>
+      <button type="button" role="tab" data-tab="export" aria-selected="false">Export</button>
+    </nav>
+
+    <section class="tab" id="tab-checks">
+      <div class="block">
+        <div class="block-head"><h2>Live checks</h2><button type="button" class="ghost" id="reset-live">Reset worst</button></div>
+        <p class="hint">Worst value since reset, against the limits the future wheel-probe asserts. Steer with A / D, shift with P R N D.</p>
+        <table class="checks" id="live-checks"><tbody></tbody></table>
+        <ol class="violations" id="live-violations"></ol>
+      </div>
+      <div class="block">
+        <div class="block-head"><h2>Wheel</h2></div>
+        <table class="checks" id="wheel-checks"><tbody></tbody></table>
+      </div>
+      <div class="block">
+        <div class="block-head"><h2>Reach</h2><span class="legend"><i class="l"></i>left <i class="r"></i>right <i class="lim"></i>0.640 m</span></div>
+        <svg id="reach-chart" class="chart" viewBox="0 0 340 170" role="img" aria-label="Shoulder to wrist distance by rim angle"></svg>
+      </div>
+      <div class="block">
+        <div class="block-head"><h2>Overlays</h2></div>
+        <div class="toggles" id="overlays">
+          <label><input type="checkbox" id="ov-domains" checked> Domains + edges</label>
+          <label><input type="checkbox" id="ov-contacts" checked> Contact points</label>
+          <label><input type="checkbox" id="ov-reach" checked> Reach lines</label>
+          <label><input type="checkbox" id="ov-sep"> Hand separation</label>
+          <label><input type="checkbox" id="ov-sight"> Cluster sightline</label>
+          <label><input type="checkbox" id="ov-labels" checked> State labels</label>
+        </div>
+      </div>
+      <div class="block">
+        <div class="block-head"><h2>Driving position</h2></div>
+        <div class="sliders" id="seat"></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-sweep" hidden>
+      <div class="block">
+        <div class="block-head"><h2>Sweep S1–S9</h2></div>
+        <p class="hint">Plays the nine steering sequences at a fixed 60 Hz and asserts every frame. <b>Run</b> is instant; <b>Watch</b> plays it in real time.</p>
+        <div class="row">
+          <button type="button" class="primary" id="sweep-run">Run sweep</button>
+          <button type="button" id="sweep-watch">Watch</button>
+          <span class="verdict" id="sweep-verdict"></span>
+        </div>
+        <div class="progress" id="sweep-progress"><i></i></div>
+      </div>
+      <div class="block">
+        <div class="scroll-x"><table class="results" id="sweep-table"></table></div>
+        <ul class="events" id="sweep-events"></ul>
+        <ol class="violations" id="sweep-violations"></ol>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-tune" hidden>
+      <div id="tune"></div>
+    </section>
+
+    <section class="tab" id="tab-export" hidden>
+      <div class="block">
+        <div class="block-head"><h2>params.json</h2></div>
+        <p class="hint">Everything the Tune tab changes, plus the last sweep's measurements. The build copies these into <code>Dimensions.js</code>.</p>
+        <div class="row">
+          <button type="button" class="primary" id="save-params">Save to design/wheel-lab</button>
+          <button type="button" id="copy-params">Select all</button>
+          <button type="button" id="apply-params">Apply pasted</button>
+          <button type="button" class="ghost" id="reset-params">Reset to defaults</button>
+        </div>
+        <p class="status" id="export-status" role="status"></p>
+        <textarea id="params-json" spellcheck="false" aria-label="Parameters JSON"></textarea>
+      </div>
+    </section>
+  </aside>
+</div>
+<script type="module" src="./lab.js"></script>
+<!--LAB-BODY-END-->
+</body>
+</html>

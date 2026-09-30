@@ -1,0 +1,7 @@
+{
+  "name": "@sundown/blackjack",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Blackjack",
+  "type": "module"
+}

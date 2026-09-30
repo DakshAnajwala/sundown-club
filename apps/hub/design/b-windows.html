@@ -1,0 +1,141 @@
+<meta charset="utf-8">
+<title>Golden Hour Windows</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a dusk-lit wall of arched windows, one per game, on a long sill. Calm, editorial, scrolls. */
+:root {
+  --bg: #17110f;
+  --wall: #211815;
+  --ink: #f3e7d8;
+  --ink-2: #b9a896;
+  --amber: #f0a868;
+  --line: rgba(243, 231, 216, 0.14);
+  --serif: "Young Serif", Georgia, "Times New Roman", serif;
+  --sans: "Schibsted Grotesk", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); padding-inline: clamp(16px, 5vw, 72px); overflow-x: hidden; }
+body::before { content: ""; position: fixed; inset: -20% -10% auto -10%; height: 70vh; z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 60% at 70% 0%, rgba(240, 168, 104, .28), transparent 70%); animation: sun 18s ease-in-out infinite alternate; }
+@keyframes sun { to { transform: translateX(-12%); } }
+
+header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 26px; flex-wrap: wrap; }
+.word { font: 400 22px var(--serif); letter-spacing: .01em; }
+.word em { color: var(--amber); font-style: normal; }
+header nav { display: flex; gap: 22px; font-size: 14px; }
+header nav a { color: var(--ink-2); text-decoration: none; }
+header nav a:hover { color: var(--ink); }
+
+.intro { padding-block: 5vh 6vh; max-width: 900px; }
+.intro h1 { margin: 0; font: 400 clamp(38px, 5.6vw, 76px)/1.04 var(--serif); letter-spacing: -.01em; text-wrap: balance; }
+.intro h1 span { color: var(--amber); }
+.intro p { margin: 18px 0 0; font-size: 17px; line-height: 1.6; color: var(--ink-2); max-width: 54ch; }
+
+.wall { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 2.2vw, 32px); align-items: start; }
+.label { border-top: 12px solid #4a372d; margin-top: -14px; padding-top: 14px; position: relative; box-shadow: 0 -1px 0 #5a4336; }
+.win { display: grid; gap: 14px; cursor: pointer; text-decoration: none; color: inherit; }
+.frame { position: relative; aspect-ratio: 3 / 4.4; border-radius: 999px 999px 6px 6px; overflow: hidden; border: 8px solid #3b2c24; box-shadow: inset 0 0 0 1px rgba(0,0,0,.4), 0 20px 50px -20px rgba(240,168,104,.35); background: #2a1f1a; }
+.frame img { width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 50% 50%); display: block; transform: scale(1.06); transition: transform .8s cubic-bezier(.2,.8,.2,1), filter .6s; filter: saturate(.95) brightness(.92); }
+.frame::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background:
+  linear-gradient(90deg, transparent calc(50% - 3px), #3b2c24 calc(50% - 3px), #3b2c24 calc(50% + 3px), transparent calc(50% + 3px)),
+  linear-gradient(0deg, transparent calc(58% - 3px), #3b2c24 calc(58% - 3px), #3b2c24 calc(58% + 3px), transparent calc(58% + 3px)); }
+.frame::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(160deg, rgba(255,230,190,.18), transparent 40%); }
+.win:hover .frame img, .win:focus-visible .frame img { transform: scale(1.12); filter: saturate(1.05) brightness(1.02); }
+.win:focus-visible { outline: none; } .win:focus-visible .frame { box-shadow: 0 0 0 3px var(--amber); }
+.soon .frame img { filter: grayscale(.6) brightness(.5) blur(1px); }
+.blinds { position: absolute; inset: 0; z-index: 2; background: repeating-linear-gradient(180deg, rgba(58,44,36,.94) 0 14px, rgba(24,17,14,.9) 14px 16px); }
+.blinds span { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); white-space: nowrap; font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); padding: 5px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; }
+.label h2 { margin: 0; font: 400 24px var(--serif); }
+.label p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.label .go { margin-top: 10px; display: inline-flex; gap: 8px; font: 500 13px var(--mono); color: var(--amber); }
+
+.evening { margin-top: 9vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: clamp(20px, 4vw, 60px); padding-block: 36px; border-top: 1px solid var(--line); }
+.evening h3 { margin: 0; font: 400 30px/1.15 var(--serif); }
+.evening .who { display: grid; gap: 10px; align-content: start; }
+.who .lvl { font: 500 13px var(--mono); color: var(--ink-2); }
+.xpbar { height: 6px; border-radius: 6px; background: rgba(243,231,216,.1); overflow: hidden; max-width: 280px; }
+.xpbar b { display: block; height: 100%; width: 67%; background: linear-gradient(90deg, #c9733f, var(--amber)); }
+.sample { font: 500 11px var(--mono); color: var(--ink-2); border: 1px dashed var(--line); padding: 2px 8px; border-radius: 999px; justify-self: start; }
+.ledger { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ledger div { background: var(--bg); padding: 16px 18px; display: grid; gap: 4px; }
+.ledger b { font: 500 22px var(--mono); font-variant-numeric: tabular-nums; }
+.ledger span { font-size: 13px; color: var(--ink-2); }
+.ledger em { font-style: normal; font: 500 11px var(--mono); color: var(--amber); letter-spacing: .08em; text-transform: uppercase; }
+
+footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 30px 40px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
+footer a { color: var(--ink-2); }
+#toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); padding: 10px 16px; border-radius: 10px; background: var(--ink); color: #1b1411; font-size: 14px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+#toast.on { opacity: 1; }
+@media (max-width: 620px) { .ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .wall { grid-template-columns: repeat(2, minmax(0, 1fr)); } .evening { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { body::before { animation: none; } .frame img { transition: none; } }
+</style>
+
+<header>
+  <div class="word">golden <em>hour</em></div>
+  <nav aria-label="Hub"><a href="#games">Games</a><a href="#evening">Your evening</a><a href="#about">About</a></nav>
+</header>
+
+<section class="intro">
+  <h1>Small games, made slowly. <span>Pick a window.</span></h1>
+  <p>Each one is its own little world, built from scratch in the browser. Nothing to install, nothing to buy. Your progress stays on this device.</p>
+</section>
+
+<section class="wall" id="games" aria-label="Games">
+  <a class="win" href="#" data-go="/design/blackjack/room.html" data-name="Blackjack" style="--pos: 50% 40%">
+    <div class="frame"><img src="media/bj-clean.jpg" alt="The Blackjack room at golden hour, a faceless dealer in a suit behind the table"></div>
+    <div class="label"><h2>Blackjack</h2><p>Six decks, one seat, a dealer with no face.</p><span class="go">Continue · 2,450 chips →</span></div>
+  </a>
+  <a class="win" href="#" data-go="/play/" data-name="Parking Precision" style="--pos: 55% 50%">
+    <div class="frame"><img src="media/rooftop-dusk.webp" alt="A rooftop car park at dusk with a glowing parking bay"></div>
+    <div class="label"><h2>Parking Precision</h2><p>A real-sized car, a glowing bay, a score out of 100.</p><span class="go">Continue · Level 7 →</span></div>
+  </a>
+  <div class="win soon" aria-label="Hold'em, coming soon">
+    <div class="frame"><img src="media/bj-dusk.jpg" alt="" style="object-position: 30% 50%"><div class="blinds"><span>Coming soon</span></div></div>
+    <div class="label"><h2>Hold'em</h2><p>Heads-up poker with the regulars.</p></div>
+  </div>
+  <div class="win soon" aria-label="Night Drive, coming soon">
+    <div class="frame"><img src="media/rooftop-lane.webp" alt=""><div class="blinds"><span>Coming soon</span></div></div>
+    <div class="label"><h2>Night Drive</h2><p>The car, let out of the car park.</p></div>
+  </div>
+</section>
+
+<section class="evening" id="evening">
+  <div class="who">
+    <h3>Your evening, daksh</h3>
+    <div class="lvl">Level 7 · 1,340 / 2,000 XP</div>
+    <div class="xpbar"><b></b></div>
+    <span class="sample">Sample profile data</span>
+  </div>
+  <div class="ledger">
+    <div><em>Blackjack</em><b>4,100</b><span>Peak chips</span></div>
+    <div><em>Blackjack</em><b>312</b><span>Hands played</span></div>
+    <div><em>Parking</em><b>38 / 51</b><span>Stars</span></div>
+    <div><em>Parking</em><b>94</b><span>Best park</span></div>
+    <div><em>Everything</em><b>4h 12m</b><span>Time played</span></div>
+    <div><em>Everything</em><b>3 days</b><span>Current streak</span></div>
+  </div>
+</section>
+
+<footer id="about">
+  <span>Made by Daksh Anajwala · github.com/DakshAnajwala</span>
+  <nav aria-label="Legal"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Third-party notices</a></nav>
+</footer>
+<div id="toast" role="status"></div>
+
+<script>
+const local = /^(localhost|127\.)/.test(location.hostname);
+let tt;
+function toast(t) { const el = document.getElementById('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2200); }
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-go]'); if (!a) return;
+  e.preventDefault();
+  if (local) location.href = a.dataset.go; else toast(`In the real hub this opens ${a.dataset.name}.`);
+});
+</script>

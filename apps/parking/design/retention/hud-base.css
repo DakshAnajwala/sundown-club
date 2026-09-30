@@ -1,0 +1,264 @@
+/* Copied verbatim from the CSS block in src/ui/Hud.js (feat/retention base f800ed7)
+   so the prototypes use the game's real tokens. Do not edit here; edit Hud.js. */
+
+.hud, .hud * { box-sizing: border-box; }
+.hud {
+  position: fixed; inset: 0; pointer-events: none;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #eef3f2; z-index: 10;
+  --card: rgba(16,21,24,0.72);
+  --edge: rgba(190,210,208,0.16);
+  --mint: #8fe6bb;
+  --amber: #e8c98a;
+  --red: #e0857b;
+  --hud-opacity: 1;
+  --hud-scale: 1;
+}
+.hud-card {
+  background: var(--card); border: 1px solid var(--edge);
+  border-radius: 14px; padding: 12px 16px;
+  backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px);
+}
+.hud-tl { position: absolute; top: 18px; left: 18px; max-width: 340px; }
+.hud-tr { position: absolute; top: 18px; right: 18px; display: flex; gap: 8px; }
+.hud-bc {
+  position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+  text-align: center; display: flex; flex-direction: column; gap: 10px;
+  align-items: center;
+}
+.hud-level { font-size: 13px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--mint); margin-bottom: 3px; }
+.hud-name { font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+.hud-hint { font-size: 13px; line-height: 1.45; opacity: .74; margin-top: 6px; }
+.hud-stats { display: flex; gap: 16px; margin-top: 10px; font-variant-numeric: tabular-nums;
+  font-size: 13px; opacity: .8; }
+.hud-stats b { font-weight: 600; color: #fff; }
+.hud-stats[hidden], .hud-dots[hidden] { display: none; }
+.hud-dots { display: flex; gap: 5px; margin-top: 10px; }
+.hud-dots i { width: 22px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.14); }
+.hud-dots i.on { background: var(--mint); }
+
+.hud-btn {
+  pointer-events: auto; cursor: pointer; font: inherit; font-size: 12px;
+  letter-spacing: .04em; color: #dfe8e6; background: var(--card);
+  border: 1px solid var(--edge); border-radius: 10px; padding: 8px 13px;
+  backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px);
+  transition: background .15s, color .15s, border-color .15s;
+}
+.hud-btn:hover { background: rgba(40,52,56,0.85); color: #fff; border-color: rgba(143,230,187,.5); }
+.hud-btn:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+.hud-btn.is-on { color: #10201a; background: var(--mint); border-color: var(--mint); font-weight: 600; }
+.hud-btn.is-danger { color: var(--red); border-color: rgba(224,133,123,.4); }
+.hud-btn[hidden] { display: none; }
+
+.hud-prompt {
+  font-size: 15px; font-weight: 500; padding: 9px 18px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--edge);
+  backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px);
+  transition: opacity .2s, color .2s; opacity: 0;
+}
+.hud-prompt.show { opacity: 1; }
+.hud-prompt.good { color: var(--mint); border-color: rgba(143,230,187,.45); }
+.hud-prompt.warn { color: var(--amber); border-color: rgba(232,201,138,.45); }
+
+.hud-keys { display: flex; gap: 14px; font-size: 12px; opacity: .78; letter-spacing: .03em;
+  text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+.hud-keys kbd, .hud-controls kbd {
+  font: inherit; font-size: 11px; background: rgba(255,255,255,.11);
+  border: 1px solid rgba(255,255,255,.16); border-radius: 5px;
+  padding: 1.5px 5px; margin-right: 3px;
+}
+
+.hud-veil {
+  position: absolute; inset: 0; pointer-events: auto;
+  background: radial-gradient(ellipse at center, rgba(12,16,18,.72), rgba(8,11,13,.93));
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+.hud-veil[hidden] { display: none !important; }
+/* HUD customisation (F3). Applied to the in-play clusters only — menus, the
+   veil and the review card are deliberately not scaled or faded. Each cluster
+   scales from its own corner so nothing drifts off-screen at 1.4x. */
+.hud-tl, .hud-tr, .hud-bc, .hud-radar { opacity: var(--hud-opacity); }
+.hud-tl { transform: scale(var(--hud-scale)); transform-origin: top left; }
+.hud-tr { transform: scale(var(--hud-scale)); transform-origin: top right; }
+/* Keep the centring transform: .hud-bc positions itself with left:50% plus
+   translateX(-50%), so a bare scale() here silently un-centred the prompt and
+   the key legend. */
+.hud-bc { transform: translateX(-50%) scale(var(--hud-scale)); transform-origin: bottom center; }
+.hud-radar {
+  position: absolute; top: 64px; right: 16px; width: 208px; aspect-ratio: 5 / 3;
+  transform: scale(var(--hud-scale)); transform-origin: top right;
+}
+.hud-radar canvas { width: 100%; height: 100%; display: block;
+  border-radius: 10px; border: 1px solid var(--edge); background: rgba(10,14,16,0.66); }
+
+/* Key rebinding grid (F6). */
+.hud-rebind { text-align: left; display: grid; grid-template-columns: 1fr auto;
+  gap: 8px 16px; align-items: center; font-size: 13.5px; margin-top: 6px; }
+.hud-rebind .sec { grid-column: 1 / -1; margin-top: 12px; }
+.hud-key {
+  pointer-events: auto; cursor: pointer; font: inherit; font-size: 12px;
+  min-width: 46px; margin-left: 6px; padding: 5px 9px; border-radius: 6px;
+  color: #eef3f2; background: rgba(255,255,255,0.06);
+  border: 1px solid var(--edge);
+}
+.hud-key:hover { background: rgba(255,255,255,0.12); }
+.hud-key.capturing { border-color: var(--mint); color: var(--mint); min-width: 104px; }
+.hud-key.clash { border-color: var(--amber); color: var(--amber); }
+
+/* Leaderboard block on the results card, and the board panel. */
+.hud-lb { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--edge); text-align: left; }
+.hud-lb-line { display: flex; align-items: center; gap: 10px; font-size: 13px;
+  opacity: .8; margin-bottom: 9px; flex-wrap: wrap; }
+.hud-lb-line b { font-weight: 600; opacity: 1; color: var(--mint); }
+.hud-lb-status { font-size: 12.5px; opacity: .75; margin-top: 8px; line-height: 1.45; }
+.hud-lb-notice { font-size: 12.5px; line-height: 1.5; margin-bottom: 10px; padding: 10px 12px;
+  border: 1px solid rgba(232,201,138,.35); border-radius: 10px; background: rgba(232,201,138,.06); }
+.hud-lb-notice b { color: var(--amber); }
+.hud-lb-notice .hud-btn { margin-top: 9px; font-size: 11.5px; padding: 6px 11px; }
+.hud-board-nav { display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin: 14px 0 4px; font-size: 12.5px; opacity: .8; flex-wrap: wrap; }
+.hud-board-nav .hud-btn { font-size: 12px; padding: 6px 12px; }
+.hud-board { text-align: left; margin-top: 8px; max-height: 52vh; overflow-y: auto; }
+.hud-board table { width: 100%; border-collapse: collapse; font-size: 13px;
+  font-variant-numeric: tabular-nums; }
+.hud-board th { text-align: left; font-weight: 600; opacity: .5; font-size: 11px;
+  letter-spacing: .12em; text-transform: uppercase; padding: 0 8px 8px 0; position: sticky;
+  top: 0; background: rgba(18,23,26,0.96); }
+.hud-board td { padding: 6px 8px 6px 0; border-top: 1px solid rgba(190,210,208,0.08); }
+.hud-board tr.me td { color: var(--mint); }
+.hud-board .num { text-align: right; }
+.hud-note { font-size: 12px; opacity: .6; line-height: 1.5; margin-top: 12px; }
+
+.hud-panel {
+  background: rgba(18,23,26,0.92); border: 1px solid var(--edge);
+  border-radius: 20px; padding: 30px 34px; width: min(560px, 100%); text-align: center;
+  max-height: calc(100vh - 32px); overflow-y: auto; overscroll-behavior: contain;
+}
+.hud-panel.wide { width: min(860px, 100%); }
+.hud-panel h1 { margin: 0 0 6px; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+.hud-panel h2 { margin: 0 0 14px; font-size: 22px; font-weight: 600; }
+.hud-panel p { margin: 0 0 8px; font-size: 14px; line-height: 1.55; opacity: .78; }
+.hud-panel p.hud-touch { opacity: 1; margin: 6px 0 10px; padding: 10px 12px; border: 1px solid rgba(232,201,138,.35);
+  border-radius: 10px; background: rgba(232,201,138,.06); color: var(--amber); font-size: 13px; }
+.hud-panel .tag { color: var(--mint); font-size: 12px; letter-spacing: .18em;
+  text-transform: uppercase; margin-bottom: 10px; }
+.hud-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+.hud-actions + .hud-actions { margin-top: 10px; }
+.hud-actions .hud-btn { font-size: 13px; padding: 10px 18px; }
+
+.hud-controls { text-align: left; display: grid; grid-template-columns: auto 1fr;
+  gap: 7px 16px; margin: 18px 0 4px; font-size: 13px; }
+.hud-controls span:nth-child(odd) { opacity: .6; white-space: nowrap; }
+
+.hud-break { display: grid; grid-template-columns: 1fr auto; gap: 7px 18px;
+  text-align: left; margin: 16px 0 4px; font-size: 13.5px;
+  font-variant-numeric: tabular-nums; }
+.hud-break .neg { color: var(--red); }
+.hud-break .tot { border-top: 1px solid var(--edge); padding-top: 9px; margin-top: 4px;
+  font-weight: 650; font-size: 16px; }
+.hud-stars { font-size: 30px; letter-spacing: 6px; color: var(--mint); margin: 6px 0 2px; }
+
+.hud-levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px; margin-top: 16px; text-align: left; }
+.hud-lv {
+  pointer-events: auto; cursor: pointer; font: inherit; color: inherit; text-align: left;
+  background: rgba(255,255,255,.035); border: 1px solid var(--edge); border-radius: 12px;
+  padding: 11px 12px 10px; display: flex; flex-direction: column; gap: 3px;
+  transition: border-color .15s, background .15s;
+}
+.hud-lv:hover { border-color: rgba(143,230,187,.55); background: rgba(143,230,187,.06); }
+.hud-lv:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+.hud-lv .n { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; opacity: .55; }
+.hud-lv .t { font-size: 15px; font-weight: 600; }
+.hud-lv .s { font-size: 12px; opacity: .7; min-height: 2.6em; line-height: 1.3; }
+.hud-lv .b { display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px;
+  font-size: 12px; font-variant-numeric: tabular-nums; }
+.hud-lv .stars { color: var(--mint); letter-spacing: 2px; font-size: 14px; }
+.hud-lv .stars.none { color: rgba(255,255,255,.2); }
+.hud-lv .chip { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px;
+  border-radius: 6px; background: rgba(255,255,255,.07); opacity: .8; align-self: flex-start; }
+.hud-lv.current { border-color: rgba(143,230,187,.45); }
+
+.hud-form { display: grid; grid-template-columns: 1fr auto; gap: 12px 18px; text-align: left;
+  margin-top: 18px; font-size: 13.5px; align-items: center; }
+.hud-form .sec { grid-column: 1 / -1; font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--mint); margin-top: 8px; }
+.hud-form label { opacity: .85; }
+.hud-form small { display: block; opacity: .5; font-size: 11.5px; margin-top: 1px; }
+.hud-form input[type=range] { pointer-events: auto; width: 170px; accent-color: #8fe6bb; vertical-align: middle; }
+.hud-form input[type=checkbox] { pointer-events: auto; width: 18px; height: 18px; accent-color: #8fe6bb; justify-self: end; }
+.hud-form .val { font-variant-numeric: tabular-nums; opacity: .7; font-size: 12px; margin-left: 8px;
+  display: inline-block; min-width: 3.2em; text-align: right; }
+.hud-seg { display: inline-flex; border: 1px solid var(--edge); border-radius: 9px; overflow: hidden; justify-self: end; }
+.hud-seg button { pointer-events: auto; cursor: pointer; font: inherit; font-size: 12px; color: #dfe8e6;
+  background: transparent; border: 0; padding: 6px 11px; }
+.hud-seg button + button { border-left: 1px solid var(--edge); }
+.hud-seg button.on { background: var(--mint); color: #10201a; font-weight: 600; }
+
+/* Driving-position tuner: docked, no veil, so the view it changes stays visible. */
+.hud-seat {
+  position: absolute; left: 18px; bottom: 18px; width: min(340px, calc(100vw - 36px));
+  pointer-events: auto; padding: 16px 18px 14px;
+  background: rgba(16,21,24,0.86);
+}
+.hud-seat[hidden] { display: none; }
+.hud.tuning .hud-keys, .hud.tuning .hud-prompt { visibility: hidden; }
+.hud-seat h3 { margin: 0 0 2px; font-size: 16px; font-weight: 600; }
+.hud-seat p { margin: 0 0 12px; font-size: 12.5px; line-height: 1.45; opacity: .66; }
+.hud-seat .row { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; margin-bottom: 10px; }
+.hud-seat label { font-size: 13px; opacity: .88; }
+.hud-seat output { font-size: 12px; font-variant-numeric: tabular-nums; opacity: .7; text-align: right; }
+.hud-seat input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: #8fe6bb; margin: 2px 0 0; }
+.hud-seat .hud-actions { justify-content: flex-start; margin-top: 12px; }
+.hud-seat .hud-actions .hud-btn { font-size: 12.5px; padding: 8px 14px; }
+
+/* Overhead parking review (GOAL Part C): docked results card, no veil, so the
+ * top-down flight/overlay stays visible behind it — same principle as
+ * .hud-seat above. Right-docked >= 900px, bottom sheet below that (C.8). */
+.hud-review-card {
+  position: absolute; right: 24px; top: 24px; width: 380px;
+  pointer-events: auto; padding: 20px 22px; overflow-y: auto; overscroll-behavior: contain;
+  max-height: calc(100vh - 48px); text-align: left;
+}
+.hud-review-card[hidden] { display: none; }
+.hud-review-card .tag { color: var(--mint); font-size: 12px; letter-spacing: .18em;
+  text-transform: uppercase; margin-bottom: 8px; }
+.hud-review-card .tag.fail { color: var(--amber); }
+.hud-review-card h2 { margin: 0 0 8px; font-size: 21px; font-weight: 650; }
+.hud-review-card .hud-stars { margin: 2px 0 10px; }
+.hud-review-card p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.5; opacity: .8; }
+.hud-review-card .stop-sentence { font-size: 13px; line-height: 1.5; opacity: .9;
+  background: rgba(255,255,255,.04); border: 1px solid var(--edge); border-radius: 10px;
+  padding: 10px 12px; margin: 10px 0; }
+.hud-review-card .hud-actions { justify-content: flex-start; margin-top: 14px; }
+.hud-review-pill {
+  position: absolute; top: 18px; right: 18px; pointer-events: auto;
+}
+.hud-review-pill[hidden] { display: none; }
+.hud-review {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.hud-review[hidden] { display: none; }
+.hud-review-label {
+  position: absolute; transform: translate(-50%, -50%); pointer-events: none;
+  background: rgba(16,21,24,0.82); border: 1px solid var(--edge); border-radius: 999px;
+  padding: 3px 9px; font-size: 12.5px; font-variant-numeric: tabular-nums;
+  color: #eef3f2; white-space: nowrap;
+}
+@media (max-width: 899px) {
+  .hud-review-card {
+    left: 16px; right: 16px; top: auto; bottom: 0; width: auto;
+    max-height: 48vh; border-radius: 20px 20px 0 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .hud-tl { max-width: calc(100vw - 36px); }
+  .hud-tr { top: auto; bottom: 90px; }
+  .hud-keys { display: none; }
+  .hud-panel { padding: 22px 18px; }
+  .hud-form { grid-template-columns: 1fr; }
+  .hud-form input[type=checkbox], .hud-seg { justify-self: start; }
+}

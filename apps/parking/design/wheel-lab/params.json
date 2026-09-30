@@ -1,0 +1,802 @@
+{
+  "about": "Parking Precision wheel lab parameters. wheel -> Dimensions.WHEEL_SPORT, colors -> Palette.COLORS.wheel*, hand -> Dimensions.HAND, rig -> Dimensions.HAND_RIG (poseTables -> HandModel.POSE_TABLES).",
+  "version": 1,
+  "exportedAt": "2026-09-14T14:33:37.819Z",
+  "wheel": {
+    "rimTube": 0.025,
+    "flatHalfDeg": 32,
+    "rimFillet": 0.024,
+    "rimSegments": 72,
+    "rimRadial": 8,
+    "dish": 0.022,
+    "spokeSide": {
+      "thickness": 0.03,
+      "depth": 0.02
+    },
+    "spokeLower": {
+      "widthHub": 0.058,
+      "widthRim": 0.04,
+      "depth": 0.02
+    },
+    "hubPad": {
+      "width": 0.13,
+      "height": 0.095,
+      "depth": 0.045,
+      "chamfer": 0.012,
+      "proud": 0.012
+    },
+    "hubBezel": 0.006,
+    "thumbGrip": {
+      "length": 0.06,
+      "bulge": 0.006
+    },
+    "stripe": {
+      "length": 0.018,
+      "proud": 0.0008
+    }
+  },
+  "colors": {
+    "rim": "#2c2a28",
+    "spoke": "#4a4744",
+    "hub": "#353331",
+    "stripe": "#e3c98f"
+  },
+  "hand": {
+    "palm": {
+      "length": 0.08,
+      "width": 0.085,
+      "thick": 0.026,
+      "wristTaper": 0.8
+    },
+    "fingerLengths": [
+      0.075,
+      0.082,
+      0.078,
+      0.062
+    ],
+    "fingerSplit": [
+      0.45,
+      0.3,
+      0.25
+    ],
+    "fingerThick": [
+      0.017,
+      0.0135
+    ],
+    "fingerSpacing": 0.02,
+    "knuckleDrop": [
+      0,
+      0.002,
+      -0.002,
+      -0.009
+    ],
+    "thumbBase": [
+      0.03,
+      0.02,
+      0.004
+    ],
+    "thumbSplayDeg": 52,
+    "thumbLengths": [
+      0.045,
+      0.032,
+      0.028
+    ],
+    "thumbThick": 0.019,
+    "cuff": {
+      "width": 0.066,
+      "thick": 0.05,
+      "length": 0.045
+    },
+    "contact": [
+      0,
+      0.058,
+      0.013
+    ]
+  },
+  "rig": {
+    "domainLeft": [
+      -160,
+      -20
+    ],
+    "domainRight": [
+      20,
+      160
+    ],
+    "softMargin": 30,
+    "rest": 90,
+    "gripRoll": 62,
+    "skinGap": 0.004,
+    "slipLoosen": 0.012,
+    "slipLift": 0.005,
+    "slipLiftRate": 0.04,
+    "landingRate": 160,
+    "spokePalmOffset": -6,
+    "spokeOffsetRate": 25,
+    "spokeClear": 12,
+    "thumbRestAbove": [
+      2,
+      30
+    ],
+    "thumbRestGap": 0.011,
+    "thumbHoverGap": 0.025,
+    "thumbStayNear": 0.05,
+    "regripCloseAt": 0.6,
+    "targetsCW": {
+      "left": -130,
+      "right": 50
+    },
+    "targetsCCW": {
+      "left": -50,
+      "right": 130
+    },
+    "release": 0.06,
+    "travel": 0.3,
+    "travelMax": 0.45,
+    "travelSpeed": 230,
+    "regrip": 0.07,
+    "cooldown": 0.1,
+    "slipRegrip": 0.05,
+    "settleIdle": 0.25,
+    "settleTravel": 0.22,
+    "settleThreshold": 12,
+    "releaseLift": 0.018,
+    "travelLiftAxis": 0.05,
+    "travelLiftNormal": 0.015,
+    "shift": {
+      "release": 0.16,
+      "toKnob": 0.22,
+      "hold": 0.3,
+      "back": 0.32,
+      "peel": 0.09,
+      "arc": 0.06
+    },
+    "shiftWaitMax": 0.8,
+    "fingerRate": 1200,
+    "fingerK": 28,
+    "poleL": [
+      -0.55,
+      -0.8,
+      0.2
+    ],
+    "poleR": [
+      0.55,
+      -0.8,
+      0.2
+    ],
+    "upperArmRadius": 0.046,
+    "forearmRadius": 0.039,
+    "forearmSleeve": true,
+    "solveThumbs": true,
+    "poseTables": {
+      "RELAXED": [
+        12,
+        16,
+        8,
+        10,
+        16,
+        8,
+        12,
+        17,
+        8,
+        13,
+        17,
+        8,
+        20,
+        10,
+        5,
+        5
+      ],
+      "THUMB_GRIP": [
+        40,
+        25,
+        20,
+        15
+      ],
+      "THUMB_SLIP": [
+        30,
+        15,
+        10,
+        5
+      ],
+      "THUMB_ON_SPOKE": [
+        62,
+        6,
+        4,
+        8
+      ],
+      "THUMB_KNOB": [
+        55,
+        35,
+        25,
+        20
+      ]
+    }
+  },
+  "derivedPoses": {
+    "RIM_GRIP": [
+      60.10931053111618,
+      34.355396049697326,
+      27.712737139704824,
+      63.36718697954132,
+      38.28749056212729,
+      30.05401363512195,
+      56.90708891565049,
+      38.5732861491704,
+      28.721225581215077,
+      44.68645523839547,
+      30.68852201085327,
+      23.262935941736867,
+      26,
+      -21,
+      3,
+      35
+    ],
+    "RIM_SLIP": [
+      39.928715728066535,
+      45.00901858769782,
+      21.249816806293484,
+      45.00709988316028,
+      46.60075726571589,
+      23.094306294716905,
+      37.24077780954845,
+      47.8453700362271,
+      22.042388835903694,
+      19.42590367101429,
+      46.38554790212522,
+      17.785453190250358,
+      26,
+      -21,
+      3,
+      35
+    ],
+    "KNOB_GRIP": [
+      45.00450399553957,
+      21.054309361886443,
+      18.381791142667314,
+      47.38972813121654,
+      24.10382009470771,
+      19.989434067931196,
+      42.36105880865811,
+      24.062220404053562,
+      19.07194651808842,
+      33.83932660435001,
+      17.808205044232597,
+      15.376094025073233,
+      78,
+      -25,
+      32,
+      23
+    ],
+    "RELAXED": [
+      12,
+      16,
+      8,
+      10,
+      16,
+      8,
+      12,
+      17,
+      8,
+      13,
+      17,
+      8,
+      26,
+      -21,
+      3,
+      35
+    ],
+    "THUMB_ON_SPOKE": [
+      60.10931053111618,
+      34.355396049697326,
+      27.712737139704824,
+      63.36718697954132,
+      38.28749056212729,
+      30.05401363512195,
+      56.90708891565049,
+      38.5732861491704,
+      28.721225581215077,
+      44.68645523839547,
+      30.68852201085327,
+      23.262935941736867,
+      45,
+      -24,
+      5,
+      34
+    ],
+    "RIM_CLOSING": [
+      60.10931053111618,
+      34.355396049697326,
+      27.712737139704824,
+      63.36718697954132,
+      38.28749056212729,
+      30.05401363512195,
+      56.90708891565049,
+      38.5732861491704,
+      28.721225581215077,
+      44.68645523839547,
+      30.68852201085327,
+      23.262935941736867,
+      26,
+      -21,
+      3,
+      35
+    ]
+  },
+  "measured": {
+    "reach": {
+      "left": [
+        [
+          -180,
+          0.5699
+        ],
+        [
+          -170,
+          0.5596
+        ],
+        [
+          -160,
+          0.5497
+        ],
+        [
+          -150,
+          0.5399
+        ],
+        [
+          -140,
+          0.5306
+        ],
+        [
+          -130,
+          0.5244
+        ],
+        [
+          -120,
+          0.521
+        ],
+        [
+          -110,
+          0.5202
+        ],
+        [
+          -100,
+          0.5223
+        ],
+        [
+          -90,
+          0.5269
+        ],
+        [
+          -80,
+          0.534
+        ],
+        [
+          -70,
+          0.5433
+        ],
+        [
+          -60,
+          0.5542
+        ],
+        [
+          -50,
+          0.5665
+        ],
+        [
+          -40,
+          0.5797
+        ],
+        [
+          -30,
+          0.5934
+        ],
+        [
+          -20,
+          0.607
+        ],
+        [
+          -10,
+          0.6202
+        ],
+        [
+          0,
+          0.6327
+        ],
+        [
+          10,
+          0.6441
+        ],
+        [
+          20,
+          0.6541
+        ],
+        [
+          30,
+          0.6625
+        ],
+        [
+          40,
+          0.6692
+        ],
+        [
+          50,
+          0.6739
+        ],
+        [
+          60,
+          0.6765
+        ],
+        [
+          70,
+          0.6771
+        ],
+        [
+          80,
+          0.6755
+        ],
+        [
+          90,
+          0.6719
+        ],
+        [
+          100,
+          0.6662
+        ],
+        [
+          110,
+          0.6587
+        ],
+        [
+          120,
+          0.6495
+        ],
+        [
+          130,
+          0.6388
+        ],
+        [
+          140,
+          0.6264
+        ],
+        [
+          150,
+          0.6097
+        ],
+        [
+          160,
+          0.5943
+        ],
+        [
+          170,
+          0.5812
+        ],
+        [
+          180,
+          0.5699
+        ]
+      ],
+      "right": [
+        [
+          -180,
+          0.5699
+        ],
+        [
+          -170,
+          0.5812
+        ],
+        [
+          -160,
+          0.5943
+        ],
+        [
+          -150,
+          0.6097
+        ],
+        [
+          -140,
+          0.6264
+        ],
+        [
+          -130,
+          0.6388
+        ],
+        [
+          -120,
+          0.6495
+        ],
+        [
+          -110,
+          0.6587
+        ],
+        [
+          -100,
+          0.6662
+        ],
+        [
+          -90,
+          0.6719
+        ],
+        [
+          -80,
+          0.6755
+        ],
+        [
+          -70,
+          0.6771
+        ],
+        [
+          -60,
+          0.6765
+        ],
+        [
+          -50,
+          0.6739
+        ],
+        [
+          -40,
+          0.6692
+        ],
+        [
+          -30,
+          0.6625
+        ],
+        [
+          -20,
+          0.6541
+        ],
+        [
+          -10,
+          0.6441
+        ],
+        [
+          0,
+          0.6327
+        ],
+        [
+          10,
+          0.6202
+        ],
+        [
+          20,
+          0.607
+        ],
+        [
+          30,
+          0.5934
+        ],
+        [
+          40,
+          0.5797
+        ],
+        [
+          50,
+          0.5665
+        ],
+        [
+          60,
+          0.5542
+        ],
+        [
+          70,
+          0.5433
+        ],
+        [
+          80,
+          0.534
+        ],
+        [
+          90,
+          0.5269
+        ],
+        [
+          100,
+          0.5223
+        ],
+        [
+          110,
+          0.5202
+        ],
+        [
+          120,
+          0.521
+        ],
+        [
+          130,
+          0.5244
+        ],
+        [
+          140,
+          0.5306
+        ],
+        [
+          150,
+          0.5399
+        ],
+        [
+          160,
+          0.5497
+        ],
+        [
+          170,
+          0.5596
+        ],
+        [
+          180,
+          0.5699
+        ]
+      ]
+    },
+    "sightline": {
+      "0": {
+        "sightlineAtClusterY": 0.9438,
+        "clusterBottomY": 0.9475,
+        "clearanceCm": 0.37
+      },
+      "-0.08": {
+        "sightlineAtClusterY": 0.9969,
+        "clusterBottomY": 0.9475,
+        "clearanceCm": -4.93
+      },
+      "0.14": {
+        "sightlineAtClusterY": 0.8598,
+        "clusterBottomY": 0.9475,
+        "clearanceCm": 8.77
+      }
+    },
+    "sweep": {
+      "pass": true,
+      "violations": 0,
+      "sequences": {
+        "S1": {
+          "frames": 120,
+          "travels": 0,
+          "slipFrames": 0,
+          "maxContactErrCm": 0.4,
+          "maxPenCm": 0,
+          "minSepCm": 40.5,
+          "maxExt": 0.7937,
+          "maxFreeJumpCm": 0,
+          "maxElbowCm": 0,
+          "violations": 0
+        },
+        "S2": {
+          "frames": 148,
+          "travels": 3,
+          "slipFrames": 24,
+          "maxContactErrCm": 0.9,
+          "maxPenCm": 0.033,
+          "minSepCm": 23.36,
+          "maxExt": 0.9197,
+          "maxFreeJumpCm": 3.61,
+          "maxElbowCm": 4.03,
+          "violations": 0
+        },
+        "S3": {
+          "frames": 120,
+          "travels": 3,
+          "slipFrames": 22,
+          "maxContactErrCm": 0.9,
+          "maxPenCm": 0,
+          "minSepCm": 23.36,
+          "maxExt": 0.9197,
+          "maxFreeJumpCm": 3.66,
+          "maxElbowCm": 4.75,
+          "violations": 0
+        },
+        "S4": {
+          "frames": 148,
+          "travels": 3,
+          "slipFrames": 24,
+          "maxContactErrCm": 0.9,
+          "maxPenCm": 0.033,
+          "minSepCm": 23.36,
+          "maxExt": 0.9197,
+          "maxFreeJumpCm": 3.61,
+          "maxElbowCm": 4.03,
+          "violations": 0
+        },
+        "S5": {
+          "frames": 120,
+          "travels": 3,
+          "slipFrames": 22,
+          "maxContactErrCm": 0.9,
+          "maxPenCm": 0,
+          "minSepCm": 23.36,
+          "maxExt": 0.9197,
+          "maxFreeJumpCm": 3.66,
+          "maxElbowCm": 4.75,
+          "violations": 0
+        },
+        "S6": {
+          "frames": 300,
+          "travels": 7,
+          "slipFrames": 17,
+          "maxContactErrCm": 0.667,
+          "maxPenCm": 0.287,
+          "minSepCm": 23.97,
+          "maxExt": 0.9197,
+          "maxFreeJumpCm": 3.14,
+          "maxElbowCm": 4.37,
+          "violations": 0
+        },
+        "S7": {
+          "frames": 408,
+          "travels": 10,
+          "slipFrames": 23,
+          "maxContactErrCm": 0.733,
+          "maxPenCm": 0,
+          "minSepCm": 23.38,
+          "maxExt": 0.9197,
+          "maxFreeJumpCm": 3.34,
+          "maxElbowCm": 4.88,
+          "violations": 0
+        },
+        "S8": {
+          "frames": 314,
+          "travels": 5,
+          "slipFrames": 100,
+          "maxContactErrCm": 0.9,
+          "maxPenCm": 0.295,
+          "minSepCm": 16.5,
+          "maxExt": 0.9197,
+          "maxFreeJumpCm": 3.81,
+          "maxElbowCm": 4.46,
+          "violations": 0
+        },
+        "S9": {
+          "frames": 408,
+          "travels": 10,
+          "slipFrames": 23,
+          "maxContactErrCm": 0.733,
+          "maxPenCm": 0,
+          "minSepCm": 23.38,
+          "maxExt": 0.9197,
+          "maxFreeJumpCm": 3.34,
+          "maxElbowCm": 4.88,
+          "violations": 0
+        }
+      },
+      "events": [
+        {
+          "name": "S2 hand-over-hand",
+          "ok": true,
+          "detail": "3 travels (≥ 2)"
+        },
+        {
+          "name": "S4 hand-over-hand",
+          "ok": true,
+          "detail": "3 travels (≥ 2)"
+        },
+        {
+          "name": "S1 rests at 9 and 3",
+          "ok": true,
+          "detail": "L GRIP -90.0°, R GRIP 90.0°; thumb off its rest 0.0 / 0.0 cm (≤ 1.5)"
+        },
+        {
+          "name": "S3 rests at 9 and 3",
+          "ok": true,
+          "detail": "L GRIP -90.0°, R GRIP 90.0°; thumb off its rest 0.0 / 0.0 cm (≤ 1.5)"
+        },
+        {
+          "name": "S5 rests at 9 and 3",
+          "ok": true,
+          "detail": "L GRIP -90.0°, R GRIP 90.0°; thumb off its rest 0.0 / 0.0 cm (≤ 1.5)"
+        },
+        {
+          "name": "S8 shift → D",
+          "ok": true,
+          "detail": "superseded before the hand reached the knob; lever never moved for it, left off 0 f"
+        },
+        {
+          "name": "S8 shift → R",
+          "ok": true,
+          "detail": "grabs 1, on knob yes (0.2 cm), left off 0 f, lever early no, back in GRIP 0.98 s (≤ 1.4)"
+        },
+        {
+          "name": "S9 lean-independent",
+          "ok": true,
+          "detail": "max difference vs S7 0.000 mm over 408 frames"
+        }
+      ]
+    }
+  }
+}

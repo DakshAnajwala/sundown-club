@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<title>Results card v2</title>
+<link rel="stylesheet" href="./hud-base.css">
+<link rel="stylesheet" href="./retention.css">
+<link rel="stylesheet" href="./proto.css">
+</head>
+<body>
+<header class="proto-head">
+  <h1>Results card v2 <a href="./index.html">← all prototypes</a></h1>
+  <p>SPEC §2–§4, §7, §8. Left: an 84 (two stars) whose biggest loss is placement. Middle: a Gold 96.
+  Right: a Platinum 100. Scores worked through <code>Scoring.finish()</code>: the rounded parts add up to the score, and
+  "cost you N points" is the exact gain from fixing that one part (round of the re-summed parts minus the score).</p>
+</header>
+<div class="hud proto">
+
+  <!-- A: Deck One, 84. lat 0.22 / tol 0.57, lon 0.04 short / 0.56, 1.3° / 12°, 31.4 s / par 40 -->
+  <section class="hud-card hud-review-card" aria-label="Results, example A">
+    <div class="tag">Parked</div>
+    <h2>Deck One</h2>
+    <div class="hud-stars-row"><span class="hud-stars">★★☆</span></div>
+    <div class="hud-delta up"><b>+8</b> on your best (76)</div>
+    <div class="hud-break v2">
+      <span class="big">Placement in bay</span><span class="d big">22 cm left of centre</span><span class="p big">18 / 30</span><span class="l big">−12</span>
+      <span>Depth</span><span class="d">4 cm short</span><span class="p">19 / 20</span><span class="l">−1</span>
+      <span>Alignment</span><span class="d">1.3° nose right</span><span class="p">22 / 25</span><span class="l">−3</span>
+      <span>Time</span><span class="d">31.4 s (par 40 s)</span><span class="p">15 / 15</span><span class="l"></span>
+      <span>Clean run</span><span class="d">no contact</span><span class="p">10 / 10</span><span class="l"></span>
+      <span class="hr"></span><span class="tot lab">Score</span><span class="tot val">84 / 100</span>
+    </div>
+    <div class="hud-fix"><b>22 cm left of centre cost you 12 points.</b> Aim for equal gaps both sides before you stop.</div>
+    <div class="hud-next"><b>4 points to ★★★</b></div>
+    <div class="stop-sentence">Where you stopped: 22 cm left, 4 cm short, 1.3° nose right. Gaps: gap 59 cm, gap 1.03 m.</div>
+    <div class="hud-lb"><div class="hud-lb-status">Posted as Swift Otter 412. You are <b>#14</b> on this level.</div></div>
+    <div class="hud-actions">
+      <button class="hud-btn is-on">Next level<kbd>Enter</kbd></button>
+      <button class="hud-btn">Retry<kbd>B</kbd></button>
+      <button class="hud-btn">Share result</button>
+      <button class="hud-btn">View again</button>
+      <button class="hud-btn">Hide your personal best</button>
+      <button class="hud-btn">Leaderboard</button>
+      <button class="hud-btn">Level select</button>
+      <button class="hud-btn">Hide panel</button>
+    </div>
+  </section>
+
+  <!-- B: Deck Two, 96 Gold. lat 0.02, lon 0.05 deep, 0.3° / 11°, 52.0 s / par 60 -->
+  <section class="hud-card hud-review-card" aria-label="Results, example B">
+    <div class="tag">Parked</div>
+    <h2>Deck Two</h2>
+    <div class="hud-stars-row"><span class="hud-stars">★★★</span><span class="hud-medal gold">GOLD</span></div>
+    <div class="hud-delta down"><b>−1</b> on your best (97)</div>
+    <div class="hud-break v2">
+      <span>Placement in bay</span><span class="d">2 cm right of centre</span><span class="p">29 / 30</span><span class="l">−1</span>
+      <span class="big">Depth</span><span class="d big">5 cm too deep</span><span class="p big">18 / 20</span><span class="l big">−2</span>
+      <span>Alignment</span><span class="d">0.3° nose left</span><span class="p">24 / 25</span><span class="l">−1</span>
+      <span>Time</span><span class="d">52.0 s (par 60 s)</span><span class="p">15 / 15</span><span class="l"></span>
+      <span>Clean run</span><span class="d">no contact</span><span class="p">10 / 10</span><span class="l"></span>
+      <span class="hr"></span><span class="tot lab">Score</span><span class="tot val">96 / 100</span>
+    </div>
+    <div class="hud-fix"><b>5 cm too deep cost you 2 points.</b> Finish 5 cm further out.</div>
+    <div class="hud-next"><b>Platinum: 98+ in under 28.1 s</b></div>
+    <div class="stop-sentence">Where you stopped: 2 cm right, 5 cm too deep, 0.3° nose left. Gaps: gap 79 cm, gap 83 cm.</div>
+    <div class="hud-actions">
+      <button class="hud-btn is-on">Next level<kbd>Enter</kbd></button>
+      <button class="hud-btn">Retry<kbd>B</kbd></button>
+      <button class="hud-btn">Share result</button>
+      <button class="hud-btn">View again</button>
+      <button class="hud-btn">Hide your personal best</button>
+      <button class="hud-btn">Level select</button>
+    </div>
+  </section>
+
+  <!-- C: Deck Four, 100 Platinum, 14.2 s under the 15.4 s author time -->
+  <section class="hud-card hud-review-card" aria-label="Results, example C">
+    <div class="tag">New personal best</div>
+    <h2>Deck Four</h2>
+    <div class="hud-stars-row"><span class="hud-stars">★★★</span><span class="hud-medal platinum">PLATINUM</span></div>
+    <div class="hud-delta up"><b>+3</b> on your best (97)</div>
+    <div class="hud-break v2">
+      <span>Placement in bay</span><span class="d">0 cm off centre</span><span class="p">30 / 30</span><span class="l"></span>
+      <span>Depth</span><span class="d">0 cm off</span><span class="p">20 / 20</span><span class="l"></span>
+      <span>Alignment</span><span class="d">0.0° out</span><span class="p">25 / 25</span><span class="l"></span>
+      <span>Time</span><span class="d">14.2 s (par 45 s)</span><span class="p">15 / 15</span><span class="l"></span>
+      <span>Clean run</span><span class="d">no contact</span><span class="p">10 / 10</span><span class="l"></span>
+      <span class="hr"></span><span class="tot lab">Score</span><span class="tot val">100 / 100</span>
+    </div>
+    <div class="hud-fix clean"><b>Nothing to fix.</b> Every part scored full marks.</div>
+    <div class="hud-next"><b>Platinum earned.</b> Next: beat your 14.2 s.</div>
+    <div class="stop-sentence">Where you stopped: Dead centre.</div>
+    <div class="hud-actions">
+      <button class="hud-btn is-on">Next level<kbd>Enter</kbd></button>
+      <button class="hud-btn">Retry<kbd>B</kbd></button>
+      <button class="hud-btn">Share result</button>
+      <button class="hud-btn">View again</button>
+      <button class="hud-btn">Level select</button>
+    </div>
+  </section>
+
+  <p class="proto-note">Keys on this card: <b>B</b> retry and <b>Enter</b> next work from the first frame, during the flight
+  too. H, V and Esc during the flight end it. R keeps its old meaning once the flight has settled.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+<meta name="description" content="What Parking Precision stores on your device, what the leaderboard sends, and how to stop it or have it deleted." />
+<link rel="canonical" href="https://parking-precision.vercel.app/privacy.html" />
+<title>Privacy Policy — Parking Precision</title>
+<style>
+  :root {
+    --bg: #0d1113; --card: #12171a; --edge: rgba(190,210,208,0.16);
+    --ink: #eef3f2; --dim: rgba(200,215,212,0.72); --mint: #8fe6bb;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { padding: 48px 20px 80px; }
+  main { max-width: 640px; margin: 0 auto; }
+  a { color: var(--mint); }
+  .back { display: inline-block; margin-bottom: 28px; font-size: 13px; color: var(--dim);
+    text-decoration: none; letter-spacing: .04em; }
+  .back:hover { color: var(--mint); }
+  .tag { color: var(--mint); font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+    margin-bottom: 8px; font-weight: 600; }
+  h1 { margin: 0 0 4px; font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+  .updated { color: var(--dim); font-size: 13px; margin: 0 0 32px; }
+  h2 { font-size: 18px; font-weight: 650; margin: 34px 0 10px; }
+  p, li { font-size: 15px; line-height: 1.65; color: var(--dim); }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  strong { color: var(--ink); }
+  code { background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px;
+    font-size: 0.9em; color: var(--ink); }
+  .card { background: var(--card); border: 1px solid var(--edge); border-radius: 14px;
+    padding: 20px 22px; margin-top: 40px; }
+  footer { margin-top: 48px; font-size: 13px; color: var(--dim); text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">← Parking Precision</a> · <a class="back" href="./play/">Play</a>
+  <div class="tag">Legal</div>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: September 28, 2026</p>
+
+  <p>This is short because the game does very little with data. Read it end to
+  end — it's five sections.</p>
+
+  <h2>1. There is no account, and the game itself runs on your device</h2>
+  <p>Parking Precision runs entirely in your browser. There is no login and no
+  password. Everything that makes the game work — physics, levels, scoring —
+  is computed on your own device.</p>
+  <p>There is one exception: the <strong>leaderboard</strong>. When you finish
+  a level, your score for that run is posted to a public board automatically.
+  You can switch that off, and section 4 explains exactly what is sent, what it
+  is stored against, and how to stop it. Nothing else about your play is sent
+  anywhere.</p>
+
+  <h2>2. What's stored on your device, and why</h2>
+  <p>The game saves a few small things to your browser's
+  <code>localStorage</code>: your <strong>progress</strong> (best score, stars,
+  time and bumps per level, the best medal you have earned there and your
+  fastest park time, plus your best park's offsets in each bay, for your
+  "personal best" outline in the post-park review — stored under
+  <code>parking-precision:progress:v5</code>; an older
+  <code>parking-precision:progress:v4</code> save is read once to carry your
+  record over and otherwise left as it was); your <strong>daily challenge
+  results</strong> (how many dailies you have parked in total, the number of the
+  last one, and your best score, stars and time on today's — a plain count,
+  nothing tracks consecutive days; <code>parking-precision:daily:v1</code>);
+  <strong>your best run for the ghost car</strong> (when a run becomes your best
+  on a level, the path your car took — position and heading, 10–20 times a
+  second — so it can replay as a see-through car next time; at most about 30 KB
+  per level and 400 KB in all, <code>parking-precision:ghost:v1</code>; switch
+  it off in Settings → Personal best); your
+  <strong>settings</strong> (graphics quality, field of view, driving position,
+  volume, units, HUD layout, camera choice, personal-best display choices,
+  rebound keys); and your
+  <strong>leaderboard name and identifier</strong> (the randomly generated name
+  you were given, e.g. "Swift Otter 412", and the random identifier it belongs
+  to, so your runs keep posting under the same name — you did not type the name
+  and neither value is derived from anything about you or your device).</p>
+  <p>That's the lot — no name you typed, no email, no location, and nothing
+  measured about your device, browser or network.</p>
+  <ul>
+    <li><strong>Progress, daily results, ghost runs and settings never leave
+      your device</strong> — they aren't sent to us or anyone else. Daily
+      challenge runs are never posted to the leaderboard, and "Share result"
+      only copies text (or opens your device's share sheet): the page itself
+      sends nothing.</li>
+    <li><strong>The leaderboard name and identifier do leave it</strong>, but
+      only when a score is posted, and only to our own server (section 4). They
+      are never shared further, and never used for advertising or tracking.</li>
+    <li><strong>None of it is a cookie</strong>, technically, but it behaves the
+      same way from your point of view: a small file your browser keeps for this
+      site.</li>
+    <li><strong>It is yours to delete</strong> — Settings → Reset progress
+      clears your progress, medals, daily results and stored ghost runs; clearing this site's data in your browser removes
+      everything above, the leaderboard name and identifier included.</li>
+  </ul>
+  <p>We don't use it (or anything else) for advertising, tracking, or
+  fingerprinting, and no third-party ad scripts are loaded by this game.</p>
+
+  <h2>3. Hosting and analytics</h2>
+  <p>This game is hosted on <a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a>.
+  Like any web host, Vercel's servers necessarily see standard connection
+  information to deliver the page to you (IP address, browser type, request
+  timestamps) in server logs. We don't access, collect, or use that ourselves —
+  it's covered by <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel's own privacy policy</a>,
+  not this one.</p>
+  <p><strong>Vercel Web Analytics</strong> is switched on for this project at
+  the hosting account. The game's own pages load no analytics or measurement
+  script — you can check by viewing the page source. Vercel's own measurement
+  covers aggregate traffic — page views, referring site, rough location
+  (country/region), and device/browser type. It doesn't use cookies, doesn't fingerprint you, and
+  doesn't track you across other sites: it's computed from anonymised,
+  aggregated request data, not from anything the game itself sends. See
+  <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noopener">Vercel Web Analytics' privacy policy</a>
+  for exactly what it collects. We use it only to understand how many people
+  play and where the traffic comes from — never to identify an individual
+  player.</p>
+  <p>If we later add ads or anything that sets cookies or tracks you across
+  sites, this policy will be updated first, and — where the law requires it —
+  you'll be asked for consent before it happens.</p>
+
+  <h2>4. The leaderboard (automatic, and switchable)</h2>
+  <p>The game has a public leaderboard, and <strong>it posts your score
+  automatically when you finish a level.</strong> The first time that happens
+  the game tells you so on the results screen and offers a one-click way to
+  stop it. You can also turn it off at any time in <strong>Settings →
+  Leaderboard</strong>. With it off, no score, name or identifier is sent
+  unless you press Post yourself.</p>
+  <p><strong>When a level starts</strong>, the game asks our server for a
+  one-time run token, so that a score posted later can be checked against the
+  time the server itself measured. That request contains only the level number:
+  no name, no identifier, nothing about you or your device. It happens whether or
+  not you end up posting, because the token has to exist from the start of the
+  run.</p>
+  <p>Each posted run sends and stores on our server: the level you
+  played; your score, stars, time, and how many bumps, cones and kerbs you hit
+  on that run; the randomly generated name above; and the moment it was posted.
+  That is the whole record. There is <strong>no</strong> name you typed, no
+  email, no account, and no message field — the name comes from a fixed word
+  list, so nothing personal can be put on the board even deliberately.</p>
+  <p><strong>Your name, and the device identifier behind it.</strong> So that
+  one player keeps one name instead of collecting rows under several, the server
+  gives your browser a random identifier the first time a score is posted, remembers
+  which generated name belongs to it, and refuses to post under any other name.
+  The identifier is a random string. It is <strong>not</strong> a fingerprint:
+  nothing about your device, browser, screen, network or behaviour is measured,
+  collected or derived, and it cannot be used to recognise you on any other
+  website. It identifies a browser, not a person — clearing this site's data or
+  using a private window gives you a fresh identifier and a fresh name.</p>
+  <p>Posted rows are <strong>public</strong>. Only your best run per level is
+  kept. Our server also briefly counts requests per IP address so one person
+  cannot flood the board with runs or posts; that counter expires within ten minutes and is never
+  stored next to your score or used to identify you. The board is hosted for us
+  by Upstash and Vercel.</p>
+  <p><strong>Removing your score:</strong> email the address below with the name
+  shown on the board and the level, and the entry will be deleted. Because there
+  is no account, that name is the only way to find a row.</p>
+  <p>Scores are worked out in your own browser, so they can be faked by someone
+  determined enough. The board is labelled unverified in the game for that
+  reason. It is for fun.</p>
+
+  <h2>5. Children's privacy</h2>
+  <p>We don't knowingly collect personal information from anyone, including
+  children. There is no account, no free-text field, and no way to enter a name,
+  an email address or a message — the leaderboard name is generated for you from
+  a fixed word list precisely so nothing identifying can reach a public page,
+  whoever is playing. If you believe something identifying has reached the board
+  anyway, tell us and we'll remove it.</p>
+
+  <div class="card">
+    <strong>Contact:</strong> daksh.anajwala@gmail.com<br />
+    <strong>Changes:</strong> if data handling ever changes, this page's "Last
+    updated" date will change with it, and an in-game notice will appear
+    first when the law requires one.
+  </div>
+
+  <footer>Parking Precision · <a href="./terms.html">Terms of Use</a></footer>
+</main>
+</body>
+</html>

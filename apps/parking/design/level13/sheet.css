@@ -1,0 +1,101 @@
+/* Level 13 sheet — an architect's drawing set: drafting paper, graphite line
+   work, one red pen for the route, and floor colours only where floors need
+   telling apart. One deliberate light look; paints its own ground. */
+:root {
+  --paper: #f3f1ea;
+  --paper-2: #e9e6dc;
+  --ink: #23262b;
+  --graphite: #5d6168;
+  --faint: #9a9c9f;
+  --rule: #cfcbbf;
+  --route: #c8412b;
+  --pass: #2f7d5b;
+  --fail: #b8322a;
+  --hatch: #d9d4c5;
+  --f0: #6f7680; /* G */
+  --f1: #3e7cb1;
+  --f2: #6a9a3a;
+  --f3: #b2842b;
+  --f4: #9a4f96; /* roof */
+  --ui: "IBM Plex Sans Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); color: var(--ink); }
+body { font: 15px/1.45 var(--ui); padding-inline: clamp(16px, 3vw, 40px); padding-block: 24px 40px; }
+code { font: 13px var(--mono); background: var(--paper-2); padding: 0 4px; border-radius: 3px; }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--route); outline-offset: 2px; }
+
+.sheet { max-width: 1320px; margin: 0 auto; border: 1.5px solid var(--ink); background: var(--paper); }
+
+.titleblock { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); border-bottom: 1.5px solid var(--ink); }
+.tb-name { padding: 20px 24px; border-right: 1px solid var(--ink); }
+.eyebrow { margin: 0; font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--graphite); }
+h1 { margin: 6px 0 4px; font-size: clamp(28px, 4vw, 44px); font-weight: 700; letter-spacing: -.01em; line-height: 1.02; text-wrap: balance; }
+.lede { margin: 0; color: var(--graphite); max-width: 52ch; }
+.tb-stats { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
+.tb-stats div { padding: 12px 16px; border-left: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.tb-stats div:nth-child(3n + 1) { border-left: 0; }
+.tb-stats dt { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--graphite); }
+.tb-stats dd { margin: 2px 0 0; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.band { padding: 18px 24px 22px; border-bottom: 1px solid var(--ink); }
+.band:last-of-type { border-bottom: 0; }
+.band.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+.band-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.band-head h2 { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.band-head p { margin: 0; color: var(--graphite); font-size: 14px; }
+.band-head .seg { margin-left: auto; }
+
+.checks { width: 100%; border-collapse: collapse; font-size: 14px; }
+.checks td { padding: 7px 8px; border-top: 1px solid var(--rule); vertical-align: baseline; }
+.checks tr:first-child td { border-top: 0; }
+.checks td.v, .checks td.l { font: 13px var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.checks td.l { color: var(--graphite); }
+.checks td.d { color: var(--graphite); font-size: 13px; }
+.chip { font: 600 11px var(--mono); padding: 2px 6px; border-radius: 3px; letter-spacing: .04em; }
+.chip.pass { color: var(--pass); background: #dbeadf; }
+.chip.fail { color: #fff; background: var(--fail); }
+
+.seg { display: inline-flex; border: 1px solid var(--ink); border-radius: 4px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 5px 11px; cursor: pointer; font-weight: 600; font-size: 13px; border-left: 1px solid var(--rule); }
+.seg button:first-child { border-left: 0; }
+.seg button.on { background: var(--ink); color: var(--paper); }
+
+.drawing { border: 1px solid var(--rule); background: #f7f5ef; overflow: hidden; }
+.drawing svg { display: block; width: 100%; height: auto; }
+.drawing.wide { overflow-x: auto; }
+.drawing.wide svg { min-width: 760px; }
+
+.viewer { border: 1px solid var(--ink); }
+.canvas-wrap { position: relative; aspect-ratio: 16 / 7.5; max-width: 100%; background: #cfdbe2; }
+.canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.viewer-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 10px; border-top: 1px solid var(--ink); background: var(--paper-2); }
+#play { border: 1px solid var(--ink); background: var(--paper); border-radius: 4px; padding: 5px 12px; cursor: pointer; min-width: 44px; }
+.scrub { flex: 1 1 240px; display: flex; gap: 10px; align-items: center; min-width: 0; }
+.scrub span { font: 13px var(--mono); min-width: 9ch; font-variant-numeric: tabular-nums; }
+.scrub input { flex: 1; accent-color: var(--route); min-width: 0; }
+.floor-chip { font: 600 12px var(--mono); padding: 4px 8px; border-radius: 3px; background: var(--ink); color: var(--paper); min-width: 9ch; text-align: center; }
+
+.scroll-x { overflow-x: auto; }
+.probe { border-collapse: collapse; font: 12px var(--mono); font-variant-numeric: tabular-nums; min-width: 820px; width: 100%; }
+.probe th { text-align: right; font-weight: 500; color: var(--graphite); padding: 6px 8px; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
+.probe td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
+.probe th:first-child, .probe td:first-child { text-align: left; }
+.probe tr.chosen td { background: #f6e1db; font-weight: 600; }
+
+svg text { font-family: var(--mono); }
+.foot { padding: 12px 24px; color: var(--graphite); font-size: 13px; }
+.foot p { margin: 0; }
+
+@media (max-width: 900px) {
+  .titleblock, .band.two { grid-template-columns: 1fr; }
+  .tb-name { border-right: 0; border-bottom: 1px solid var(--ink); }
+  .tb-stats { grid-template-columns: repeat(2, 1fr); }
+  .tb-stats div:nth-child(3n + 1) { border-left: 1px solid var(--rule); }
+  .tb-stats div:nth-child(2n + 1) { border-left: 0; }
+  .canvas-wrap { aspect-ratio: 4 / 3.4; }
+  .band-head .seg { margin-left: 0; }
+}
