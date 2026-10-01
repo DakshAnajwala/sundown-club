@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en" data-sky="golden">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design system · Sundown Club</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/vendor/fonts.css">
+<link rel="stylesheet" href="./tokens.css">
+<style>
+/* Specimen for packages/shared/design (proposal: docs/design/SYSTEM.md).
+   Everything here is drawn from tokens.css; the only literals are layout. */
+* { box-sizing: border-box; }
+html { background: var(--s0); color: var(--ink-1); font: var(--text-body); letter-spacing: var(--tracking-body); -webkit-font-smoothing: antialiased; overflow-x: clip; }
+body { margin: 0; overflow-x: clip; }
+::selection { background: var(--accent); color: var(--on-accent); }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+a { color: inherit; text-underline-offset: 3px; }
+html { scrollbar-color: var(--s3) var(--s0); }
+
+.sky { position: fixed; inset: 0 0 auto; height: 70vh; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-hz) 52%, var(--s0) 100%); opacity: .34;
+  transition: opacity var(--dur-scene) var(--ease-colour); }
+.wrap { width: min(1180px, 100%); margin-inline: auto; padding-inline: var(--gutter); }
+
+header.top { padding-block: var(--space-10) var(--space-8); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
+.mark { display: flex; align-items: center; gap: var(--space-3); font: 400 1.5rem/1 var(--font-display); }
+.mark svg { width: 30px; height: 18px; color: var(--sun); }
+h1 { margin: 0; font: var(--text-display); letter-spacing: var(--tracking-display); max-width: 14ch; text-wrap: balance; }
+.lede { margin: 0; font: var(--text-lead); color: var(--ink-2); max-width: var(--measure); }
+
+.controls { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-8); align-items: center; }
+.controls .grp { display: grid; gap: var(--space-2); min-width: 0; }
+.controls .name { font: var(--text-caption); color: var(--ink-2); }
+
+/* segmented control (radios) */
+.seg { display: inline-flex; flex-wrap: wrap; padding: 3px; gap: 2px; border-radius: var(--r-control); background: var(--s1); box-shadow: var(--edge); }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 7px 12px; border-radius: calc(var(--r-control) - 3px); font: 600 0.875rem/1 var(--font-ui); color: var(--ink-2); transition: background-color var(--dur-quick) var(--ease-colour), color var(--dur-quick) var(--ease-colour); }
+.seg input:checked + span { background: var(--s3); color: var(--ink-1); box-shadow: var(--lift-1); }
+.seg input:focus-visible + span { box-shadow: var(--focus-ring); }
+.seg .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; background: var(--c); vertical-align: 1px; }
+
+section { padding-block: var(--space-14) 0; }
+h2 { margin: 0 0 var(--space-2); font: var(--text-headline); letter-spacing: var(--tracking-headline); }
+.why { margin: 0 0 var(--space-6); color: var(--ink-2); max-width: 62ch; }
+code, .tok { font: 500 0.8125rem/1.4 var(--font-mono); color: var(--ink-2); }
+
+/* surfaces */
+.surfaces { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); gap: var(--space-4); }
+.sw { border-radius: var(--r-surface); padding: var(--space-5); min-height: 168px; display: grid; align-content: space-between; gap: var(--space-4); box-shadow: var(--edge), var(--lift-1); }
+.sw .ink1 { color: var(--ink-1); font-weight: 600; }
+.sw .ink2 { color: var(--ink-2); }
+.sw .ink3 { color: var(--ink-3); font: var(--text-caption); }
+.sw .ratios { font: 500 0.75rem/1.5 var(--font-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.sw.glass { position: relative; overflow: hidden; background: none; isolation: isolate; }
+.sw.glass::before { content: ""; position: absolute; inset: 0; z-index: -2; background: var(--scene) center / cover; }
+.sw.glass::after { content: ""; position: absolute; inset: 14px; z-index: -1; border-radius: calc(var(--r-surface) - 6px); background: var(--glass); backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); box-shadow: var(--edge); }
+.sw.glass > * { padding-inline: var(--space-3); }
+
+.accents { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin-top: var(--space-4); }
+.acc { border-radius: var(--r-control); padding: var(--space-4); display: grid; gap: var(--space-1); }
+.acc b { font: 400 1.125rem/1.1 var(--font-display); }
+.acc small { font: 500 0.75rem/1.4 var(--font-mono); opacity: .8; }
+
+/* type */
+.type { display: grid; gap: var(--space-6); }
+.trow { display: grid; grid-template-columns: 9rem 1fr; gap: var(--space-4) var(--space-6); align-items: baseline; padding-bottom: var(--space-6); box-shadow: 0 1px 0 rgb(243 231 216 / .06); }
+.trow .meta { display: grid; gap: 2px; }
+.trow .meta b { font: 600 0.875rem/1.3 var(--font-ui); }
+.t-display { font: var(--text-display); letter-spacing: var(--tracking-display); }
+.t-headline { font: var(--text-headline); letter-spacing: var(--tracking-headline); }
+.t-title { font: var(--text-title); }
+.t-lead { font: var(--text-lead); max-width: var(--measure); color: var(--ink-1); }
+.t-body { font: var(--text-body); max-width: 62ch; }
+.t-caption { font: var(--text-caption); color: var(--ink-2); }
+.t-label { font: var(--text-label); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink-2); }
+.t-number { font: var(--text-number); font-variant-numeric: tabular-nums; }
+.t-figure { font: var(--text-figure); letter-spacing: var(--tracking-figure); font-variant-numeric: tabular-nums; color: var(--accent); }
+
+/* controls */
+.row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: var(--space-3); padding: 11px 16px; border: 0; border-radius: var(--r-control); font: 600 0.9375rem/1 var(--font-ui); color: var(--ink-1); background: var(--s2); box-shadow: var(--edge), var(--lift-1); cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-quick) var(--ease-colour); }
+.btn:active { transform: scale(var(--press-scale)); }
+@media (hover: hover) and (pointer: fine) { .btn:hover { background: var(--s3); } .btn.primary:hover { background: color-mix(in oklab, var(--accent) 88%, white); } }
+.btn.primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--lift-1); }
+.btn.quiet { background: transparent; box-shadow: none; color: var(--ink-2); }
+.btn:focus-visible { box-shadow: var(--focus-ring); }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+kbd { display: inline-grid; place-items: center; min-width: 1.5em; padding: 3px 6px; border-radius: var(--r-key); font: var(--text-key); color: inherit; background: rgb(243 231 216 / .1); box-shadow: inset 0 -1px 0 rgb(0 0 0 / .25); }
+.btn.primary kbd { background: color-mix(in oklab, var(--on-accent) 14%, transparent); }
+.tag { display: inline-flex; align-items: center; gap: var(--space-2); padding: 5px 10px; border-radius: var(--r-pill); font: 600 0.8125rem/1 var(--font-ui); background: var(--accent-soft); color: var(--ink-1); }
+.tag.plain { background: var(--s2); color: var(--ink-2); }
+
+/* in a game */
+.game { position: relative; border-radius: var(--r-sheet); overflow: hidden; aspect-ratio: 16 / 9; min-height: 420px; background: var(--scene) center / cover; box-shadow: var(--lift-3); isolation: isolate; }
+.game::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, transparent 55%, rgb(8 6 8 / .45)); }
+.hud { position: absolute; padding: 12px 16px; border-radius: var(--r-surface); background: var(--glass); backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); box-shadow: var(--edge), var(--lift-2); }
+.hud.tl { top: var(--hud-inset); left: var(--hud-inset); display: grid; gap: 6px; min-width: 190px; }
+.hud .room { font: 600 0.8125rem/1.2 var(--font-ui); color: var(--ink-2); }
+.hud .kv { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-5); color: var(--ink-2); font: var(--text-caption); }
+.hud .kv b { font: var(--text-number); color: var(--ink-1); font-variant-numeric: tabular-nums; }
+.hud.bar { left: 50%; bottom: var(--hud-inset); transform: translateX(-50%); display: flex; gap: var(--space-2); padding: 8px; width: max-content; max-width: calc(100% - 32px); flex-wrap: wrap; justify-content: center; }
+.moment { position: absolute; left: 50%; bottom: calc(var(--hud-band) + var(--space-3)); transform: translateX(-50%); display: flex; align-items: baseline; gap: var(--space-3); padding: 10px 18px; border-radius: var(--r-surface); background: var(--s1); box-shadow: var(--edge), var(--lift-2); pointer-events: none; }
+.moment .what { font: var(--text-title); color: var(--ink-1); }
+.moment.play { animation: moment var(--dur-moment) var(--ease-out) both; }
+@keyframes moment { from { opacity: 0; transform: translate(-50%, calc(10px * var(--move))) scale(var(--enter-scale)); filter: blur(4px); } }
+
+/* dialog */
+.scrim { position: fixed; inset: 0; z-index: var(--z-dialog); display: grid; place-items: center; padding: var(--space-4); background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity var(--dur-quick) var(--ease-out); }
+.scrim.on { opacity: 1; pointer-events: auto; transition-duration: var(--dur-ui); }
+.dialog { width: min(420px, 100%); padding: var(--space-6); border-radius: var(--r-sheet); background: var(--s1); box-shadow: var(--edge), var(--lift-3); display: grid; gap: var(--space-3);
+  transform: translateY(calc(var(--enter-rise) * var(--move))) scale(var(--enter-scale)); transition: transform var(--dur-quick) var(--ease-out); }
+.scrim.on .dialog { transform: none; transition-duration: var(--dur-ui); }
+.dialog h3 { margin: 0; font: var(--text-headline); letter-spacing: var(--tracking-headline); }
+.dialog p { margin: 0; color: var(--ink-2); }
+
+/* depth, shape, motion tables */
+.depth { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-5); }
+.dp { height: 110px; border-radius: var(--r-surface); background: var(--s2); display: grid; place-items: end start; padding: var(--space-3); }
+.radii { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: end; }
+.rd { width: 104px; height: 72px; padding: var(--space-2); background: var(--s2); box-shadow: var(--edge); display: grid; place-items: center; }
+table { width: 100%; border-collapse: collapse; }
+td, th { text-align: left; padding: var(--space-3) var(--space-4) var(--space-3) 0; vertical-align: baseline; box-shadow: 0 1px 0 rgb(243 231 216 / .06); }
+th { font: 600 0.8125rem/1.3 var(--font-ui); color: var(--ink-2); }
+td.n { font: 500 0.875rem/1.3 var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.never { margin: var(--space-6) 0 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); max-width: 70ch; }
+.never li { color: var(--ink-2); }
+.never b { color: var(--ink-1); }
+footer { padding-block: var(--space-20) var(--space-10); color: var(--ink-3); font: var(--text-caption); }
+
+@media (max-width: 720px) {
+  .trow { grid-template-columns: 1fr; gap: var(--space-2); }
+  .game { aspect-ratio: auto; min-height: 520px; }
+  td.hide-s, th.hide-s { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sky, .btn, .seg span { transition: none; } }
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+
+<header class="top wrap">
+  <div class="mark"><svg viewBox="0 0 30 18" aria-hidden="true"><path d="M3 14a12 12 0 0 1 24 0Z" fill="currentColor"/><rect x="0" y="15.5" width="30" height="1.6" rx=".8" fill="currentColor" opacity=".6"/></svg>sundown club</div>
+  <h1>The last hour of daylight</h1>
+  <p class="lede">One set of colours, type, space, depth and motion for the hub and every game. Switch the sky and the game below: the whole page follows, as every surface will.</p>
+  <div class="controls" role="group" aria-label="Preview">
+    <div class="grp"><span class="name" id="skyName">Sky</span>
+      <div class="seg" role="radiogroup" aria-labelledby="skyName" id="skySeg"></div></div>
+    <div class="grp"><span class="name" id="gameName">Accent</span>
+      <div class="seg" role="radiogroup" aria-labelledby="gameName" id="gameSeg"></div></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section aria-labelledby="h-surfaces">
+    <h2 id="h-surfaces">Surfaces and ink</h2>
+    <p class="why">Four solid steps of one warm dark, tinted by the sky: amber-brown at golden hour, plum at dusk, violet-navy at night. Ink never changes, so its contrast is checked once per surface. Glass is the solid panel at 80% over the 3D, never a decoration.</p>
+    <div class="surfaces" id="surfaces"></div>
+    <div class="accents" id="accents"></div>
+  </section>
+
+  <section aria-labelledby="h-type">
+    <h2 id="h-type">Type</h2>
+    <p class="why">Young Serif names things and marks moments. Schibsted Grotesk does the work. IBM Plex Mono sets every number a player compares, and every key. Sizes are in rem, so they follow the reader's text-size setting.</p>
+    <div class="type">
+      <div class="trow"><div class="meta"><b>Display</b><span class="tok">44 → 92px</span></div><div class="t-display">Blackjack</div></div>
+      <div class="trow"><div class="meta"><b>Headline</b><span class="tok">26 → 34px</span></div><div class="t-headline">So far tonight</div></div>
+      <div class="trow"><div class="meta"><b>Title</b><span class="tok">20px</span></div><div class="t-title">Leave Hold'em?</div></div>
+      <div class="trow"><div class="meta"><b>Lead</b><span class="tok">18 / 1.55</span></div><p class="t-lead" style="margin:0">Six decks, one seat, and a dealer with no face. Golden hour through the window, chips that click.</p></div>
+      <div class="trow"><div class="meta"><b>Body</b><span class="tok">15 / 1.5</span></div><p class="t-body" style="margin:0">A short tutorial walks you through four practice hands with pretend chips. It takes about two minutes, and you can leave it whenever you like.</p></div>
+      <div class="trow"><div class="meta"><b>Caption</b><span class="tok">13 / 1.4</span></div><p class="t-caption" style="margin:0">Higher: quicker launch, lower top speed.</p></div>
+      <div class="trow"><div class="meta"><b>Label</b><span class="tok">12px mono caps</span></div><div class="t-label">The Lounge · blinds 5 / 10</div></div>
+      <div class="trow"><div class="meta"><b>Number</b><span class="tok">20px mono, tabular</span></div><div class="t-number">2,450 · 312 · 83 / 100</div></div>
+      <div class="trow"><div class="meta"><b>Figure</b><span class="tok">28 → 40px, a moment</span></div><div class="t-figure">+75</div></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-controls">
+    <h2 id="h-controls">Controls</h2>
+    <p class="why">Quiet until pressed. Each control shows its key, presses down to 97% on the way in, and changes colour with no motion at all when it is reached by keyboard. The accent fills exactly one button per screen.</p>
+    <div class="row">
+      <button class="btn primary" type="button">Deal <kbd>Space</kbd></button>
+      <button class="btn" type="button">Hit <kbd>H</kbd></button>
+      <button class="btn" type="button">Stand <kbd>S</kbd></button>
+      <button class="btn" type="button" disabled>Double <kbd>D</kbd></button>
+      <button class="btn quiet" type="button">Learn to play <kbd>T</kbd></button>
+    </div>
+    <div class="row" style="margin-top: var(--space-4)">
+      <span class="tag">Your pot · 237</span>
+      <span class="tag plain">Sample profile</span>
+      <span class="tag plain">Early test drive</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-game">
+    <h2 id="h-game">In a game</h2>
+    <p class="why">Panels are glass over the room, inset 16px, never covering the bottom 112px band the cameras keep clear for your cards. A result gets one moment in the game's colour, then gets out of the way.</p>
+    <div class="game" id="game">
+      <div class="hud tl"><div class="room" id="room">The Lounge · 10–500</div>
+        <div class="kv"><span id="k1">Chips</span><b id="v1">2,450</b></div>
+        <div class="kv"><span id="k2">Bet</span><b id="v2">50</b></div></div>
+      <div class="moment" id="moment" role="status"><span class="what" id="mWhat">Blackjack</span><span class="t-figure" id="mFig">+75</span></div>
+      <div class="hud bar">
+        <button class="btn" type="button">Hit <kbd>H</kbd></button>
+        <button class="btn" type="button">Stand <kbd>S</kbd></button>
+        <button class="btn" type="button">Double <kbd>D</kbd></button>
+      </div>
+    </div>
+    <div class="row" style="margin-top: var(--space-4)">
+      <button class="btn" type="button" id="replay">Play the result moment</button>
+      <button class="btn" type="button" id="openDialog">Open the leave card <kbd>Esc</kbd></button>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-depth">
+    <h2 id="h-depth">Depth and shape</h2>
+    <p class="why">No hard borders. An edge is a faint inner ring with a brighter top, as if light catches the material; lift is a soft, offset, semi-transparent shadow that grows with the surface. The selected thing gets its game's colour as a ring, never as a glow.</p>
+    <div class="depth">
+      <div class="dp" style="box-shadow: var(--edge)"><code>edge</code></div>
+      <div class="dp" style="box-shadow: var(--edge), var(--lift-1)"><code>lift-1 · controls</code></div>
+      <div class="dp" style="box-shadow: var(--edge), var(--lift-2)"><code>lift-2 · panels</code></div>
+      <div class="dp" style="box-shadow: var(--edge), var(--lift-3)"><code>lift-3 · dialogs</code></div>
+      <div class="dp" style="box-shadow: var(--selected)"><code>selected</code></div>
+      <div class="dp" style="box-shadow: var(--focus-ring)"><code>focus ring</code></div>
+    </div>
+    <div class="radii" style="margin-top: var(--space-8)">
+      <div class="rd" style="border-radius: var(--r-key)"><code>4 key</code></div>
+      <div class="rd" style="border-radius: var(--r-control)"><code>10 control</code></div>
+      <div class="rd" style="border-radius: var(--r-surface)"><code>14 surface</code></div>
+      <div class="rd" style="border-radius: var(--r-sheet)"><code>20 sheet</code></div>
+      <div class="rd" style="border-radius: var(--r-pill)"><code>pill</code></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-motion">
+    <h2 id="h-motion">Motion</h2>
+    <p class="why">Things enter with a strong ease-out, move with ease-in-out, and leave faster than they came. Interface motion stays under 300 ms; only a result or the sky takes longer. Only transform, opacity, blur and clip-path move.</p>
+    <table>
+      <thead><tr><th>Token</th><th>Value</th><th class="hide-s">Used for</th></tr></thead>
+      <tbody id="motionRows"></tbody>
+    </table>
+    <ul class="never">
+      <li><b>Never animated:</b> anything the keyboard repeats (game hotkeys, holding cards, the hub rail's arrows), numbers during play, focus rings, layout.</li>
+      <li><b>Reduced motion:</b> travel distances become zero, scales become 1, and the long moments shorten to a 200 ms cross-fade. Colour and opacity still change, so state is never lost.</li>
+      <li><b>Springs:</b> critically damped by default; a little bounce only after a flick or a throw.</li>
+    </ul>
+  </section>
+</main>
+
+<div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="dlgTitle" hidden>
+  <div class="dialog">
+    <h3 id="dlgTitle">Leave the club?</h3>
+    <p id="dlgBody">Your chips are saved. A hand in play is called off and your bet comes back.</p>
+    <div class="row" style="margin-top: var(--space-2)">
+      <button class="btn" type="button" id="stay">Stay <kbd>Enter</kbd></button>
+      <button class="btn primary" type="button" id="leave">Leave <kbd>Esc</kbd></button>
+    </div>
+  </div>
+</div>
+
+<footer class="wrap">Specimen of <code>packages/shared/design/tokens.js</code>. Proposal and reasons: <code>docs/design/SYSTEM.md</code>.</footer>
+
+<script type="module">
+import { sky, games, scene, motion, ink } from './tokens.js';
+
+const root = document.documentElement;
+const $ = (s) => document.querySelector(s);
+const SCENES = { club: '/media/bj-dusk.jpg', blackjack: '/media/bj-table.jpg', holdem: '/media/holdem.jpg', videopoker: '/media/videopoker.jpg', parking: '/media/rooftop-dusk.webp', nightdrive: '/media/nightdrive.jpg' };
+const DAY_AT = { golden: 0.755, dusk: 0.80, night: 0.86 };
+
+function seg(el, name, items, onPick) {
+  for (const [value, label, colour] of items) {
+    const l = document.createElement('label');
+    l.innerHTML = `<input type="radio" name="${name}" value="${value}"><span>${colour ? `<i class="dot" style="--c:${colour}"></i>` : ''}</span>`;
+    l.querySelector('span').append(label);
+    l.querySelector('input').addEventListener('change', () => onPick(value));
+    el.append(l);
+  }
+  el.querySelector('input').checked = true;
+}
+
+function setSky(phase) {
+  root.dataset.sky = phase;
+  const k = scene.day.find((d) => d[0] === DAY_AT[phase]);
+  root.style.setProperty('--sky-top', k[2]); root.style.setProperty('--sky-hz', k[3]);
+  paintSurfaces();
+}
+const MOCK = {
+  club: ['The Lounge · 10–500', 'Blackjack', '+75', 'the club'], blackjack: ['The Lounge · 10–500', 'Blackjack', '+75', 'Blackjack'],
+  holdem: ['The Lounge · blinds 5 / 10', 'Your pot', '237', "Hold'em"], videopoker: ['Jacks or Better · 5 coins', 'Full house', '+225', 'Video Poker'],
+  parking: ['Deck One · forward pull-in', 'Parked', '96 / 100', 'Parking Precision'], nightdrive: ['Test drive · starter saloon', '¼ mile', '16.48 s', 'Night Drive'],
+};
+function setGame(id) {
+  if (id === 'club') delete root.dataset.game; else root.dataset.game = id;
+  const [room, what, fig, name] = MOCK[id];
+  $('#room').textContent = room; $('#mWhat').textContent = what; $('#mFig').textContent = fig; $('#dlgTitle').textContent = `Leave ${name}?`;
+  const driving = id === 'parking' || id === 'nightdrive';
+  const [k1, v1, k2, v2] = id === 'parking' ? ['Time', '31.4 s', 'Bumps', '0'] : id === 'nightdrive' ? ['Top speed', '198 km/h', 'Best 0–100', '8.62 s'] : ['Chips', '2,450', 'Bet', '50'];
+  $('#k1').textContent = k1; $('#v1').textContent = v1; $('#k2').textContent = k2; $('#v2').textContent = v2;
+  $('#dlgBody').textContent = driving ? 'Your best runs are saved. You can pick up from here next time.' : 'Your chips are saved. A hand in play is called off and your bet comes back.';
+  root.style.setProperty('--scene', `url("${SCENES[id]}")`);
+  paintSurfaces();
+}
+
+// Contrast, measured from the live computed colours.
+const rgb = (s) => s.match(/[\d.]+/g).slice(0, 3).map(Number);
+const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return ((x + 0.05) / (y + 0.05)).toFixed(1); };
+function hexToRgb(h) { return [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); }
+
+function paintSurfaces() {
+  const cs = getComputedStyle(root);
+  const box = $('#surfaces'); box.innerHTML = '';
+  for (const s of ['s0', 's1', 's2', 's3']) {
+    const bg = cs.getPropertyValue(`--${s}`).trim();
+    const d = document.createElement('div'); d.className = 'sw'; d.style.background = `var(--${s})`;
+    const b = hexToRgb(bg);
+    d.innerHTML = `<div><div class="ink1">Ink 1 on ${s}</div><div class="ink2">Ink 2, supporting</div><div class="ink3">Ink 3, captions</div></div>
+      <div class="ratios">${bg} · ${ratio(hexToRgb(ink.primary), b)} / ${ratio(hexToRgb(ink.secondary), b)} / ${ratio(hexToRgb(ink.tertiary), b)} : 1</div>`;
+    box.append(d);
+  }
+  const g = document.createElement('div'); g.className = 'sw glass';
+  g.innerHTML = `<div><div class="ink1">Glass over the room</div><div class="ink2">Ink 1 and 2 only</div></div><div class="ratios">s1 at 80% · blur 14px</div>`;
+  box.append(g);
+
+  const acc = $('#accents'); acc.innerHTML = '';
+  const phase = sky[root.dataset.sky];
+  for (const [id, gm] of [['club', { name: 'The club (the sun)', accent: phase.sun, onAccent: phase.onSun }], ...Object.entries(games)]) {
+    const a = document.createElement('div'); a.className = 'acc';
+    a.style.background = gm.accent; a.style.color = gm.onAccent;
+    a.innerHTML = `<b></b><small>${gm.accent} · ${ratio(hexToRgb(gm.onAccent), hexToRgb(gm.accent))}:1</small>`;
+    a.querySelector('b').textContent = gm.name;
+    acc.append(a);
+  }
+}
+
+const USE = { press: 'button press, :active scale', quick: 'hover, colour, tooltips, every exit', ui: 'dialogs and popovers entering', sheet: 'drawers: garage, level select', moment: 'a result worth a beat', scene: 'backdrop and sky cross-fades' };
+const EASE = { out: 'enter, respond', inOut: 'move on screen', sheet: 'drawers and sheets', colour: 'hover and colour' };
+const rows = [
+  ...Object.entries(motion.ms).map(([k, v]) => [`dur-${k}`, `${v} ms`, USE[k]]),
+  ...Object.entries(motion.ease).map(([k, v]) => [`ease-${k}`, v, EASE[k]]),
+  ['press-scale', motion.pressScale, 'buttons on :active'], ['enter-scale', motion.enterScale, 'dialogs grow from here, never from 0'], ['stagger', `${motion.stagger} ms`, 'between items entering together'],
+];
+$('#motionRows').innerHTML = rows.map(([a, b, c]) => `<tr><td class="n">${a}</td><td class="n">${b}</td><td class="hide-s">${c}</td></tr>`).join('');
+
+seg($('#skySeg'), 'sky', [['golden', 'Golden hour'], ['dusk', 'Dusk'], ['night', 'Night']], setSky);
+seg($('#gameSeg'), 'game', [['club', 'Club', 'var(--sun)'], ...Object.entries(games).map(([id, g]) => [id, g.name.replace(' Precision', ''), g.accent])], setGame);
+setSky('golden'); setGame('club');
+
+const moment = $('#moment');
+$('#replay').addEventListener('click', () => { moment.classList.remove('play'); void moment.offsetWidth; moment.classList.add('play'); });
+
+// Dialog: focus moves in, Tab stays in, Esc and Enter close, focus returns.
+const scrim = $('#scrim'); let opener = null;
+function openDialog() { opener = document.activeElement; scrim.hidden = false; requestAnimationFrame(() => scrim.classList.add('on')); $('#stay').focus(); }
+function closeDialog() { scrim.classList.remove('on'); setTimeout(() => { scrim.hidden = true; }, motion.ms.quick); opener?.focus(); }
+$('#openDialog').addEventListener('click', openDialog);
+$('#stay').addEventListener('click', closeDialog); $('#leave').addEventListener('click', closeDialog);
+scrim.addEventListener('click', (e) => { if (e.target === scrim) closeDialog(); });
+addEventListener('keydown', (e) => {
+  if (scrim.hidden) return;
+  if (e.key === 'Escape' || (e.key === 'Enter' && document.activeElement === $('#stay'))) { e.preventDefault(); closeDialog(); }
+  if (e.key === 'Tab') { const f = [$('#stay'), $('#leave')]; const i = f.indexOf(document.activeElement); e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus(); }
+});
+</script>
+</body>
+</html>

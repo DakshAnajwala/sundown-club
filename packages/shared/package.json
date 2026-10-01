@@ -5,6 +5,7 @@
   "description": "Code shared by the hub and every game",
   "type": "module",
   "exports": {
+    "./design/tokens.css": "./design/tokens.css",
     "./*.js": "./*.js",
     "./*": "./*.js"
   }

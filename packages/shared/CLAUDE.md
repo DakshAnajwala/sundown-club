@@ -30,4 +30,5 @@ import `/shared/<module>.js` (copied into `dist/shared/` by `tools/build-site.mj
 | `lounge/figure.js` (built) | Faceless regulars: standing or seated, any suit (`SUITS`), two-bone IK arms, `reach`/`rest`/`look` |
 | `lounge/util.js`, `lounge/sfx.js` (built) | Noise, easing, the animation timeline; synthesised card/chip/sting sounds |
 | `coach.js` (built) | Tutorial card: `createCoach().show({ title, body, list, todo, pulse, buttons })`, `nudge()`, `offerOnce(key, …)`. All text via textContent |
+| `design/tokens.js` (proposed, not yet used by any app) | The one source of truth for colour, type, space, radii, shadows, motion and the 3D palette (`docs/design/SYSTEM.md`). `design/tokens.css` is generated from it by `npm run tokens`; never edit it by hand. `tools/design-check.mjs` (in `npm run check`) fails if it is stale or any contrast pair drops below WCAG AA. Specimen: `design/specimen.html` |
 | `leaderboard.js` (planned) | Client for a club-wide leaderboard (play time and more). Not designed yet; any network use updates the privacy policy |
