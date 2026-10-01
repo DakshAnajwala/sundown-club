@@ -31,6 +31,8 @@ body { margin: 0; background: #1d2130; color: var(--ink); font-family: var(--ui)
 .tl .lbl { font-size: 12px; color: var(--ink-soft); }
 .tl .num { font-family: var(--num); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .tl .num.small { font-size: 14px; }
+.tl .learn { justify-self: start; margin-top: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper-solid); font: 600 12px var(--ui); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.tl .learn:hover { background: #fffaf1; }
 .tr { position: fixed; right: 16px; top: 16px; padding: 10px 14px; font-size: 12px; color: var(--ink-soft); display: grid; gap: 4px; max-width: 260px; }
 .tr b { color: var(--ink); font-weight: 600; }
 kbd { font-family: var(--num); font-size: 11px; font-weight: 600; min-width: 18px; text-align: center; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--line); border-bottom-width: 2px; color: var(--ink-soft); background: rgba(255,255,255,.6); }
@@ -76,12 +78,13 @@ button { font: inherit; color: inherit; }
   <div class="room">The Lounge · No-Limit Hold'em · Blinds 5 / 10</div>
   <div class="row"><span class="lbl">Your stack</span><span id="myStack" class="num">0</span></div>
   <div class="row"><span class="lbl">Club chips (off table)</span><span id="club" class="num small">0</span></div>
+  <button class="learn" id="bLearn" type="button">Learn to play <kbd>T</kbd></button>
 </header>
 <aside class="tr panel" aria-label="Keys">
   <div><b>Keys</b></div>
   <div><kbd>F</kbd> fold · <kbd>C</kbd> check / call</div>
   <div><kbd>1</kbd> min · <kbd>2</kbd> ½ pot · <kbd>3</kbd> pot · <kbd>A</kbd> all-in</div>
-  <div><kbd>Space</kbd> skip to your turn · <kbd>Esc</kbd> leave</div>
+  <div><kbd>Space</kbd> skip to your turn · <kbd>T</kbd> tutorial · <kbd>Esc</kbd> leave</div>
 </aside>
 
 <div id="tags"><div id="potTag" class="pot panel"></div></div>
@@ -114,7 +117,8 @@ import { createChipKit, CHIP_H } from '@sundown/shared/lounge/chips3d.js';
 import { createFigure, SUITS } from '@sundown/shared/lounge/figure.js';
 import { createSfx } from '@sundown/shared/lounge/sfx.js';
 import { createTimeline, easeInOut, easeOut, fmt } from '@sundown/shared/lounge/util.js';
-import { best, describe, value } from '@sundown/shared/cards.js';
+import { best, describe, value, deck as freshDeck } from '@sundown/shared/cards.js';
+import { createCoach, markTutorialSeen } from '@sundown/shared/coach.js';
 import { getChips, setBankroll, refill, START } from '@sundown/shared/chips.js';
 import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
@@ -216,13 +220,16 @@ const table = createHoldem({
   sb: 5, bb: BIG,
 });
 const P = table.players;
+const T = { on: false, i: 0, allow: new Set(), steps: [], saved: [] };   // tutorial state (below)
 const statsKey = 'holdem.v1';
 const stats = (() => { try { return JSON.parse(localStorage.getItem(statsKey)) || {}; } catch { return {}; } })();
 stats.hands ||= 0; stats.won ||= 0; stats.biggest ||= 0;
+const realStack = () => (T.on ? T.saved[0] : P[0].stack);
 function saveGame() {
-  setBankroll(offTable + P[0].stack);
+  const mine = realStack();
+  setBankroll(offTable + mine);
   try { localStorage.setItem(statsKey, JSON.stringify(stats)); } catch { /* blocked */ }
-  updateGame('holdem', { resume: `Continue · ${fmt(offTable + P[0].stack)} chips`, facts: [[fmt(offTable + P[0].stack), 'Club chips'], [fmt(stats.won), 'Hands won'], [fmt(stats.biggest), 'Biggest pot']], ledger: { hands: stats.hands, won: stats.won, biggest: stats.biggest } });
+  updateGame('holdem', { resume: `Continue · ${fmt(offTable + mine)} chips`, facts: [[fmt(offTable + mine), 'Club chips'], [fmt(stats.won), 'Hands won'], [fmt(stats.biggest), 'Biggest pot']], ledger: { hands: stats.hands, won: stats.won, biggest: stats.biggest } });
 }
 saveGame();   // the buy-in is written straight away, so closing the tab never loses it
 
@@ -362,9 +369,9 @@ function nextStep() {
   if (seat === 0) { TL.call(showActions); return; }
   TL.call(() => { shown.turn = seat; refreshHud(); });
   TL.wait(450 + ((seat * 211 + S.hand * 97) % 650));
-  TL.call(() => { const ev = table.act(seat, decide(table, seat)); animate(ev); nextStep(); });
+  TL.call(() => { const ev = table.act(seat, T.on ? scripted(seat) : decide(table, seat)); animate(ev); nextStep(); });
 }
-function newHand() {
+function newHand(startOpts) {
   for (const m of [...holeMeshes.flat(), ...boardMeshes]) scene.remove(m);
   holeMeshes = P.map(() => []); boardMeshes = []; myPot = 0;
   P.forEach((p, i) => { if (i > 0 && p.stack <= 0) { p.stack = 500; shown.stack[i] = 500; shown.say[i] = 'Rebuys'; } });
@@ -372,13 +379,14 @@ function newHand() {
   shown.folded = P.map((p) => p.stack <= 0); shown.won = P.map(() => false); shown.say = P.map((_, i) => (shown.say[i] === 'Rebuys' ? 'Rebuys' : ''));
   shown.pot = 0; shown.bet = P.map(() => 0); shown.stack = P.map((p) => p.stack);
   refreshHud(); hint('');
-  const ev = table.startHand();
+  const ev = table.startHand(startOpts);
   if (!ev) return;
   animate(ev);
   TL.call(() => hint(`<b>${myHandText()}</b>`));
   nextStep();
 }
 function handOver() {
+  if (T.on) { shown.stack = P.map((p) => p.stack); refreshHud(); hint(''); tutEmit('handEnd'); return; }
   stats.hands += 1;
   const myWin = shown.won[0];
   if (myWin) { stats.won += 1; }
@@ -420,31 +428,140 @@ function showActions() {
   $('#actions').hidden = false;
   hint(`<b>${myHandText()}</b> · ${legal.canCheck ? 'checked to you' : `${fmt(legal.toCall)} to call`}`);
   rig.beat(seats[0].hole, 0.05, -1, 400, 300, 600);
+  gateButtons();
+  tutEmit('yourTurn');
+}
+// In the tutorial only the button the coach asks for is pressable.
+function gateButtons() {
+  if (!T.on || !legal) return;
+  document.querySelectorAll('#actions button').forEach((b) => {
+    const k = b.dataset.size || (b.id === 'bFold' ? 'fold' : b.id === 'bCall' ? 'call' : 'slider');
+    b.disabled = !T.allow.has(k) || (!!b.dataset.size && !legal.canRaise);
+  });
+  $('#slider').disabled = true;
 }
 function setRaise(v) { raiseTo = Math.max(legal.minTo, Math.min(legal.maxTo, Math.round(v))); $('#aRaise').textContent = fmt(raiseTo); $('#slider').value = raiseTo; $('#raiseLbl').textContent = raiseTo >= legal.maxTo ? 'All-in' : table.state.currentBet === 0 ? 'Bet' : 'Raise to'; }
-function act(action) {
+function act(action, kind) {
   if ($('#actions').hidden || !legal) return;
+  if (T.on && !T.allow.has(kind)) { coach.nudge(); return; }
   $('#actions').hidden = true; legal = null;
   const ev = table.act(0, action); animate(ev); nextStep();
 }
-$('#bFold').addEventListener('click', () => act({ type: 'fold' }));
-$('#bCall').addEventListener('click', () => act({ type: 'call' }));
-$('#bRaise').addEventListener('click', () => act({ type: 'raise', to: raiseTo }));
+$('#bFold').addEventListener('click', () => act({ type: 'fold' }, 'fold'));
+$('#bCall').addEventListener('click', () => act({ type: 'call' }, 'call'));
+$('#bRaise').addEventListener('click', () => act({ type: 'raise', to: raiseTo }, 'slider'));
 $('#slider').addEventListener('input', (e) => setRaise(+e.target.value));
-document.querySelectorAll('[data-size]').forEach((b) => b.addEventListener('click', () => act({ type: 'raise', to: sizeFor(b.dataset.size) })));
+document.querySelectorAll('[data-size]').forEach((b) => b.addEventListener('click', () => act({ type: 'raise', to: sizeFor(b.dataset.size) }, b.dataset.size)));
+$('#bLearn').addEventListener('click', () => (T.on ? null : startTutorial()));
 addEventListener('keydown', (e) => {
   if (e.target.closest?.('input, select, textarea') && e.key !== 'Escape') { if (e.key.toLowerCase() === 'r') { e.preventDefault(); $('#bRaise').click(); } return; }
   const k = e.key.toLowerCase();
-  if (k === ' ') { e.preventDefault(); if (TL.busy) TL.skipAll(); return; }
+  if (k === 't' && !T.on) { startTutorial(); return; }
+  if (k === ' ') { e.preventDefault(); if (TL.busy && !T.on) TL.skipAll(); return; }
   if (!legal) return;
-  if (k === 'f') act({ type: 'fold' });
-  else if (k === 'c') act({ type: 'call' });
-  else if (k === 'r') act({ type: 'raise', to: raiseTo });
-  else if (k === '1' && legal.canRaise) act({ type: 'raise', to: sizeFor('min') });
-  else if (k === '2' && legal.canRaise) act({ type: 'raise', to: sizeFor('half') });
-  else if (k === '3' && legal.canRaise) act({ type: 'raise', to: sizeFor('pot') });
-  else if (k === 'a' && legal.canRaise) act({ type: 'raise', to: sizeFor('all') });
+  if (k === 'f') act({ type: 'fold' }, 'fold');
+  else if (k === 'c') act({ type: 'call' }, 'call');
+  else if (k === 'r') act({ type: 'raise', to: raiseTo }, 'slider');
+  else if (k === '1' && legal.canRaise) act({ type: 'raise', to: sizeFor('min') }, 'min');
+  else if (k === '2' && legal.canRaise) act({ type: 'raise', to: sizeFor('half') }, 'half');
+  else if (k === '3' && legal.canRaise) act({ type: 'raise', to: sizeFor('pot') }, 'pot');
+  else if (k === 'a' && legal.canRaise) act({ type: 'raise', to: sizeFor('all') }, 'all');
 });
+
+
+// ---------------------------------------------------------------- tutorial (plain English, one set-up hand)
+// The cards are chosen in advance: you get two Aces, Marlow stays in to the end with
+// King-Queen, everyone else folds. Pretend chips; your real stack is put back after.
+const coach = createCoach({ game: "Hold'em", onSkip: () => endTutorial() });
+const c = (rank, suit) => ({ rank, suit });
+// dealing order with you on the button: seats 1..5 then you, twice; then burn + flop, burn + turn, burn + river
+const LESSON_ORDER = [
+  c('K', 'C'), c('9', 'D'), c('4', 'C'), c('J', 'H'), c('8', 'S'), c('A', 'S'),
+  c('Q', 'C'), c('3', 'H'), c('6', 'D'), c('2', 'D'), c('T', 'C'), c('A', 'H'),
+  c('5', 'C'), c('A', 'D'), c('7', 'C'), c('2', 'S'),
+  c('3', 'S'), c('K', 'D'),
+  c('9', 'S'), c('Q', 'S'),
+];
+function lessonDeck() {
+  const used = new Set(LESSON_ORDER.map((x) => x.rank + x.suit));
+  return [...freshDeck().filter((x) => !used.has(x.rank + x.suit)), ...LESSON_ORDER.slice().reverse()];   // engine pops from the end
+}
+const SCRIPT_START = { 1: ['call', 'check', 'call', { to: 40 }, 'check', 'call'], 2: ['fold'], 3: ['fold'], 4: ['fold'], 5: ['fold'] };
+let script = {};
+function scripted(seat) {
+  const a = (script[seat] || []).shift() || 'check';
+  return typeof a === 'string' ? { type: a } : { type: 'raise', to: a.to };
+}
+function tutEmit(event) {
+  if (!T.on) return;
+  if (T.steps[T.i]?.until === event) setTimeout(() => goStep(T.i + 1), event === 'handEnd' ? 900 : 250);
+}
+function goStep(i) {
+  T.i = i;
+  const st = T.steps[i];
+  if (!st) return endTutorial();
+  T.allow = new Set(st.allow || []);
+  gateButtons();
+  const next = st.until ? [] : [{ label: st.nextLabel || 'Next', primary: true, onClick: () => { goStep(i + 1); st.after?.(); } }];
+  coach.show({ label: `Hold'em tutorial · ${i + 1} of ${T.steps.length}`, title: st.title, body: st.body, list: st.list, todo: st.todo, pulse: st.pulse, buttons: st.buttons || next });
+}
+T.steps = [
+  { title: "Texas Hold'em in two minutes", body: ['Everyone gets two cards that only they can see.', 'Then five shared cards are laid face up in the middle, a few at a time. Everyone can use them.', 'Your hand is the best five cards you can make from your two cards plus the five in the middle. The best hand wins all the chips in the middle, which is called the pot.', 'You can also win without showing anything, if everyone else gives up first.'], nextLabel: 'Got it' },
+  { title: 'Which hands win', body: ['From best to worst. You don’t need to learn this: the game always tells you what you have, at the bottom of the screen.'],
+    list: [['Straight flush', 'five numbers in a row, all the same suit'], ['Four of a kind', 'four cards with the same number'], ['Full house', 'three of one number and two of another'], ['Flush', 'five cards of the same suit'], ['Straight', 'five numbers in a row, like 5 6 7 8 9'], ['Three of a kind', 'three cards with the same number'], ['Two pair', 'two different pairs'], ['Pair', 'two cards with the same number'], ['High card', 'none of the above: your highest card counts']] },
+  { title: 'Before the cards: the blinds', body: ['Before anyone sees a card, the two players to the left of the white D button must put in a few chips. These are called the blinds, and they make sure there is always something to play for.', 'This hand, Marlow puts in 5 and Ilse puts in 10. The D button shows who deals this hand. It moves one seat to the left every hand, so everyone takes turns.'],
+    nextLabel: 'Deal the cards', after: () => tutHand() },
+  { title: 'Everyone takes a turn', body: ['Going round the table to the left, each player decides what to do.', 'Watch: three of them give up straight away. Giving up is called folding. A player who folds is out of this hand.'], until: 'yourTurn' },
+  { title: 'You have two Aces', body: ['That is the best pair of starting cards you can get.', 'On your turn you have three choices. Fold: give up. Call: put in the same as the biggest bet so far, which is 10. Raise: put in more, so the others have to match you or give up.', 'With a hand this good, you should raise.'],
+    todo: 'Press Min, or 1, to raise to 20.', pulse: ['[data-size="min"]'], allow: ['min'], until: 'yourTurn' },
+  { title: 'The flop: three shared cards', body: ['Marlow matched your 20 and Ilse folded. Then three shared cards were laid down. Together they are called the flop.', 'One of them is an Ace, so you now have three Aces. That is very strong.', 'Marlow checked, which means he passed without betting. You may check too, because nobody has bet yet.', 'But with a strong hand you want more chips in the pot, so make a bet.'],
+    todo: 'Press ½ pot, or 2, to bet half of what is in the pot.', pulse: ['[data-size="half"]'], allow: ['half'], until: 'yourTurn' },
+  { title: 'The turn: a fourth card', body: ['Marlow matched your bet, and a fourth shared card came. It is called the turn.', 'This time Marlow bet 40. To stay in the hand you must put in the same amount. That is called calling.', 'Your three Aces are still well ahead, so call.'],
+    todo: 'Press Call, or C.', pulse: ['#bCall'], allow: ['call'], until: 'yourTurn' },
+  { title: 'The river: the last card', body: ['The fifth and last shared card is called the river.', 'Marlow checked again. Make one more bet so you win as many chips as possible.'],
+    todo: 'Press Pot, or 3, to bet the same amount as the pot.', pulse: ['[data-size="pot"]'], allow: ['pot'], until: 'handEnd' },
+  { title: 'Showdown: you win', body: ['When the betting is over and more than one player is left, everyone still in turns their cards over. This is called the showdown.', 'Marlow had a King and a Queen. With the King and Queen in the middle, that made two pair. Your three Aces beat two pair, so the whole pot is yours.'] },
+  { title: "You know how to play Hold'em", body: ['Here are the words you just learned. The practice chips go away now; at the real table you play with your club chips.'],
+    list: [['Fold', 'give up this hand. Chips you already put in stay in the pot.'], ['Check', 'pass, when nobody has bet yet. It costs nothing.'], ['Call', 'put in the same as the biggest bet so far.'], ['Bet or Raise', 'put in more, so others must match it or give up.'], ['All-in', 'bet every chip you have at the table.'], ['Pot', 'all the chips in the middle. The winner takes it.']],
+    buttons: [{ label: 'Play for real', primary: true, onClick: () => endTutorial() }, { label: 'Do it again', onClick: () => { softReset(); startTutorial(true); } }] },
+];
+function softReset() {
+  TL.items.length = 0; TL.cursor = TL.clock;
+  for (const m of [...holeMeshes.flat(), ...boardMeshes]) scene.remove(m);
+  holeMeshes = P.map(() => []); boardMeshes = [];
+  for (const p of P) { p.bet = 0; p.total = 0; p.hole = []; p.folded = false; p.allIn = false; p.acted = false; }
+  table.state.street = 'idle'; table.state.toAct = -1; table.state.board = [];
+  $('#actions').hidden = true; $('#rebuy').hidden = true; legal = null;
+  shown.pot = 0; shown.bet = P.map(() => 0); shown.say = P.map(() => ''); shown.folded = P.map(() => false); shown.won = P.map(() => false); shown.turn = -1;
+  shown.stack = P.map((p) => p.stack);
+  figures.forEach((f) => f.rest()); dealer.rest();
+  refreshHud(); hint('');
+}
+function startTutorial(again = false) {
+  if (!again) {
+    // a hand in progress is called off: everyone gets back what they put in
+    T.saved = P.map((p) => p.stack + (table.state.street === 'done' || table.state.street === 'idle' ? 0 : p.total));
+    T.button = table.state.button;
+  }
+  T.on = true; markTutorialSeen('holdem');
+  softReset();
+  for (const p of P) p.stack = 500;
+  shown.stack = P.map((p) => p.stack); refreshHud();
+  goStep(0);
+}
+function tutHand() { script = JSON.parse(JSON.stringify(SCRIPT_START)); newHand({ deck: lessonDeck(), button: 0 }); }
+function endTutorial() {
+  coach.hide();
+  if (!T.on) return;
+  softReset();
+  P.forEach((p, i) => { p.stack = T.saved[i]; });
+  table.state.button = T.button;
+  T.on = false; T.allow.clear();
+  shown.stack = P.map((p) => p.stack); refreshHud();
+  saveGame();
+  hint('Press T any time to see the tutorial again.');
+  setTimeout(() => newHand(), 600);
+}
 
 // ---------------------------------------------------------------- leaving (Esc twice) and saving
 const playtime = trackPlaytime('holdem');
@@ -474,8 +591,14 @@ async function boot() {
   button.position.copy(seats[0].button);
   refreshHud(); frame();
   $('#loading').classList.add('gone');
-  setTimeout(newHand, 700);
-  window.__holdem = { table, TL, rig, setTod: (t) => L.applyDay(t), shown };
+  const offered = stats.hands === 0 && coach.offerOnce('holdem', {
+    title: "New to Texas Hold'em?",
+    body: ['A short tutorial plays one practice hand with you and explains every step in plain words. It takes about two minutes, and you can leave it whenever you like.'],
+    onYes: () => startTutorial(),
+    onNo: () => newHand(),
+  });
+  if (!offered) setTimeout(newHand, 700);
+  window.__holdem = { T, startTutorial, endTutorial, table, TL, rig, setTod: (t) => L.applyDay(t), shown };
 }
 boot();
 </script>

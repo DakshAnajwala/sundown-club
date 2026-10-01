@@ -32,11 +32,12 @@ export function createHoldem({ seats, sb = 5, bb = 10, rand } = {}) {
     return a;
   }
 
-  function startHand() {
+  /** opts.deck: cards in pop order (last card dealt first), for tutorials and tests; opts.button: seat to hold the button. */
+  function startHand(opts = {}) {
     for (const p of P) { p.out = p.stack <= 0; p.hole = []; p.bet = 0; p.total = 0; p.folded = p.out; p.allIn = false; p.acted = false; }
     if (P.filter((p) => !p.out).length < 2) { S.street = 'idle'; return null; }
-    S.hand += 1; S.board = []; S.deck = shuffle(deck(), rand); S.street = 'preflop'; S.currentBet = bb; S.minRaise = bb;
-    S.button = next(S.button < 0 ? P.length - 1 : S.button, (p) => !p.out);
+    S.hand += 1; S.board = []; S.deck = opts.deck ? opts.deck.slice() : shuffle(deck(), rand); S.street = 'preflop'; S.currentBet = bb; S.minRaise = bb;
+    S.button = opts.button ?? next(S.button < 0 ? P.length - 1 : S.button, (p) => !p.out);
     const ev = [{ type: 'button', seat: S.button }];
     const headsUp = P.filter((p) => !p.out).length === 2;
     const sbSeat = headsUp ? S.button : next(S.button, (p) => !p.out);

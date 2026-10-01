@@ -29,6 +29,16 @@ timeline, SFX), `cards.js` (deck, ranking), `chips.js` (club bankroll),
   `@sundown/shared/` → `/shared/`), so open it from the built site
   (`npm run build && npm run serve`), not as a loose file.
 
+## Tutorial (1 Oct 2026)
+
+Owner's brief: "idiot proof, no complex jargon, proper English". Offered the
+first time someone sits down (`coach.offerOnce('holdem')`, remembered in
+`tut.v1.holdem`), and any time with `T` or the "Learn to play" button. Uses
+`packages/shared/coach.js`. One set-up hand (`LESSON_ORDER`, dealt with `startHand({ deck, button: 0 })`): you hold two Aces, Marlow plays a fixed script to the showdown, everyone else folds. Starting it mid-hand calls that hand off and returns everyone's chips. Pretend chips: nothing is saved while the
+tutorial runs, and the real bankroll is put back after. Only the button the
+current step asks for works; anything else shakes the card. Keep every new
+line of tutorial text short, plain and free of unexplained poker or casino words.
+
 ## State (1 Oct 2026)
 
 Playable prototype. Open items in SPEC §9.

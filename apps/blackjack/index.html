@@ -8,7 +8,7 @@
 <title>Blackjack · Sundown Club</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=IBM+Plex+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: the 3D room fills the window; small paper-like HUD pieces float over it. Single look (the room is the page). */
 :root {
@@ -43,6 +43,8 @@ body { margin: 0; background: #1d2130; color: var(--ink); font-family: var(--ui)
 .tl .lbl { font-size: 12px; color: var(--ink-soft); }
 .tl .num { font-family: var(--num); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .tl .num.small { font-size: 15px; }
+.tl .learn { justify-self: start; margin-top: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper-solid); font: 600 12px var(--ui); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.tl .learn:hover { background: #fffaf1; }
 
 .bottom { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   display: grid; justify-items: center; gap: 10px; width: max-content; max-width: calc(100vw - 32px); }
@@ -111,6 +113,7 @@ select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid 
   <div class="room"><span id="roomName">The Lounge</span><span id="limits">10–500</span><span id="practiceTag" class="tagp" hidden>Practice</span></div>
   <div class="row"><span class="lbl">Chips</span><span id="bank" class="num">1,000</span></div>
   <div class="row"><span class="lbl">Bet</span><span id="bet" class="num small">0</span></div>
+  <button class="learn" id="bLearn" type="button">Learn to play <kbd>T</kbd></button>
 </header>
 
 <div id="tags"><div id="dTag" class="htag panel off"><span class="t"></span><span class="r"></span></div><div id="pTag" class="htag panel off"><span class="t"></span><span class="r"></span></div></div>
@@ -173,6 +176,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.m
 import { createLeaveGuard } from '/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '/shared/profile.js';
 import { getChips, setBankroll } from '/shared/chips.js';
+import { createCoach, markTutorialSeen } from '/shared/coach.js';
 
 const $ = (s) => document.querySelector(s);
 const V3 = THREE.Vector3;
@@ -841,6 +845,7 @@ const saved = (() => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) |
 G.bank = G.shownBank = getChips().bankroll;
 G.peak = Math.max(Number(saved.peak) || 0, G.bank); G.hands = Number(saved.hands) || 0; G.naturals = Number(saved.naturals) || 0;
 function saveGame() {
+  if (TUT.on) return;   // tutorial chips are pretend
   setBankroll(G.bank);
   try { localStorage.setItem(SAVE_KEY, JSON.stringify({ peak: G.peak, hands: G.hands, naturals: G.naturals })); } catch { /* storage blocked */ }
   updateGame('blackjack', {
@@ -848,6 +853,100 @@ function saveGame() {
     facts: [[fmt(G.bank), 'Chips'], [fmt(G.peak), 'Peak'], [fmt(G.hands), 'Hands']],
     ledger: { peak: G.peak, hands: G.hands, naturals: G.naturals },
   });
+}
+
+// ---------------------------------------------------------------- tutorial (plain English, set-up hands)
+// Four hands with the cards chosen in advance, so each lesson always shows what it
+// is teaching. Pretend chips; nothing is saved. Only the button the step asks for works.
+const TUT = { on: false, i: 0, allow: new Set(), steps: [] };
+const coach = createCoach({ game: 'Blackjack', onSkip: () => endTutorial() });
+const card = (rank, suit) => ({ rank, suit });
+// cards are popped from the end of the shoe, so each list is in dealing order and reversed here:
+// you, dealer (face up), you, dealer (face down), then any cards you or the dealer take
+const RIG = [
+  [card('7', 'C'), card('6', 'D'), card('4', 'H'), card('10', 'S'), card('9', 'D'), card('K', 'C')],
+  [card('10', 'D'), card('5', 'S'), card('3', 'C'), card('Q', 'H'), card('9', 'C')],
+  [card('6', 'H'), card('9', 'C'), card('5', 'D'), card('8', 'S'), card('J', 'D')],
+  [card('A', 'S'), card('9', 'H'), card('K', 'D'), card('7', 'C')],
+];
+function rig(n) { G.shoe = RIG[n].slice().reverse(); G.dealt = 0; }
+function tutAllows(action) {
+  if (!TUT.on) return true;
+  if (TUT.allow.has(action)) return true;
+  coach.nudge();
+  return false;
+}
+function tutEmit(event) {
+  if (!TUT.on) return;
+  const step = TUT.steps[TUT.i];
+  if (step?.until === event) setTimeout(() => goStep(TUT.i + 1), event === 'handEnd' ? 700 : 250);
+}
+function goStep(i) {
+  TUT.i = i;
+  const st = TUT.steps[i];
+  if (!st) return endTutorial();
+  TUT.allow = new Set(st.allow || []);
+  st.enter?.();
+  const next = st.until ? [] : [{ label: st.nextLabel || 'Next', primary: true, onClick: () => goStep(i + 1) }];
+  coach.show({ label: `Blackjack tutorial · ${Math.min(i + 1, TUT.steps.length)} of ${TUT.steps.length}`, title: st.title, body: st.body, list: st.list, todo: st.todo, pulse: st.pulse, buttons: st.buttons || next });
+}
+TUT.steps = [
+  { title: 'Blackjack in two minutes', body: ['You play against the dealer, the figure across the table. Nobody else is in the game.', 'The aim is simple: finish with cards that add up closer to 21 than the dealer’s cards, without going over 21.'],
+    list: [['2 to 10', 'worth the number on the card'], ['J, Q, K', 'worth 10'], ['Ace', 'worth 1 or 11, whichever helps you more']], nextLabel: 'Got it' },
+  { title: 'First, place a bet', body: ['A bet is the chips you put down for one hand. If you win, you get them back plus the same amount again. If you lose, the dealer takes them.', 'These are practice chips, so nothing real is at risk.'],
+    todo: 'Click the 25 chip at the bottom, or press 2.', pulse: ['.chipbtn:nth-child(2)'], allow: ['chip25'], until: 'bet',
+    enter: () => { clearBet(); G.lastBet = 0; } },
+  { title: 'Now deal the cards', body: ['You get two cards, face up. The dealer gets one face up and one face down. You can’t see the face-down card yet.'],
+    todo: 'Press Deal, or the Space bar.', pulse: ['#bDeal'], allow: ['deal'], until: 'yourTurn', enter: () => rig(0) },
+  { title: 'You have 11', body: ['The number in the little box next to your cards is your total. Here it is 7 + 4 = 11.', 'Hit means: take one more card. With 11 you can’t go over 21 by taking a card, because no card is worth more than 10. So it is safe.'],
+    todo: 'Press Hit, or H.', pulse: ['#bHit'], allow: ['hit'], until: 'yourTurn' },
+  { title: '20 is a great total', body: ['You now have 20. Another card would almost certainly take you over 21.', 'Stand means: keep the cards you have and let the dealer play.'],
+    todo: 'Press Stand, or S.', pulse: ['#bStand'], allow: ['stand'], until: 'handEnd' },
+  { title: 'The dealer went bust', body: ['After you stand, the dealer turns over the hidden card. The dealer has no choices: they must keep taking cards until they have 17 or more.', 'Here they reached 26. Going over 21 is called going bust, and whoever busts loses. You won your 25 back plus 25 more.'] },
+  { title: 'Hand two: when to stop early', body: ['Your 25 chip goes back on the table by itself when you deal.'],
+    todo: 'Press Deal, or the Space bar.', pulse: ['#bDeal'], allow: ['deal'], until: 'yourTurn', enter: () => rig(1) },
+  { title: '13 against the dealer’s 5', body: ['You have 13. That is low, but a card worth 9 or more would take you over 21.', 'The dealer is showing a 5. When the dealer shows a 2, 3, 4, 5 or 6, they often go bust, because they are forced to keep taking cards. So the smart move is to stop and let the dealer take the risk.'],
+    todo: 'Press Stand, or S.', pulse: ['#bStand'], allow: ['stand'], until: 'handEnd' },
+  { title: 'It worked', body: ['The dealer had 15, had to take another card, and went bust with 24.', 'A low total is often worth keeping when the dealer shows a small card.'] },
+  { title: 'Hand three: doubling', body: ['One more trick to learn.'],
+    todo: 'Press Deal, or the Space bar.', pulse: ['#bDeal'], allow: ['deal'], until: 'yourTurn', enter: () => rig(2) },
+  { title: 'Double when you have 10 or 11', body: ['Double means: add the same bet again, and get exactly one more card. After that card you stop.', 'It is a good move with 10 or 11, because cards worth 10 are the most common cards in the deck.'],
+    todo: 'Press Double, or D.', pulse: ['#bDouble'], allow: ['double'], until: 'handEnd' },
+  { title: '21, and a double win', body: ['You got a Jack: 11 + 10 = 21. The dealer had 17, which means they had to stop.', 'Because you doubled, you had 50 on the table and won 50 instead of 25.'] },
+  { title: 'Last one: blackjack', body: ['Watch what happens this time.'],
+    todo: 'Press Deal, or the Space bar.', pulse: ['#bDeal'], allow: ['deal'], until: 'handEnd', enter: () => rig(3) },
+  { title: 'Blackjack!', body: ['An Ace and a card worth 10 as your first two cards is called a blackjack. It wins straight away and pays one and a half times your bet, so 25 wins 37.', 'If the dealer also gets a blackjack, it’s a tie. A tie is called a push: you simply get your bet back.'] },
+  { title: 'You know how to play blackjack', body: ['Here are the words you just learned. The practice chips go away now; when you play for real you use your club chips.'],
+    list: [['Hit', 'take another card'], ['Stand', 'stop, and let the dealer play'], ['Double', 'add the same bet again, take one card, then stop'], ['Bust', 'going over 21, which loses'], ['Push', 'a tie: you get your bet back']],
+    buttons: [{ label: 'Play for real', primary: true, onClick: () => endTutorial() }, { label: 'Do it again', onClick: () => startTutorial() }] },
+];
+function resetTable() {
+  TL.items.length = 0; TL.cursor = TL.clock;
+  for (const m of G.cardsOnTable.splice(0)) scene.remove(m);
+  for (const { m } of G.betChips) scene.remove(m);
+  for (const m of G.looseChips) scene.remove(m);
+  G.betChips = []; G.looseChips = []; G.bet = 0; G.player = []; G.dealer = []; G.phase = 'bet';
+  $('#pTag').classList.add('off'); $('#dTag').classList.add('off'); $('#pTag .r').textContent = '';
+  dealHand.userData.target.copy(dealHand.userData.rest); workHand.userData.target.copy(workHand.userData.rest);
+}
+function startTutorial() {
+  TUT.on = true; markTutorialSeen('blackjack');
+  resetTable();
+  if (G.tier !== TIERS.lounge) setTier('lounge', { review: false });
+  G.bank = G.shownBank = 1000; G.lastBet = 0; TL.speed = 1;
+  $('#review').open = false; $('#practiceTag').hidden = false; $('#practiceTag').textContent = 'Tutorial';
+  updateHud(); showBars();
+  goStep(0);
+}
+function endTutorial() {
+  coach.hide();
+  if (!TUT.on) return;
+  TUT.on = false; TUT.allow.clear();
+  resetTable();
+  G.bank = G.shownBank = getChips().bankroll; G.lastBet = 50;
+  $('#practiceTag').hidden = true; $('#practiceTag').textContent = 'Practice';
+  newShoe(); updateHud(); showBars();
+  say('Place a bet to start. Press T any time to see the tutorial again.');
 }
 const playtime = trackPlaytime('blackjack');
 // Esc once: "Leave Blackjack?"; Esc again: void any round in play (its stake comes back), save, go to the club.
@@ -926,13 +1025,15 @@ function addBetChip(v, animate = true) {
 }
 function placeChip(v) {
   if (G.phase !== 'bet') return;
+  if (!tutAllows(`chip${v}`)) return;
   if (G.cardsOnTable.length) clearTable();
   if (G.bet + v > G.tier.max) return say(`Table maximum is ${fmt(G.tier.max)}.`);
   if (G.bet + v > G.bank) return say('Not enough chips for that.');
   G.bet += v; addBetChip(v); say(''); updateHud();
+  tutEmit('bet');
 }
-function undoChip() { if (G.phase !== 'bet' || !G.betChips.length) return; const { m, v } = G.betChips.pop(); scene.remove(m); G.bet -= v; updateHud(); }
-function clearBet() { if (G.phase !== 'bet') return; G.betChips.forEach(({ m }) => scene.remove(m)); G.betChips = []; G.bet = 0; updateHud(); }
+function undoChip() { if (G.phase !== 'bet' || !G.betChips.length || !tutAllows('undo')) return; const { m, v } = G.betChips.pop(); scene.remove(m); G.bet -= v; updateHud(); }
+function clearBet() { if (G.phase !== 'bet' || (TUT.on && !TUT.allow.has('clear') && G.bet && TUT.steps[TUT.i]?.until !== 'bet')) return; G.betChips.forEach(({ m }) => scene.remove(m)); G.betChips = []; G.bet = 0; updateHud(); }
 function clearTable() {
   const cards = G.cardsOnTable.splice(0), starts = cards.map((c) => c.position.clone()), rots = cards.map((c) => c.rotation.y);
   G.looseChips.forEach((m) => scene.remove(m)); G.looseChips = [];
@@ -947,6 +1048,7 @@ function clearTable() {
 
 function deal() {
   if (G.phase !== 'bet') return;
+  if (!tutAllows('deal')) return;
   if (G.bet === 0 && G.lastBet) {
     if (G.lastBet > G.bank) return say('Not enough chips to rebet.');
     if (G.cardsOnTable.length) clearTable();
@@ -971,20 +1073,20 @@ function deal() {
     reveal(d2, false);
     return settle();
   }
-  TL.call(() => { G.phase = 'play'; showBars(); });
+  TL.call(() => { G.phase = 'play'; showBars(); tutEmit('yourTurn'); });
 }
 function hit() {
-  if (G.phase !== 'play') return;
+  if (G.phase !== 'play' || !tutAllows('hit')) return;
   G.phase = 'busy'; showBars();
   const c = draw(); G.player.push(c); flyCard(c, playerSpot(G.player.length - 1), true);
   const { t } = total(G.player);
   if (t > 21) { reveal(G.dealer[1], false); return settle(); }
   if (t === 21) return dealerTurn();
-  TL.call(() => { G.phase = 'play'; showBars(); });
+  TL.call(() => { G.phase = 'play'; showBars(); tutEmit('yourTurn'); });
 }
-function stand() { if (G.phase !== 'play') return; G.phase = 'busy'; showBars(); dealerTurn(); }
+function stand() { if (G.phase !== 'play' || !tutAllows('stand')) return; G.phase = 'busy'; showBars(); dealerTurn(); }
 function double() {
-  if (G.phase !== 'play' || G.player.length !== 2 || G.bank < G.bet) return;
+  if (G.phase !== 'play' || G.player.length !== 2 || G.bank < G.bet || !tutAllows('double')) return;
   G.phase = 'busy'; G.bank -= G.bet; breakdown(G.bet).reverse().forEach((v) => addBetChip(v)); G.bet *= 2; G.doubled = true; updateHud(); showBars();
   const c = draw(); G.player.push(c);
   flyCard(c, playerSpot(2).add(new V3(0.02, 0, 0.01)), true, { yaw: Math.PI / 2 });
@@ -1028,9 +1130,10 @@ function settle() {
   TL.call(() => {
     const back = kind === 'lose' ? 0 : G.bet + win;
     countBank(G.bank + back); G.bank += back;
-    G.hands += 1; if (kind === 'natural') G.naturals += 1; G.peak = Math.max(G.peak, G.bank); saveGame();
+    if (!TUT.on) { G.hands += 1; if (kind === 'natural') G.naturals += 1; } G.peak = Math.max(G.peak, G.bank); saveGame();
     G.betChips = []; G.bet = 0; G.phase = 'bet'; updateHud(); showBars();
-    if (G.bank < G.tier.min) say(G.bank < 10 ? 'Out of chips. In the build: Refill to 1,000.' : `Below this room's minimum.`);
+    tutEmit('handEnd');
+    if (!TUT.on && G.bank < G.tier.min) say(G.bank < 10 ? 'Out of chips. In the build: Refill to 1,000.' : `Below this room's minimum.`);
   });
 }
 
@@ -1127,12 +1230,14 @@ const isField = (el) => el && (el.tagName === 'INPUT' || el.tagName === 'SELECT'
 addEventListener('keydown', (e) => {
   if (isField(e.target) && e.target.type !== 'checkbox' && e.target.type !== 'radio') return;
   const k = e.key.toLowerCase();
-  if (k === ' ') { e.preventDefault(); if (TL.busy) TL.skipAll(); else if (G.phase === 'bet') deal(); return; }
+  if (k === 't' && !TUT.on) { startTutorial(); return; }
+  if (k === ' ') { e.preventDefault(); if (TL.busy) { if (!TUT.on) TL.skipAll(); } else if (G.phase === 'bet') deal(); return; }
   if (k >= '1' && k <= '9') { const v = G.tier.chips[+k - 1]; if (v) placeChip(v); return; }
   const map = { h: hit, s: stand, d: double, z: undoChip, backspace: undoChip, c: clearBet };
   if (map[k]) { e.preventDefault(); map[k](); return; }
   if (k === 'x' && G.phase === 'bet' && G.lastBet) { clearBet(); const v = Math.min(G.lastBet * 2, G.tier.max, G.bank); G.lastBet = v; deal(); }
 });
+$('#bLearn').addEventListener('click', () => (TUT.on ? null : startTutorial()));
 document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => ({ hit, stand, double, undo: undoChip, clear: clearBet, deal })[b.dataset.act]()));
 renderer.domElement.addEventListener('pointerdown', () => { if (TL.busy) TL.skipAll(); });
 addEventListener('pointerdown', () => { if (ac?.state === 'suspended') ac.resume(); }, { capture: true });
@@ -1198,8 +1303,14 @@ async function boot() {
   frame();
   $('#loading').classList.add('gone');
   // Open in a working state: a 50 bet, dealt.
-  setTimeout(() => { if (G.phase === 'bet' && !G.cardsOnTable.length) { G.lastBet = 50; deal(); } }, 900);
-  window.__bj = { G, TL, setTod: (t) => { tod = t; live = false; applyDay(t); }, setCam: (m) => (camMode = m), renderer, scene, camera };
+  const offered = G.hands === 0 && coach.offerOnce('blackjack', {
+    title: 'New to blackjack?',
+    body: ['A short tutorial walks you through four practice hands with pretend chips. It takes about two minutes, and you can leave it whenever you like.'],
+    onYes: () => startTutorial(),
+    onNo: () => say('Place a bet to start. Press T any time for the tutorial.'),
+  });
+  if (!offered) setTimeout(() => { if (!TUT.on && G.phase === 'bet' && !G.cardsOnTable.length) { G.lastBet = 50; deal(); } }, 900);
+  window.__bj = { T: TUT, startTutorial, endTutorial, G, TL, setTod: (t) => { tod = t; live = false; applyDay(t); }, setCam: (m) => (camMode = m), renderer, scene, camera };
 }
 boot();
 </script>

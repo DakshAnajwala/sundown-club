@@ -29,4 +29,5 @@ import `/shared/<module>.js` (copied into `dist/shared/` by `tools/build-site.mj
 | `lounge/chips3d.js` (built) | Pastel chip set, `breakdown`, tidy chip stacks |
 | `lounge/figure.js` (built) | Faceless regulars: standing or seated, any suit (`SUITS`), two-bone IK arms, `reach`/`rest`/`look` |
 | `lounge/util.js`, `lounge/sfx.js` (built) | Noise, easing, the animation timeline; synthesised card/chip/sting sounds |
+| `coach.js` (built) | Tutorial card: `createCoach().show({ title, body, list, todo, pulse, buttons })`, `nudge()`, `offerOnce(key, …)`. All text via textContent |
 | `leaderboard.js` (planned) | Client for a club-wide leaderboard (play time and more). Not designed yet; any network use updates the privacy policy |

@@ -55,10 +55,11 @@ export function createMachine({ rand } = {}) {
     get held() { return held.slice(); },
     get phase() { return phase; },     // 'idle' | 'dealt'
     get bet() { return bet; },
-    deal(coins) {
+    /** opts.deck: cards in dealing order (first five are dealt, the rest are drawn in order); for tutorials and tests. */
+    deal(coins, opts = {}) {
       if (phase === 'dealt') throw new Error('draw first');
       bet = Math.max(1, Math.min(5, coins | 0));
-      stack = shuffle(deck(), rand);
+      stack = opts.deck ? opts.deck.slice() : shuffle(deck(), rand);
       hand = stack.splice(0, 5);
       held = [false, false, false, false, false];
       phase = 'dealt';

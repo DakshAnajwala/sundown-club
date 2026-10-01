@@ -27,6 +27,7 @@ body { margin: 0; background: #1d2130; color: var(--ink); font-family: var(--ui)
 .tl .lbl { font-size: 12px; color: var(--ink-soft); }
 .tl .num { font-family: var(--num); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .tl .num.small { font-size: 14px; }
+.tl .learn { justify-self: start; margin-top: 4px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper-solid); font: 600 12px var(--ui); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
 .tr { position: fixed; right: 16px; top: 16px; padding: 10px 14px; font-size: 12px; color: var(--ink-soft); display: grid; gap: 4px; }
 .tr b { color: var(--ink); }
 kbd { font-family: var(--num); font-size: 11px; font-weight: 600; min-width: 18px; text-align: center; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--line); border-bottom-width: 2px; color: var(--ink-soft); background: rgba(255,255,255,.6); }
@@ -54,6 +55,7 @@ button { font: inherit; color: inherit; }
   <div class="room">The Lounge · Jacks or Better · 1 coin = 5 chips</div>
   <div class="row"><span class="lbl">Club chips</span><span id="chips" class="num">0</span></div>
   <div class="row"><span class="lbl">Last win</span><span id="lastWin" class="num small">—</span></div>
+  <button class="learn" id="bLearn" type="button">Learn to play <kbd>T</kbd></button>
 </header>
 <aside class="tr panel">
   <div><b>Keys</b></div>
@@ -82,6 +84,8 @@ import { getChips, setBankroll, refill, canRefill } from '@sundown/shared/chips.
 import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
 import { createMachine, PAYTABLE } from './engine.js';
+import { createCoach, markTutorialSeen } from '@sundown/shared/coach.js';
+import { deck as freshDeck } from '@sundown/shared/cards.js';
 
 const $ = (s) => document.querySelector(s);
 const V3 = THREE.Vector3;
@@ -160,6 +164,7 @@ const stats = (() => { try { return JSON.parse(localStorage.getItem('vp.v1')) ||
 stats.hands ||= 0; stats.best ||= null; stats.bestCoins ||= 0; stats.won ||= 0;
 
 function save() {
+  if (T.on) return;   // tutorial chips are pretend
   setBankroll(bank);
   try { localStorage.setItem('vp.v1', JSON.stringify(stats)); } catch { /* blocked */ }
   updateGame('videopoker', { resume: `Continue · ${fmt(bank)} chips`, facts: [[fmt(bank), 'Club chips'], [fmt(stats.hands), 'Hands'], [stats.best || '—', 'Best hand']], ledger: { hands: stats.hands, bestCoins: stats.bestCoins, won: stats.won } });
@@ -221,6 +226,7 @@ function hud() {
 function flipCard(i, to, delay) { const now = performance.now() + delay; flipStart[i] = now; flipFrom[i] = flip[i]; flipTo[i] = to; animUntil = Math.max(animUntil, now + 300); setTimeout(() => { flip[i] = to; if (to === 1) sfx.card(0.14); }, delay + 140); }
 function deal() {
   if (machine.phase === 'dealt' || performance.now() < animUntil) return;
+  if (!tutAllows('deal')) return;
   const cost = coins * COIN;
   if (bank < cost) {
     if (canRefill()) { bank = refill().bankroll; toast('The club topped your chips back up to 1,000.'); }
@@ -228,14 +234,16 @@ function deal() {
   }
   bank -= coins * COIN; save(); sfx.chip(); press(dealBtn);
   winLine = null; lastWin = 0;
-  const { hand } = machine.deal(coins);
+  const { hand } = machine.deal(coins, T.on ? { deck: lessonDeck() } : undefined);
   for (let i = 0; i < 5; i++) { flip[i] = 0; flipCard(i, 0, 0); }
   setTimeout(() => { hand.forEach((c, i) => { shownCards[i] = c; flipCard(i, 1, i * 90); }); }, 160);
   message = 'Hold with 1–5, then draw';
   hud();
+  tutEmit('dealt');
 }
 function draw() {
   if (machine.phase !== 'dealt' || performance.now() < animUntil) return;
+  if (!tutAllows('draw')) return;
   press(dealBtn);
   const { hand, replaced, result } = machine.draw();
   let d = 0;
@@ -250,12 +258,13 @@ function draw() {
       rig.beat(new V3(0, 1.3, MZ), 0.06, -1.5, 500, 700, 900);
     } else { message = 'No win this time'; lastWin = 0; }
     save(); hud();
+    tutEmit('result');
   }, d + 420);
   hud();
 }
-function toggle(i) { if (machine.phase !== 'dealt' || performance.now() < animUntil) return; machine.toggle(i); press(holdBtns[i]); hud(); }
-function betOne() { if (machine.phase === 'dealt') return; coins = coins % 5 + 1; press(betBtn); sfx.chip(); hud(); message = `Bet ${coins} · Space to deal`; }
-function maxBet() { if (machine.phase === 'dealt') return; coins = 5; hud(); deal(); }
+function toggle(i) { if (machine.phase !== 'dealt' || performance.now() < animUntil) return; if (!tutAllows(`hold${i}`)) return; machine.toggle(i); press(holdBtns[i]); hud(); if (T.on && machine.held[1] && machine.held[3]) tutEmit('held'); }
+function betOne() { if (machine.phase === 'dealt' || !tutAllows('bet')) return; coins = coins % 5 + 1; press(betBtn); sfx.chip(); hud(); message = `Bet ${coins} · Space to deal`; }
+function maxBet() { if (machine.phase === 'dealt' || !tutAllows('deal')) return; coins = 5; hud(); deal(); }
 let toastTimer;
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2400); }
 
@@ -265,7 +274,9 @@ addEventListener('keydown', (e) => {
   else if (k >= '1' && k <= '5') toggle(+k - 1);
   else if (k === 'b') betOne();
   else if (k === 'm') maxBet();
+  else if (k === 't' && !T.on) startTutorial();
 });
+$('#bLearn').addEventListener('click', () => (T.on ? null : startTutorial()));
 $('#bDeal').addEventListener('click', () => (machine.phase === 'dealt' ? draw() : deal()));
 $('#bBet').addEventListener('click', betOne);
 $('#bMax').addEventListener('click', maxBet);
@@ -280,11 +291,55 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   if (lbl === 'deal') machine.phase === 'dealt' ? draw() : deal(); else if (lbl === 'bet') betOne(); else if (lbl?.startsWith('hold')) toggle(+lbl.slice(4));
 });
 
+
+// ---------------------------------------------------------------- tutorial (plain English, one set-up hand)
+const T = { on: false, i: 0, allow: new Set(), steps: [], bank: 0 };
+const coach = createCoach({ game: 'Video Poker', onSkip: () => endTutorial() });
+const cc = (rank, suit) => ({ rank, suit });
+const LESSON = [cc('4', 'D'), cc('J', 'S'), cc('9', 'C'), cc('J', 'H'), cc('2', 'S'), cc('J', 'D'), cc('7', 'C'), cc('K', 'H')];
+function lessonDeck() { const used = new Set(LESSON.map((x) => x.rank + x.suit)); return [...LESSON, ...freshDeck().filter((x) => !used.has(x.rank + x.suit))]; }
+function tutAllows(a) { if (!T.on || T.allow.has(a)) return true; coach.nudge(); return false; }
+function tutEmit(ev) { if (T.on && T.steps[T.i]?.until === ev) setTimeout(() => goStep(T.i + 1), ev === 'result' ? 700 : 250); }
+function goStep(i) {
+  T.i = i; const st = T.steps[i]; if (!st) return endTutorial();
+  T.allow = new Set(st.allow || []);
+  const next = st.until ? [] : [{ label: st.nextLabel || 'Next', primary: true, onClick: () => goStep(i + 1) }];
+  coach.show({ label: `Video poker tutorial · ${i + 1} of ${T.steps.length}`, title: st.title, body: st.body, list: st.list, todo: st.todo, pulse: st.pulse, buttons: st.buttons || next });
+}
+T.steps = [
+  { title: 'Video poker in one minute', body: ['You get five cards. You pick which ones to keep, then swap all the others, once.', 'Your final five cards are checked against the list at the top of the screen. If they make one of those hands, you win.', 'The smallest win is a pair of Jacks or better: two Jacks, two Queens, two Kings or two Aces.'], nextLabel: 'Got it' },
+  { title: 'Deal five cards', body: ['These are practice chips, so nothing real is at risk.'], todo: 'Press Deal, or the Space bar.', pulse: ['#bDeal'], allow: ['deal'], until: 'dealt' },
+  { title: 'Keep the pair', body: ['You have two Jacks, the second and fourth cards. A pair of Jacks already wins, so keep both.', 'Keeping a card is called holding it. HELD appears under every card you hold.'], todo: 'Press 2 and then 4.', pulse: ['[data-hold="1"]', '[data-hold="3"]'], allow: ['hold1', 'hold3'], until: 'held' },
+  { title: 'Swap the rest', body: ['Every card you did not hold is swapped for a new one.'], todo: 'Press Draw, or the Space bar.', pulse: ['#bDeal'], allow: ['draw'], until: 'result' },
+  { title: 'Three Jacks!', body: ['A third Jack came. Three of a kind pays 3 coins for every coin you bet. You bet 5 coins, so you won 15 coins, which is 75 chips.'] },
+  { title: 'You know how to play video poker', body: ['The practice chips go away now. When you play for real, you use your club chips.'],
+    list: [['Hold', 'keep a card when you draw'], ['Draw', 'swap every card you did not hold, once'], ['Bet', '1 to 5 coins. With 5 coins the top prize, a royal flush, pays far more.']],
+    buttons: [{ label: 'Play for real', primary: true, onClick: () => endTutorial() }, { label: 'Do it again', onClick: () => startTutorial() }] },
+];
+function startTutorial() {
+  if (machine.phase === 'dealt') machine.draw();
+  if (!T.on) T.bank = bank;
+  T.on = true; markTutorialSeen('videopoker');
+  bank = 1000; coins = 5; winLine = null; lastWin = 0; message = 'Tutorial · practice chips';
+  for (let i = 0; i < 5; i++) { shownCards[i] = null; flip[i] = 0; }
+  hud(); goStep(0);
+}
+function endTutorial() {
+  coach.hide();
+  if (!T.on) return;
+  if (machine.phase === 'dealt') machine.draw();
+  T.on = false; T.allow.clear();
+  bank = getChips().bankroll; winLine = null; lastWin = 0; message = 'Space to deal';
+  for (let i = 0; i < 5; i++) { shownCards[i] = null; flip[i] = 0; }
+  hud();
+}
+
 // ---------------------------------------------------------------- leaving
 const playtime = trackPlaytime('videopoker');
 createLeaveGuard({ game: 'Video Poker', save: () => {
   // a hand left mid-draw is drawn for you, so the bet is never lost to leaving
-  if (machine.phase === 'dealt') { const { result } = machine.draw(); if (result) bank += result.coins * COIN; }
+  if (T.on) { T.on = false; bank = getChips().bankroll; }
+  else if (machine.phase === 'dealt') { const { result } = machine.draw(); if (result) bank += result.coins * COIN; }
   playtime.flush(); save();
 } });
 addEventListener('pagehide', save);
@@ -306,7 +361,8 @@ async function boot() {
   L.applyDay(0.755);
   hud(); frame();
   $('#loading').classList.add('gone');
-  window.__vp = { machine, deal, draw, toggle, get bank() { return bank; } };
+  if (!stats.hands) coach.offerOnce('videopoker', { title: 'New to video poker?', body: ['A one-minute tutorial plays a practice hand with you and explains each step in plain words.'], onYes: () => startTutorial() });
+  window.__vp = { T, startTutorial, machine, deal, draw, toggle, get bank() { return bank; } };
 }
 boot();
 </script>

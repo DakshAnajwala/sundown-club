@@ -32,6 +32,16 @@ count; no DOM, runnable in node), `src/scene/`, `src/anim/Timeline.js`
 `src/store.js`, bundled with Vite like Parking. The prototype's numbers
 (positions, colours, timings) are the starting point.
 
+## Tutorial (1 Oct 2026)
+
+Owner's brief: "idiot proof, no complex jargon, proper English". Offered the
+first time someone sits down (`coach.offerOnce('blackjack')`, remembered in
+`tut.v1.blackjack`), and any time with `T` or the "Learn to play" button. Uses
+`packages/shared/coach.js`. Four set-up hands (`RIG` in `index.html`): hit on 11, stand on 13 against a dealer 5, double on 11, a blackjack. Tutorial state is `TUT` (the room code already uses `T` for wall thickness). Pretend chips: nothing is saved while the
+tutorial runs, and the real bankroll is put back after. Only the button the
+current step asks for works; anything else shakes the card. Keep every new
+line of tutorial text short, plain and free of unexplained poker or casino words.
+
 ## Chips (1 Oct)
 
 The bankroll is the shared club bankroll (`/shared/chips.js`); `bj.v1.main`
