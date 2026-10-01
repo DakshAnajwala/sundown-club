@@ -158,6 +158,7 @@ const faceFor = (c) => (faces[c.rank + c.suit] ||= drawFace(c.rank, c.suit));
 const shownCards = [null, null, null, null, null];
 const flip = [0, 0, 0, 0, 0], flipFrom = [0, 0, 0, 0, 0], flipStart = [0, 0, 0, 0, 0], flipTo = [0, 0, 0, 0, 0];
 let animUntil = 0;
+let settling = false, pending = null;   // a drawn hand waiting for payOut(), and its result
 const stats = (() => { try { return JSON.parse(localStorage.getItem('vp.v1')) || {}; } catch { return {}; } })();
 stats.hands ||= 0; stats.best ||= null; stats.bestCoins ||= 0; stats.won ||= 0;
 
@@ -246,19 +247,25 @@ function draw() {
   const { hand, replaced, result } = machine.draw();
   let d = 0;
   for (const i of replaced) { flipCard(i, 0, d); setTimeout(((j) => () => { shownCards[j] = hand[j]; flipCard(j, 1, 0); })(i), d + 280); d += 120; }
-  setTimeout(() => {
-    stats.hands += 1;
-    if (result) {
-      const won = result.coins * COIN; bank += won; lastWin = won; winLine = result.name; stats.won += won;
-      message = `${result.name} · +${fmt(won)}`;
-      sfx.sting(result.coins / coins >= 25 ? 'big' : 'win');
-      if (result.coins > stats.bestCoins) { stats.bestCoins = result.coins; stats.best = result.name; }
-      rig.beat(new V3(0, 1.3, MZ), 0.06, -1.5, 500, 700, 900);
-    } else { message = 'No win this time'; lastWin = 0; }
-    save(); hud();
-    tutEmit('result');
-  }, d + 420);
+  settling = true; pending = result;
+  setTimeout(() => payOut(result), d + 420);
   hud();
+}
+// Pays a drawn hand once: after the flips, or at once if the player starts the
+// tutorial or leaves before they finish (so a result is never lost).
+function payOut(result) {
+  if (!settling) return;
+  settling = false; pending = null;
+  stats.hands += 1;
+  if (result) {
+    const won = result.coins * COIN; bank += won; lastWin = won; winLine = result.name; stats.won += won;
+    message = `${result.name} · +${fmt(won)}`;
+    sfx.sting(result.coins / coins >= 25 ? 'big' : 'win');
+    if (result.coins > stats.bestCoins) { stats.bestCoins = result.coins; stats.best = result.name; }
+    rig.beat(new V3(0, 1.3, MZ), 0.06, -1.5, 500, 700, 900);
+  } else { message = 'No win this time'; lastWin = 0; }
+  save(); hud();
+  tutEmit('result');
 }
 function toggle(i) { if (machine.phase !== 'dealt' || performance.now() < animUntil) return; if (!tutAllows(`hold${i}`)) return; machine.toggle(i); press(holdBtns[i]); hud(); if (T.on && machine.held[1] && machine.held[3]) tutEmit('held'); }
 function betOne() { if (machine.phase === 'dealt' || !tutAllows('bet')) return; coins = coins % 5 + 1; press(betBtn); sfx.chip(); hud(); message = `Bet ${coins} · Space to deal`; }
@@ -319,7 +326,12 @@ T.steps = [
     buttons: [{ label: 'Play for real', primary: true, onClick: () => endTutorial() }, { label: 'Do it again', onClick: () => startTutorial() }] },
 ];
 function startTutorial() {
-  if (machine.phase === 'dealt') machine.draw();
+  // A real hand still being paid out is paid now, so its result is kept.
+  if (settling) payOut(pending);
+  if (machine.phase === 'dealt') {
+    if (T.on) machine.draw();   // a practice hand: nothing to keep
+    else { const { result } = machine.draw(); if (result) bank += result.coins * COIN; stats.hands += 1; save(); }   // a real hand is drawn for you, like leaving
+  }
   if (!T.on) T.bank = bank;
   T.on = true; markTutorialSeen('videopoker');
   bank = 1000; coins = 5; winLine = null; lastWin = 0; message = 'Tutorial · practice chips';
@@ -341,6 +353,7 @@ const playtime = trackPlaytime('videopoker');
 createLeaveGuard({ game: 'Video Poker', save: () => {
   // a hand left mid-draw is drawn for you, so the bet is never lost to leaving
   if (T.on) { T.on = false; bank = getChips().bankroll; }
+  else if (settling) payOut(pending);
   else if (machine.phase === 'dealt') { const { result } = machine.draw(); if (result) bank += result.coins * COIN; }
   playtime.flush(); save();
 } });
