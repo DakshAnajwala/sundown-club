@@ -32,6 +32,13 @@ count; no DOM, runnable in node), `src/scene/`, `src/anim/Timeline.js`
 `src/store.js`, bundled with Vite like Parking. The prototype's numbers
 (positions, colours, timings) are the starting point.
 
+## Chips (1 Oct)
+
+The bankroll is the shared club bankroll (`/shared/chips.js`); `bj.v1.main`
+now only keeps Blackjack's own stats (peak, hands, naturals). The scene code
+in `index.html` predates `packages/shared/lounge/`; moving Blackjack onto the
+shared kit is an open task.
+
 ## Escape to leave (built 30 Sep)
 
 First Esc opens the shared "Leave Blackjack?" card (`/shared/leave-guard.js`),

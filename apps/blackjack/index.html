@@ -172,6 +172,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.m
 // Shared Sundown Club code, copied to /shared/ by tools/build-site.mjs.
 import { createLeaveGuard } from '/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '/shared/profile.js';
+import { getChips, setBankroll } from '/shared/chips.js';
 
 const $ = (s) => document.querySelector(s);
 const V3 = THREE.Vector3;
@@ -836,10 +837,12 @@ const G = { tier: TIERS.lounge, bank: 1000, bet: 0, lastBet: 50, phase: 'bet', s
 // ---------------------------------------------------------------- saving (SPEC §13, main mode only)
 const SAVE_KEY = 'bj.v1.main';
 const saved = (() => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { return {}; } })();
-if (Number.isFinite(saved.bankroll) && saved.bankroll >= 0) { G.bank = G.shownBank = saved.bankroll; }
+// One club bankroll for every casino game (packages/shared/chips.js); Blackjack keeps its own stats.
+G.bank = G.shownBank = getChips().bankroll;
 G.peak = Math.max(Number(saved.peak) || 0, G.bank); G.hands = Number(saved.hands) || 0; G.naturals = Number(saved.naturals) || 0;
 function saveGame() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ bankroll: G.bank, peak: G.peak, hands: G.hands, naturals: G.naturals })); } catch { /* storage blocked */ }
+  setBankroll(G.bank);
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ peak: G.peak, hands: G.hands, naturals: G.naturals })); } catch { /* storage blocked */ }
   updateGame('blackjack', {
     resume: `Continue · ${fmt(G.bank)} chips`,
     facts: [[fmt(G.bank), 'Chips'], [fmt(G.peak), 'Peak'], [fmt(G.hands), 'Hands']],

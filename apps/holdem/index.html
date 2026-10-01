@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Texas Hold'em at Sundown Club: a six-seat no-limit table with five faceless regulars, in a lounge at golden hour.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23d98a93'/%3E%3C/svg%3E">
+<title>Hold'em · Sundown Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=IBM+Plex+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js", "@sundown/shared/": "/shared/" } }</script>
+<style>
+/* Layout: the 3D card room fills the window; small paper HUD pieces float over it (same system as Blackjack). */
+:root {
+  --paper: rgba(248, 243, 234, 0.86); --paper-solid: #f8f3ea; --ink: #2c2a30; --ink-soft: #6b6670; --line: rgba(44, 42, 48, 0.14);
+  --accent: #d98a93; --accent-ink: #4a2a2e; --win: #2f6b4f; --lose: #8a3b33;
+  --ui: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif; --num: "IBM Plex Mono", ui-monospace, Menlo, monospace; --serif: "Young Serif", Georgia, serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body { margin: 0; background: #1d2130; color: var(--ink); font-family: var(--ui); overflow: hidden; }
+#stage { position: fixed; inset: 0; }
+#stage canvas { display: block; width: 100%; height: 100%; }
+.vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(20, 16, 22, 0.3) 100%); }
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 6px 24px rgba(30, 24, 30, 0.12); }
+.tl { position: fixed; left: 16px; top: 16px; padding: 12px 16px; display: grid; gap: 6px; min-width: 200px; }
+.tl .room { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+.tl .row { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; }
+.tl .lbl { font-size: 12px; color: var(--ink-soft); }
+.tl .num { font-family: var(--num); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tl .num.small { font-size: 14px; }
+.tr { position: fixed; right: 16px; top: 16px; padding: 10px 14px; font-size: 12px; color: var(--ink-soft); display: grid; gap: 4px; max-width: 260px; }
+.tr b { color: var(--ink); font-weight: 600; }
+kbd { font-family: var(--num); font-size: 11px; font-weight: 600; min-width: 18px; text-align: center; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--line); border-bottom-width: 2px; color: var(--ink-soft); background: rgba(255,255,255,.6); }
+.bottom { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; display: grid; justify-items: center; gap: 8px; max-width: calc(100vw - 32px); }
+.hint { font-size: 13px; color: #f3ede2; text-shadow: 0 1px 3px rgba(0,0,0,.5); min-height: 18px; text-align: center; }
+.hint b { font-weight: 600; }
+.bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 8px; align-items: center; }
+button { font: inherit; color: inherit; }
+.act { display: inline-flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper-solid); font-size: 15px; font-weight: 600; cursor: pointer; transition: transform .12s, background .12s; white-space: nowrap; }
+.act:hover { background: #fffaf1; transform: translateY(-1px); }
+.act:disabled { opacity: .38; cursor: default; transform: none; }
+.act.primary { background: #5c3a3f; color: #f6f0e4; border-color: transparent; }
+.act.primary kbd { color: #f6f0e4; border-color: rgba(246,240,228,.35); background: transparent; }
+.act .amt { font-family: var(--num); font-weight: 600; }
+.sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 2px; }
+.size { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+.size input { width: 160px; accent-color: #5c3a3f; }
+#tags { position: fixed; inset: 0; pointer-events: none; }
+.seat { position: absolute; transform: translate(-50%, -100%); padding: 6px 10px; font-size: 12px; line-height: 1.3; white-space: nowrap; display: grid; justify-items: center; gap: 1px; transition: opacity .25s, outline-color .2s; outline: 2px solid transparent; outline-offset: 2px; }
+.seat .nm { font-weight: 600; font-size: 13px; }
+.seat .st { font-family: var(--num); font-weight: 600; font-variant-numeric: tabular-nums; }
+.seat .sty { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.seat .say { font-size: 12px; color: var(--accent-ink); font-weight: 600; }
+.seat .say:empty { display: none; }
+.seat.folded { opacity: .45; }
+.seat.turn { outline-color: var(--accent); }
+.seat.won .say { color: var(--win); }
+.pot { position: absolute; transform: translate(-50%, -50%); padding: 4px 10px; font: 600 13px var(--num); white-space: nowrap; }
+.pot:empty { display: none; }
+#toast { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); padding: 8px 14px; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+#toast.on { opacity: 1; }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; color: #e9e1cf; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; pointer-events: none; transition: opacity .6s; }
+#loading.gone { opacity: 0; }
+:focus-visible { outline: 2px solid #3d5f86; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div id="stage" aria-label="Hold'em table, 3D view"></div>
+<div class="vignette"></div>
+<div id="loading">Finding you a seat</div>
+
+<header class="tl panel" aria-live="polite">
+  <div class="room">The Lounge · No-Limit Hold'em · Blinds 5 / 10</div>
+  <div class="row"><span class="lbl">Your stack</span><span id="myStack" class="num">0</span></div>
+  <div class="row"><span class="lbl">Club chips (off table)</span><span id="club" class="num small">0</span></div>
+</header>
+<aside class="tr panel" aria-label="Keys">
+  <div><b>Keys</b></div>
+  <div><kbd>F</kbd> fold · <kbd>C</kbd> check / call</div>
+  <div><kbd>1</kbd> min · <kbd>2</kbd> ½ pot · <kbd>3</kbd> pot · <kbd>A</kbd> all-in</div>
+  <div><kbd>Space</kbd> skip to your turn · <kbd>Esc</kbd> leave</div>
+</aside>
+
+<div id="tags"><div id="potTag" class="pot panel"></div></div>
+<div id="toast" class="panel"></div>
+
+<div class="bottom">
+  <div id="hint" class="hint"></div>
+  <div id="actions" class="bar panel" hidden>
+    <button class="act" id="bFold">Fold <kbd>F</kbd></button>
+    <button class="act" id="bCall"><span id="callLbl">Check</span> <kbd>C</kbd></button>
+    <div class="sep"></div>
+    <button class="act" data-size="min">Min <span class="amt" id="aMin"></span> <kbd>1</kbd></button>
+    <button class="act" data-size="half">½ pot <span class="amt" id="aHalf"></span> <kbd>2</kbd></button>
+    <button class="act" data-size="pot">Pot <span class="amt" id="aPot"></span> <kbd>3</kbd></button>
+    <button class="act" data-size="all">All-in <span class="amt" id="aAll"></span> <kbd>A</kbd></button>
+    <div class="sep"></div>
+    <label class="size"><input type="range" id="slider" aria-label="Raise to"><button class="act primary" id="bRaise"><span id="raiseLbl">Raise to</span> <span class="amt" id="aRaise"></span> <kbd>R</kbd></button></label>
+  </div>
+  <div id="rebuy" class="bar panel" hidden>
+    <span id="rebuyText" style="padding: 0 6px; font-size: 14px"></span>
+    <button class="act primary" id="bRebuy">Buy in again</button>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { createLounge, createCameraRig, ROOMS, mat } from '@sundown/shared/lounge/lounge.js';
+import { createCardKit } from '@sundown/shared/lounge/cards3d.js';
+import { createChipKit, CHIP_H } from '@sundown/shared/lounge/chips3d.js';
+import { createFigure, SUITS } from '@sundown/shared/lounge/figure.js';
+import { createSfx } from '@sundown/shared/lounge/sfx.js';
+import { createTimeline, easeInOut, easeOut, fmt } from '@sundown/shared/lounge/util.js';
+import { best, describe, value } from '@sundown/shared/cards.js';
+import { getChips, setBankroll, refill, START } from '@sundown/shared/chips.js';
+import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
+import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
+import { createHoldem } from './engine.js';
+import { decide, STYLES } from './bots.js';
+
+const $ = (s) => document.querySelector(s);
+const V3 = THREE.Vector3;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------------------------------------------------------------- room + table (SPEC §4)
+const FELT_Y = 0.76, A = 1.15, B = 0.62;                       // felt ellipse semi-axes (x, z)
+const L = createLounge({ stage: $('#stage'), room: ROOMS.lounge, lampAt: new V3(0, 1.95, 0), lampTarget: new V3(0, FELT_Y, 0) });
+const { scene, renderer } = L;
+const camera = new THREE.PerspectiveCamera(56, 1, 0.05, 1500);
+const rig = createCameraRig(camera, {
+  cinematic: { pos: new V3(0, 1.62, 1.86), look: new V3(0, 0.82, -0.22), fov: 58 },
+  fixed: { pos: new V3(0, 2.25, 1.55), look: new V3(0, 0.72, -0.05), fov: 56 },
+}, { reducedMotion });
+const ellipse = (scale = 1) => { const s = new THREE.Shape(); for (let i = 0; i <= 96; i++) { const t = (i / 96) * Math.PI * 2, x = Math.cos(t) * A * scale, y = Math.sin(t) * B * scale; i ? s.lineTo(x, y) : s.moveTo(x, y); } return s; };
+const feltCanvas = document.createElement('canvas'); feltCanvas.width = 2048; feltCanvas.height = Math.round(2048 * B / A);
+const feltTex = new THREE.CanvasTexture(feltCanvas); feltTex.colorSpace = THREE.SRGBColorSpace; feltTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+feltTex.repeat.set(1 / (2 * A), 1 / (2 * B)); feltTex.offset.set(0.5, 0.5);
+{
+  const top = new THREE.Mesh(new THREE.ExtrudeGeometry(ellipse(), { depth: 0.05, bevelEnabled: false, curveSegments: 96 }), [new THREE.MeshStandardMaterial({ map: feltTex, roughness: 1 }), L.M.wood]);
+  top.geometry.rotateX(-Math.PI / 2); top.position.y = FELT_Y - 0.05; top.receiveShadow = true; top.castShadow = true; scene.add(top);
+  const apron = new THREE.Mesh(new THREE.ExtrudeGeometry(ellipse(0.97), { depth: 0.12, bevelEnabled: false, curveSegments: 48 }), L.M.woodDark);
+  apron.geometry.rotateX(-Math.PI / 2); apron.position.y = FELT_Y - 0.17; apron.castShadow = true; scene.add(apron);
+  const pts = []; for (let i = 0; i < 96; i++) { const t = (i / 96) * Math.PI * 2; pts.push(new V3(Math.cos(t) * (A + 0.035), FELT_Y + 0.012, Math.sin(t) * (B + 0.035))); }
+  const rail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 192, 0.05, 7, true), L.M.rail); rail.castShadow = true; rail.receiveShadow = true; scene.add(rail);
+  for (const x of [-0.55, 0.55]) { const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.13, 0.6, 8), L.M.woodDark); ped.position.set(x, 0.3, 0); scene.add(ped); const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.33, 0.04, 10), L.M.woodDark); foot.position.set(x, 0.02, 0); foot.receiveShadow = true; scene.add(foot); }
+}
+function drawFelt() {
+  const g = feltCanvas.getContext('2d'), Wf = feltCanvas.width, Hf = feltCanvas.height, px = Wf / (2 * A);
+  const X = (x) => (x + A) * px, Z = (z) => (z + B) * px;
+  g.fillStyle = '#4f7f73'; g.fillRect(0, 0, Wf, Hf);
+  const vg = g.createRadialGradient(Wf / 2, Hf / 2, 80, Wf / 2, Hf / 2, Wf * 0.6); vg.addColorStop(0, 'rgba(255,255,255,.06)'); vg.addColorStop(1, 'rgba(0,0,0,.2)'); g.fillStyle = vg; g.fillRect(0, 0, Wf, Hf);
+  const ink = 'rgba(233,225,207,0.78)'; g.strokeStyle = ink; g.fillStyle = ink;
+  g.lineWidth = 3; g.beginPath(); g.ellipse(Wf / 2, Hf / 2, (A - 0.2) * px, (B - 0.2) * px, 0, 0, 7); g.stroke();
+  g.lineWidth = 2; for (let i = 0; i < 5; i++) { g.beginPath(); g.roundRect(X(BOARD_X[i] - 0.052), Z(BOARD_Z - 0.071), 0.104 * px, 0.142 * px, 10); g.stroke(); }
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = `400 54px "Young Serif", Georgia, serif`; g.fillText('sundown club', Wf / 2, Z(BOARD_Z + 0.17));
+  g.font = `600 22px "Schibsted Grotesk", system-ui, sans-serif`;
+  g.fillText("NO-LIMIT HOLD'EM  ·  BLINDS 5 / 10", Wf / 2, Z(BOARD_Z + 0.24));
+  feltTex.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------- seats (SPEC §4.2)
+// Seven even slots around the table: you at 90° (nearest the camera), the dealer across,
+// five regulars in between. Angles grow clockwise seen from above, which is the order of play.
+const BOARD_X = [-0.24, -0.12, 0, 0.12, 0.24], BOARD_Z = -0.06;
+const SEAT_DEG = [90, 141.43, 192.86, 244.29, 347.14, 38.57], DEALER_DEG = 295.71;
+const onRim = (deg, out) => { const t = THREE.MathUtils.degToRad(deg); return new V3(Math.cos(t) * (A + out), 0, Math.sin(t) * (B + out)); };
+const toward = (p, d) => p.clone().multiplyScalar(1 - d / p.length());
+const REGULARS = [
+  { name: 'Marlow', style: 'shark', suit: SUITS.charcoal },
+  { name: 'Ilse', style: 'rock', suit: SUITS.navy },
+  { name: 'Teodor', style: 'maniac', suit: SUITS.olive },
+  { name: 'Juno', style: 'station', suit: SUITS.cream },
+  { name: 'Vance', style: 'pro', suit: SUITS.burgundy },
+];
+const seats = SEAT_DEG.map((deg, i) => {
+  const rim = onRim(deg, 0);
+  return {
+    deg,
+    hole: toward(rim, i === 0 ? 0.24 : 0.2).setY(FELT_Y + 0.0015),
+    bet: toward(rim, i === 0 ? 0.38 : 0.34).setY(FELT_Y),
+    stack: toward(rim, 0.13).setY(FELT_Y).add(new V3(Math.cos(THREE.MathUtils.degToRad(deg + 90)) * 0.16, 0, Math.sin(THREE.MathUtils.degToRad(deg + 90)) * 0.16)),
+    button: toward(rim, 0.3).setY(FELT_Y + 0.004).add(new V3(Math.cos(THREE.MathUtils.degToRad(deg - 90)) * 0.14, 0, Math.sin(THREE.MathUtils.degToRad(deg - 90)) * 0.14)),
+  };
+});
+const figures = REGULARS.map((r, k) => {
+  const deg = SEAT_DEG[k + 1];
+  return createFigure(scene, { at: onRim(deg, 0.47), face: new V3(0, 0, 0), seated: true, colors: r.suit, reducedMotion, restReach: 0.52 });
+});
+const dealer = createFigure(scene, { at: onRim(DEALER_DEG, 0.3), face: new V3(0, 0, 0), seated: false, colors: SUITS.charcoal, scale: 0.93, reducedMotion, restReach: 0.38 });
+const DEALER_HAND = onRim(DEALER_DEG, -0.12).setY(FELT_Y + 0.05);
+const POT_AT = new V3(0.2, FELT_Y, 0.15);
+const MUCK = onRim(DEALER_DEG, -0.3).setY(FELT_Y + 0.002);
+
+const cards = createCardKit(renderer, scene);
+const chipKit = createChipKit(scene);
+const sfx = createSfx();
+const betStacks = seats.map((s) => { const k = chipKit.stack(); k.group.position.copy(s.bet); return k; });
+const seatStacks = seats.map((s) => { const k = chipKit.stack({ maxPerColumn: 14 }); k.group.position.copy(s.stack); return k; });
+const potStack = chipKit.stack({ maxPerColumn: 16 }); potStack.group.position.copy(POT_AT);
+const button = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.008, 24), [mat(0xf3ede2), (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); g.fillStyle = '#f3ede2'; g.fillRect(0, 0, 128, 128); g.fillStyle = '#2e2d35'; g.font = '700 72px "Schibsted Grotesk", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('D', 64, 70); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return new THREE.MeshStandardMaterial({ map: t, roughness: 0.8 }); })(), mat(0xf3ede2)]);
+button.castShadow = true; scene.add(button);
+
+// ---------------------------------------------------------------- table state
+const TL = createTimeline();
+const BUY_IN = 500, BIG = 10;
+let club = getChips();
+let me = Math.min(BUY_IN, club.bankroll);
+if (me < BIG * 2) { club = refill(); me = Math.min(BUY_IN, club.bankroll); }
+let offTable = club.bankroll - me;
+const table = createHoldem({
+  seats: [{ name: 'You', stack: me, human: true }, ...REGULARS.map((r, i) => ({ name: r.name, stack: 400 + ((i * 173) % 5) * 120, style: r.style }))],
+  sb: 5, bb: BIG,
+});
+const P = table.players;
+const statsKey = 'holdem.v1';
+const stats = (() => { try { return JSON.parse(localStorage.getItem(statsKey)) || {}; } catch { return {}; } })();
+stats.hands ||= 0; stats.won ||= 0; stats.biggest ||= 0;
+function saveGame() {
+  setBankroll(offTable + P[0].stack);
+  try { localStorage.setItem(statsKey, JSON.stringify(stats)); } catch { /* blocked */ }
+  updateGame('holdem', { resume: `Continue · ${fmt(offTable + P[0].stack)} chips`, facts: [[fmt(offTable + P[0].stack), 'Club chips'], [fmt(stats.won), 'Hands won'], [fmt(stats.biggest), 'Biggest pot']], ledger: { hands: stats.hands, won: stats.won, biggest: stats.biggest } });
+}
+saveGame();   // the buy-in is written straight away, so closing the tab never loses it
+
+// what the table shows right now (the engine is always ahead of the animation)
+const shown = { stack: P.map((p) => p.stack), bet: P.map(() => 0), pot: 0, say: P.map(() => ''), folded: P.map(() => false), turn: -1, won: P.map(() => false) };
+let holeMeshes = P.map(() => []), boardMeshes = [], myPot = 0;
+
+// ---------------------------------------------------------------- HUD
+const tags = P.map((p, i) => {
+  if (i === 0) return null;
+  const el = document.createElement('div'); el.className = 'seat panel';
+  el.innerHTML = `<span class="nm"></span><span class="st"></span><span class="sty"></span><span class="say"></span>`;
+  el.querySelector('.nm').textContent = p.name;
+  el.querySelector('.sty').textContent = STYLES[p.style].label;
+  $('#tags').appendChild(el); return el;
+});
+function refreshHud() {
+  $('#myStack').textContent = fmt(shown.stack[0]);
+  $('#club').textContent = fmt(offTable);
+  P.forEach((p, i) => {
+    seatStacks[i].set(shown.stack[i]); betStacks[i].set(shown.bet[i]);
+    const t = tags[i]; if (!t) return;
+    t.querySelector('.st').textContent = shown.stack[i] > 0 || !p.out ? fmt(shown.stack[i]) : 'Out';
+    t.querySelector('.say').textContent = shown.say[i];
+    t.classList.toggle('folded', shown.folded[i]); t.classList.toggle('turn', shown.turn === i); t.classList.toggle('won', shown.won[i]);
+  });
+  potStack.set(shown.pot);
+  const live = shown.pot + shown.bet.reduce((a, b) => a + b, 0);
+  $('#potTag').textContent = live ? `Pot ${fmt(live)}` : '';
+}
+const proj = new V3();
+function place(el, world) {
+  proj.copy(world).project(camera);
+  el.style.left = `${(proj.x * 0.5 + 0.5) * innerWidth}px`; el.style.top = `${(-proj.y * 0.5 + 0.5) * innerHeight}px`;
+  el.style.visibility = proj.z < 1 ? 'visible' : 'hidden';
+}
+let toastTimer;
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2200); }
+const NAMES = { 2: 'Twos', 3: 'Threes', 4: 'Fours', 5: 'Fives', 6: 'Sixes', 7: 'Sevens', 8: 'Eights', 9: 'Nines', 10: 'Tens', 11: 'Jacks', 12: 'Queens', 13: 'Kings', 14: 'Aces' };
+const SHORT = { 10: 'T', 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
+function myHandText() {
+  const h = P[0].hole; if (h.length < 2 || P[0].folded) return '';
+  const S = table.state;
+  if (S.board.length >= 3) return describe(best([...h, ...S.board]).score);
+  const [a, b] = h.map((c) => value(c.rank)).sort((x, y) => y - x);
+  if (a === b) return `Pocket ${NAMES[a]}`;
+  return `${SHORT[a] || a}${SHORT[b] || b} ${h[0].suit === h[1].suit ? 'suited' : 'offsuit'}`;
+}
+function hint(html) { $('#hint').innerHTML = html; }
+
+// ---------------------------------------------------------------- animation of engine events (SPEC §6)
+const fly = (mesh, from, to, dur, { arc = 0.06, flipTo = null, flipFrom = Math.PI, yaw = 0 } = {}) => {
+  TL.add(dur, {
+    start() { mesh.visible = true; sfx.card(); },
+    update(k) { const e = easeInOut(k); mesh.position.lerpVectors(from, to, e); mesh.position.y += Math.sin(Math.PI * e) * arc; mesh.rotation.y = yaw * e; if (flipTo != null) cards.setFlip(mesh, flipFrom + (flipTo - flipFrom) * easeInOut(Math.max(0, (k - 0.5) / 0.5))); },
+  }, dur * 0.45);
+};
+function slideChips(fromIdx, toPos, amount, after) {
+  const k = chipKit.stack(); k.set(amount);
+  const from = fromIdx === 'pot' ? POT_AT.clone() : seats[fromIdx].bet.clone();
+  TL.add(380, { start() { sfx.chip(); }, update(e) { k.group.position.lerpVectors(from, toPos, easeInOut(e)); k.group.position.y += Math.sin(Math.PI * e) * 0.03; }, end() { scene.remove(k.group); after?.(); refreshHud(); } });
+}
+function sayFor(e) {
+  switch (e.action) {
+    case 'fold': return 'Fold'; case 'check': return 'Check'; case 'call': return `Call ${fmt(e.amount)}`;
+    case 'bet': return `Bet ${fmt(e.to)}`; case 'raise': return `Raise to ${fmt(e.to)}`; default: return `All-in ${fmt(e.to)}`;
+  }
+}
+function animate(ev) {
+  for (const e of ev) {
+    const i = e.seat;
+    if (e.type === 'button') TL.add(300, { start() { this.from = button.position.clone(); }, update(k) { button.position.lerpVectors(this.from, seats[i].button, easeOut(k)); } });
+    else if (e.type === 'post') TL.call(() => { shown.stack[i] -= e.amount; shown.bet[i] += e.amount; shown.say[i] = e.blind === 'small' ? 'Small blind' : 'Big blind'; sfx.chip(); refreshHud(); });
+    else if (e.type === 'hole') {
+      e.cards.forEach((c, n) => {
+        const m = cards.make(c, DEALER_HAND); m.visible = false; holeMeshes[i].push(m);
+        const at = seats[i].hole.clone().add(new V3((n - 0.5) * (i === 0 ? 0.105 : 0.05), n * 0.0008, 0));
+        const yaw = Math.atan2(-seats[i].hole.x, -seats[i].hole.z) + Math.PI;
+        TL.call(() => dealer.reach('right', DEALER_HAND.clone().add(new V3(0, 0.02, 0))));
+        fly(m, DEALER_HAND, at, 300, { flipTo: i === 0 ? 0 : null, yaw: i === 0 ? 0 : yaw });
+      });
+      TL.call(() => dealer.rest());
+    } else if (e.type === 'act') {
+      TL.call(() => {
+        shown.turn = -1; shown.say[i] = sayFor(e);
+        if (e.action === 'fold') {
+          shown.folded[i] = true;
+          for (const m of holeMeshes[i]) { const from = m.position.clone(); TL.add(320, { update(k) { m.position.lerpVectors(from, MUCK, easeInOut(k)); m.position.y += Math.sin(Math.PI * k) * 0.03; }, end() { scene.remove(m); } }, 0); }
+          holeMeshes[i] = [];
+        } else if (e.to != null) {
+          shown.stack[i] -= e.to - shown.bet[i]; shown.bet[i] = e.to; sfx.chip();
+          if (i > 0) { const f = figures[i - 1]; f.reach('right', seats[i].bet.clone().add(new V3(0, 0.03, 0))); setTimeout(() => f.rest('right'), 700 / TL.speed); }
+        }
+        if (e.action === 'check' && i > 0) { const f = figures[i - 1]; f.reach('left', seats[i].hole.clone().add(new V3(0, 0.02, 0))); setTimeout(() => f.rest('left'), 450 / TL.speed); sfx.click(); }
+        refreshHud();
+      });
+      TL.wait(e.seat === 0 ? 150 : 350);
+    } else if (e.type === 'collect') {
+      TL.call(() => {
+        P.forEach((_, s) => { if (shown.bet[s] > 0) { const amt = shown.bet[s]; shown.bet[s] = 0; slideChips(s, POT_AT, amt, () => { shown.pot += amt; }); } });
+        refreshHud();
+      });
+      TL.wait(420);
+    } else if (e.type === 'street') {
+      TL.call(() => { shown.say = shown.say.map((s, k) => (shown.folded[k] ? 'Folded' : '')); refreshHud(); dealer.reach('right', DEALER_HAND); });
+      e.cards.forEach((c) => {
+        const slot = boardMeshes.length, m = cards.make(c, DEALER_HAND); m.visible = false; boardMeshes.push(m);
+        fly(m, DEALER_HAND, new V3(BOARD_X[slot], FELT_Y + 0.0015, BOARD_Z), 320, { flipTo: 0 });
+      });
+      TL.call(() => { dealer.rest(); hint(`<b>${myHandText()}</b>`); });
+      TL.wait(e.street === 'flop' ? 300 : 500);
+    } else if (e.type === 'show') {
+      TL.call(() => {
+        if (i > 0) for (const m of holeMeshes[i]) { const from = m.userData.flip.rotation.z; TL.add(320, { update(k) { cards.setFlip(m, from * (1 - easeInOut(k))); } }, 0); }
+        shown.say[i] = e.desc; refreshHud();
+      });
+      TL.wait(500);
+    } else if (e.type === 'win') {
+      TL.call(() => {
+        shown.won[i] = true; if (i === 0) myPot += e.amount; shown.say[i] = `Wins ${fmt(e.amount)}${e.desc ? ' · ' + e.desc : ''}`;
+        if (i === 0) { sfx.sting(e.amount >= 200 ? 'big' : 'win'); rig.beat(POT_AT, 0.08); }
+        slideChips('pot', seats[i].stack, e.amount, () => { shown.stack[i] += e.amount; });
+        shown.pot = Math.max(0, shown.pot - e.amount); refreshHud();
+      });
+      TL.wait(500);
+    } else if (e.type === 'end') {
+      TL.call(handOver);
+    }
+  }
+}
+
+// ---------------------------------------------------------------- flow (SPEC §3.4)
+function nextStep() {
+  const S = table.state;
+  if (S.street === 'done' || S.street === 'idle') return;
+  const seat = S.toAct;
+  if (seat === 0) { TL.call(showActions); return; }
+  TL.call(() => { shown.turn = seat; refreshHud(); });
+  TL.wait(450 + ((seat * 211 + S.hand * 97) % 650));
+  TL.call(() => { const ev = table.act(seat, decide(table, seat)); animate(ev); nextStep(); });
+}
+function newHand() {
+  for (const m of [...holeMeshes.flat(), ...boardMeshes]) scene.remove(m);
+  holeMeshes = P.map(() => []); boardMeshes = []; myPot = 0;
+  P.forEach((p, i) => { if (i > 0 && p.stack <= 0) { p.stack = 500; shown.stack[i] = 500; shown.say[i] = 'Rebuys'; } });
+  if (P[0].stack <= 0) return askRebuy();
+  shown.folded = P.map((p) => p.stack <= 0); shown.won = P.map(() => false); shown.say = P.map((_, i) => (shown.say[i] === 'Rebuys' ? 'Rebuys' : ''));
+  shown.pot = 0; shown.bet = P.map(() => 0); shown.stack = P.map((p) => p.stack);
+  refreshHud(); hint('');
+  const ev = table.startHand();
+  if (!ev) return;
+  animate(ev);
+  TL.call(() => hint(`<b>${myHandText()}</b>`));
+  nextStep();
+}
+function handOver() {
+  stats.hands += 1;
+  const myWin = shown.won[0];
+  if (myWin) { stats.won += 1; }
+  stats.biggest = Math.max(stats.biggest, myPot);
+  shown.stack = P.map((p) => p.stack); refreshHud();
+  saveGame();
+  hint(myWin ? '<b>Your pot.</b> Next hand in a moment · <kbd>Space</kbd> deals now' : 'Next hand in a moment · <kbd>Space</kbd> deals now');
+  TL.wait(2200);
+  TL.call(newHand);
+}
+function askRebuy() {
+  $('#actions').hidden = true;
+  const can = Math.min(BUY_IN, offTable);
+  if (can < BIG * 2) { club = refill(); offTable = club.bankroll; }
+  $('#rebuyText').textContent = `You're out of chips at this table. Club chips: ${fmt(offTable)}.`;
+  $('#bRebuy').textContent = `Buy in again (${fmt(Math.min(BUY_IN, offTable))})`;
+  $('#rebuy').hidden = false;
+}
+$('#bRebuy').addEventListener('click', () => {
+  const amt = Math.min(BUY_IN, offTable); offTable -= amt; P[0].stack = amt; shown.stack[0] = amt; $('#rebuy').hidden = true; saveGame(); refreshHud(); newHand();
+});
+
+// ---------------------------------------------------------------- your turn
+let legal = null, raiseTo = 0;
+const sizeFor = (k) => {
+  const S = table.state, potNow = legal.pot + legal.toCall;
+  const v = k === 'min' ? legal.minTo : k === 'half' ? S.currentBet + Math.round(potNow / 2) : k === 'pot' ? S.currentBet + potNow : legal.maxTo;
+  return Math.max(legal.minTo, Math.min(legal.maxTo, v));
+};
+function showActions() {
+  legal = table.legal(0);
+  shown.turn = 0; refreshHud();
+  $('#callLbl').textContent = legal.canCheck ? 'Check' : legal.toCall >= P[0].stack ? `Call all-in ${fmt(legal.toCall)}` : `Call ${fmt(legal.toCall)}`;
+  for (const [id, k] of [['aMin', 'min'], ['aHalf', 'half'], ['aPot', 'pot'], ['aAll', 'all']]) $('#' + id).textContent = fmt(sizeFor(k));
+  document.querySelectorAll('[data-size]').forEach((b) => (b.disabled = !legal.canRaise));
+  const s = $('#slider'); s.min = legal.minTo; s.max = legal.maxTo; s.step = 5; s.value = legal.minTo; s.disabled = !legal.canRaise;
+  setRaise(legal.minTo);
+  $('#bRaise').disabled = !legal.canRaise;
+  $('#actions').hidden = false;
+  hint(`<b>${myHandText()}</b> · ${legal.canCheck ? 'checked to you' : `${fmt(legal.toCall)} to call`}`);
+  rig.beat(seats[0].hole, 0.05, -1, 400, 300, 600);
+}
+function setRaise(v) { raiseTo = Math.max(legal.minTo, Math.min(legal.maxTo, Math.round(v))); $('#aRaise').textContent = fmt(raiseTo); $('#slider').value = raiseTo; $('#raiseLbl').textContent = raiseTo >= legal.maxTo ? 'All-in' : table.state.currentBet === 0 ? 'Bet' : 'Raise to'; }
+function act(action) {
+  if ($('#actions').hidden || !legal) return;
+  $('#actions').hidden = true; legal = null;
+  const ev = table.act(0, action); animate(ev); nextStep();
+}
+$('#bFold').addEventListener('click', () => act({ type: 'fold' }));
+$('#bCall').addEventListener('click', () => act({ type: 'call' }));
+$('#bRaise').addEventListener('click', () => act({ type: 'raise', to: raiseTo }));
+$('#slider').addEventListener('input', (e) => setRaise(+e.target.value));
+document.querySelectorAll('[data-size]').forEach((b) => b.addEventListener('click', () => act({ type: 'raise', to: sizeFor(b.dataset.size) })));
+addEventListener('keydown', (e) => {
+  if (e.target.closest?.('input, select, textarea') && e.key !== 'Escape') { if (e.key.toLowerCase() === 'r') { e.preventDefault(); $('#bRaise').click(); } return; }
+  const k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); if (TL.busy) TL.skipAll(); return; }
+  if (!legal) return;
+  if (k === 'f') act({ type: 'fold' });
+  else if (k === 'c') act({ type: 'call' });
+  else if (k === 'r') act({ type: 'raise', to: raiseTo });
+  else if (k === '1' && legal.canRaise) act({ type: 'raise', to: sizeFor('min') });
+  else if (k === '2' && legal.canRaise) act({ type: 'raise', to: sizeFor('half') });
+  else if (k === '3' && legal.canRaise) act({ type: 'raise', to: sizeFor('pot') });
+  else if (k === 'a' && legal.canRaise) act({ type: 'raise', to: sizeFor('all') });
+});
+
+// ---------------------------------------------------------------- leaving (Esc twice) and saving
+const playtime = trackPlaytime('holdem');
+createLeaveGuard({ game: "Hold'em", save: () => { playtime.flush(); saveGame(); } });
+addEventListener('pagehide', saveGame);
+
+// ---------------------------------------------------------------- loop
+let last = performance.now(), elapsed = 0;
+// labels sit on the rail in front of each regular, so they never collide with the HUD
+const tagAt = P.map((_, i) => (i === 0 ? null : onRim(SEAT_DEG[i], 0.02).setY(FELT_Y + 0.17)));
+function frame() {
+  const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; elapsed += dt;
+  TL.tick(dt * 1000);
+  for (const f of figures) f.update(dt, elapsed, TL.speed);
+  dealer.update(dt, elapsed, TL.speed);
+  rig.update(dt, elapsed, TL.speed);
+  tags.forEach((t, i) => t && place(t, tagAt[i]));
+  place($('#potTag'), POT_AT.clone().add(new V3(0, 0.0, 0.1)));
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+async function boot() {
+  try { await Promise.race([Promise.all(['700 72px "Schibsted Grotesk"', '600 40px "Schibsted Grotesk"', '600 60px "IBM Plex Mono"', '400 54px "Young Serif"'].map((f) => document.fonts.load(f))), new Promise((r) => setTimeout(r, 2500))]); } catch { /* fonts optional */ }
+  cards.ready(); drawFelt();
+  L.resize(camera); addEventListener('resize', () => L.resize(camera));
+  L.applyDay(0.755);
+  button.position.copy(seats[0].button);
+  refreshHud(); frame();
+  $('#loading').classList.add('gone');
+  setTimeout(newHand, 700);
+  window.__holdem = { table, TL, rig, setTod: (t) => L.applyDay(t), shown };
+}
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Video Poker at Sundown Club: a Jacks or Better machine in a lounge at golden hour. Full pay, play chips only.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23e8b860'/%3E%3C/svg%3E">
+<title>Video Poker · Sundown Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=IBM+Plex+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js", "@sundown/shared/": "/shared/" } }</script>
+<style>
+/* Layout: you sit at the machine; the screen is part of the 3D scene. A small paper HUD carries keys and chips. */
+:root { --paper: rgba(248, 243, 234, 0.86); --paper-solid: #f8f3ea; --ink: #2c2a30; --ink-soft: #6b6670; --line: rgba(44, 42, 48, 0.14);
+  --ui: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif; --num: "IBM Plex Mono", ui-monospace, Menlo, monospace; color-scheme: light; }
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body { margin: 0; background: #1d2130; color: var(--ink); font-family: var(--ui); overflow: hidden; }
+#stage { position: fixed; inset: 0; }
+#stage canvas { display: block; width: 100%; height: 100%; }
+.vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(20, 16, 22, 0.3) 100%); }
+.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 6px 24px rgba(30, 24, 30, 0.12); }
+.tl { position: fixed; left: 16px; top: 16px; padding: 12px 16px; display: grid; gap: 6px; min-width: 190px; }
+.tl .room { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+.tl .row { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; }
+.tl .lbl { font-size: 12px; color: var(--ink-soft); }
+.tl .num { font-family: var(--num); font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tl .num.small { font-size: 14px; }
+.tr { position: fixed; right: 16px; top: 16px; padding: 10px 14px; font-size: 12px; color: var(--ink-soft); display: grid; gap: 4px; }
+.tr b { color: var(--ink); }
+kbd { font-family: var(--num); font-size: 11px; font-weight: 600; min-width: 18px; text-align: center; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--line); border-bottom-width: 2px; color: var(--ink-soft); background: rgba(255,255,255,.6); }
+.bottom { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; display: flex; gap: 8px; padding: 8px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 32px); }
+button { font: inherit; color: inherit; }
+.act { display: inline-flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper-solid); font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.act:hover { background: #fffaf1; }
+.act:disabled { opacity: .4; cursor: default; }
+.act.primary { background: #6b5320; color: #f8f0dc; border-color: transparent; }
+.act.primary kbd { color: #f8f0dc; border-color: rgba(248,240,220,.35); background: transparent; }
+.act.on { outline: 2px solid #6b5320; outline-offset: 1px; }
+#toast { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); padding: 8px 14px; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+#toast.on { opacity: 1; }
+#loading { position: fixed; inset: 0; display: grid; place-items: center; color: #e9e1cf; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; pointer-events: none; transition: opacity .6s; }
+#loading.gone { opacity: 0; }
+:focus-visible { outline: 2px solid #3d5f86; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div id="stage" aria-label="Video poker machine, 3D view"></div>
+<div class="vignette"></div>
+<div id="loading">Warming up the machine</div>
+
+<header class="tl panel" aria-live="polite">
+  <div class="room">The Lounge · Jacks or Better · 1 coin = 5 chips</div>
+  <div class="row"><span class="lbl">Club chips</span><span id="chips" class="num">0</span></div>
+  <div class="row"><span class="lbl">Last win</span><span id="lastWin" class="num small">—</span></div>
+</header>
+<aside class="tr panel">
+  <div><b>Keys</b></div>
+  <div><kbd>1</kbd>–<kbd>5</kbd> hold a card · <kbd>Space</kbd> deal / draw</div>
+  <div><kbd>B</kbd> bet one · <kbd>M</kbd> max bet and deal · <kbd>Esc</kbd> leave</div>
+</aside>
+<div class="bottom panel">
+  <button class="act" id="bBet">Bet <span id="betN">5</span> <kbd>B</kbd></button>
+  <button class="act" id="bMax">Max bet <kbd>M</kbd></button>
+  <button class="act" data-hold="0">Hold <kbd>1</kbd></button>
+  <button class="act" data-hold="1">Hold <kbd>2</kbd></button>
+  <button class="act" data-hold="2">Hold <kbd>3</kbd></button>
+  <button class="act" data-hold="3">Hold <kbd>4</kbd></button>
+  <button class="act" data-hold="4">Hold <kbd>5</kbd></button>
+  <button class="act primary" id="bDeal"><span id="dealLbl">Deal</span> <kbd>Space</kbd></button>
+</div>
+<div id="toast" class="panel"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { createLounge, createCameraRig, ROOMS, mat } from '@sundown/shared/lounge/lounge.js';
+import { drawFace, drawBack } from '@sundown/shared/lounge/cards3d.js';
+import { createSfx } from '@sundown/shared/lounge/sfx.js';
+import { fmt, easeInOut } from '@sundown/shared/lounge/util.js';
+import { getChips, setBankroll, refill, canRefill } from '@sundown/shared/chips.js';
+import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
+import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
+import { createMachine, PAYTABLE } from './engine.js';
+
+const $ = (s) => document.querySelector(s);
+const V3 = THREE.Vector3;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const COIN = 5;                       // chips per coin in The Lounge (SPEC §3.2)
+
+// ---------------------------------------------------------------- room + machine (SPEC §4)
+const MZ = -0.55;                     // machine front plane
+const L = createLounge({ stage: $('#stage'), room: ROOMS.lounge, lampAt: new V3(0.0, 2.05, MZ + 0.4), lampTarget: new V3(0, 1.0, MZ) });
+const { scene, renderer, M } = L;
+const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 1500);
+const rig = createCameraRig(camera, { cinematic: { pos: new V3(0, 1.45, 0.92), look: new V3(0, 1.22, MZ - 0.1), fov: 50 } }, { reducedMotion });
+const cab = new THREE.Group(); cab.position.set(0, 0, MZ); scene.add(cab);
+const body = mat(0x3b2f2a), trim = M.brass, dark = mat(0x1d1a1c);
+const add = (geo, m, x, y, z, parent = cab) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; parent.add(o); return o; };
+add(new THREE.BoxGeometry(0.7, 0.92, 0.55), body, 0, 0.46, -0.1);                        // base
+add(new THREE.BoxGeometry(0.72, 0.03, 0.58), trim, 0, 0.93, -0.1);
+const deckTop = add(new THREE.BoxGeometry(0.7, 0.06, 0.24), body, 0, 0.97, 0.06);       // button deck
+deckTop.rotation.x = 0.18;
+add(new THREE.BoxGeometry(0.7, 0.62, 0.32), body, 0, 1.3, -0.24).rotation.x = -0.12;    // screen housing
+add(new THREE.BoxGeometry(0.74, 0.2, 0.36), body, 0, 1.7, -0.27);                       // topper
+add(new THREE.BoxGeometry(0.76, 0.02, 0.38), trim, 0, 1.6, -0.27);
+add(new THREE.BoxGeometry(0.76, 0.02, 0.38), trim, 0, 1.8, -0.27);
+// stool you sit on (mostly below frame) and a side table with a drink, for scale
+const stool = add(new THREE.CylinderGeometry(0.2, 0.2, 0.05, 12), M.rail, 0, 0.68, 0.95, scene); stool.castShadow = false;
+add(new THREE.CylinderGeometry(0.03, 0.05, 0.66, 8), M.woodDark, 0, 0.33, 0.95, scene);
+add(new THREE.CylinderGeometry(0.22, 0.22, 0.03, 14), M.wood, 0.62, 0.92, MZ + 0.25, scene);
+add(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), M.woodDark, 0.62, 0.45, MZ + 0.25, scene);
+add(new THREE.CylinderGeometry(0.035, 0.03, 0.1, 10), mat(0xe6d3a8, { transparent: true, opacity: 0.85 }), 0.62, 0.985, MZ + 0.25, scene);
+
+// screen: a canvas drawn by the game, shown unlit so it glows
+const SW = 1280, SH = 960;
+const screenCanvas = document.createElement('canvas'); screenCanvas.width = SW; screenCanvas.height = SH;
+const screenTex = new THREE.CanvasTexture(screenCanvas); screenTex.colorSpace = THREE.SRGBColorSpace; screenTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.45), new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false }));
+screen.position.set(0, 1.31, -0.075); screen.rotation.x = -0.12; cab.add(screen);
+const screenGlow = new THREE.PointLight(0x9fb8c8, 0.6, 1.6, 2); screenGlow.position.set(0, 1.3, 0.15); cab.add(screenGlow);
+// topper sign
+{
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = '#2a211d'; g.fillRect(0, 0, 1024, 256);
+  g.fillStyle = '#e8b860'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '400 92px "Young Serif", Georgia, serif'; g.fillText('Jacks or Better', 512, 110);
+  g.font = '600 30px "Schibsted Grotesk", sans-serif'; g.fillStyle = '#d9cbb0'; g.fillText('SUNDOWN CLUB  ·  FULL PAY 9 / 6', 512, 196);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  cab.userData.signTex = t; cab.userData.drawSign = () => { const g2 = c.getContext('2d'); g2.fillStyle = '#2a211d'; g2.fillRect(0, 0, 1024, 256); g2.fillStyle = '#e8b860'; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.font = '400 92px "Young Serif", Georgia, serif'; g2.fillText('Jacks or Better', 512, 110); g2.font = '600 30px "Schibsted Grotesk", sans-serif'; g2.fillStyle = '#d9cbb0'; g2.fillText('SUNDOWN CLUB  ·  FULL PAY 9 / 6', 512, 196); t.needsUpdate = true; };
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.175), new THREE.MeshBasicMaterial({ map: t, toneMapped: false }));
+  sign.position.set(0, 1.7, -0.088); cab.add(sign);
+}
+// buttons on the deck: five holds, bet, max, deal
+const buttons = [];
+const btnGroup = new THREE.Group(); btnGroup.position.set(0, 1.005, 0.07); btnGroup.rotation.x = 0.18; cab.add(btnGroup);
+function makeButton(x, w, color, label) {
+  const m = new THREE.MeshStandardMaterial({ color, roughness: 0.5, emissive: color, emissiveIntensity: 0.15 });
+  const b = new THREE.Mesh(new THREE.BoxGeometry(w, 0.018, 0.05), m); b.position.set(x, 0.01, 0); b.castShadow = true; btnGroup.add(b);
+  b.userData = { m, base: 0.01, label };
+  buttons.push(b); return b;
+}
+const holdBtns = [-0.2, -0.1, 0, 0.1, 0.2].map((x, i) => makeButton(x, 0.075, 0xe6dccb, `hold${i}`));
+const betBtn = makeButton(-0.29, 0.05, 0x86ad8f, 'bet');
+const dealBtn = makeButton(0.3, 0.06, 0xe8b860, 'deal');
+function press(b) { if (!b) return; b.position.y = b.userData.base - 0.006; setTimeout(() => (b.position.y = b.userData.base), 120); sfx.click(); }
+
+// ---------------------------------------------------------------- state
+const sfx = createSfx();
+const machine = createMachine();
+let bank = getChips().bankroll;
+let coins = 5, lastWin = 0, message = 'Space to deal', winLine = null;
+const faces = {}; let back = null;
+const faceFor = (c) => (faces[c.rank + c.suit] ||= drawFace(c.rank, c.suit));
+// per-card flip animation: 0 = back, 1 = face
+const shownCards = [null, null, null, null, null];
+const flip = [0, 0, 0, 0, 0], flipFrom = [0, 0, 0, 0, 0], flipStart = [0, 0, 0, 0, 0], flipTo = [0, 0, 0, 0, 0];
+let animUntil = 0;
+const stats = (() => { try { return JSON.parse(localStorage.getItem('vp.v1')) || {}; } catch { return {}; } })();
+stats.hands ||= 0; stats.best ||= null; stats.bestCoins ||= 0; stats.won ||= 0;
+
+function save() {
+  setBankroll(bank);
+  try { localStorage.setItem('vp.v1', JSON.stringify(stats)); } catch { /* blocked */ }
+  updateGame('videopoker', { resume: `Continue · ${fmt(bank)} chips`, facts: [[fmt(bank), 'Club chips'], [fmt(stats.hands), 'Hands'], [stats.best || '—', 'Best hand']], ledger: { hands: stats.hands, bestCoins: stats.bestCoins, won: stats.won } });
+}
+
+// ---------------------------------------------------------------- screen drawing (SPEC §4.3)
+function drawScreen(now) {
+  const g = screenCanvas.getContext('2d');
+  g.fillStyle = '#16202b'; g.fillRect(0, 0, SW, SH);
+  const grad = g.createLinearGradient(0, 0, 0, SH); grad.addColorStop(0, 'rgba(240,168,104,.10)'); grad.addColorStop(1, 'rgba(0,0,0,.25)'); g.fillStyle = grad; g.fillRect(0, 0, SW, SH);
+  // pay table
+  const x0 = 60, y0 = 40, rowH = 33, colW = 150, nameW = 380;
+  g.fillStyle = 'rgba(232,184,96,.10)'; g.fillRect(x0 + nameW + (coins - 1) * colW - 6, y0 - 8, colW, rowH * PAYTABLE.length + 10);
+  g.font = '600 26px "IBM Plex Mono", monospace'; g.textBaseline = 'top';
+  PAYTABLE.forEach((l, r) => {
+    const hit = winLine === l.name;
+    g.fillStyle = hit ? '#f8e2a8' : '#d9cbb0'; g.textAlign = 'left'; g.font = `${hit ? 700 : 600} 26px "Schibsted Grotesk", sans-serif`;
+    g.fillText(l.name.toUpperCase(), x0, y0 + r * rowH);
+    g.font = '600 26px "IBM Plex Mono", monospace'; g.textAlign = 'right';
+    l.pays.forEach((p, c) => { g.fillStyle = hit && c === coins - 1 ? '#ffffff' : c === coins - 1 ? '#f0d39a' : 'rgba(217,203,176,.55)'; g.fillText(String(p), x0 + nameW + c * colW + colW - 30, y0 + r * rowH); });
+  });
+  // cards
+  const cw = 210, ch = 292, gap = 22, cx0 = (SW - (5 * cw + 4 * gap)) / 2, cy = 400;
+  for (let i = 0; i < 5; i++) {
+    const x = cx0 + i * (cw + gap);
+    let f = flip[i];
+    if (now < flipStart[i] + 260 && flipStart[i]) { const k = Math.min(1, Math.max(0, (now - flipStart[i]) / 260)); f = flipFrom[i] + (flipTo[i] - flipFrom[i]) * easeInOut(k); }
+    const showFace = f > 0.5 && shownCards[i];
+    const sx = Math.abs(Math.cos(f * Math.PI));
+    g.save(); g.translate(x + cw / 2, cy + ch / 2); g.scale(Math.max(0.02, sx), 1);
+    g.shadowColor = 'rgba(0,0,0,.4)'; g.shadowBlur = 18;
+    g.drawImage(showFace ? faceFor(shownCards[i]) : back, -cw / 2, -ch / 2, cw, ch);
+    g.restore();
+    const held = machine.held[i] && machine.phase === 'dealt';
+    g.font = '700 30px "Schibsted Grotesk", sans-serif'; g.textAlign = 'center';
+    g.fillStyle = held ? '#f8e2a8' : 'rgba(217,203,176,.25)'; g.fillText(held ? 'HELD' : `${i + 1}`, x + cw / 2, cy + ch + 18);
+  }
+  // footer
+  g.textAlign = 'left'; g.font = '600 30px "IBM Plex Mono", monospace'; g.fillStyle = '#d9cbb0';
+  g.fillText(`CHIPS ${fmt(bank)}`, 60, SH - 70);
+  g.textAlign = 'center'; g.fillStyle = winLine ? '#f8e2a8' : '#d9cbb0'; g.font = `${winLine ? 700 : 500} 32px "Schibsted Grotesk", sans-serif`;
+  g.fillText(message, SW / 2, SH - 72);
+  g.textAlign = 'right'; g.font = '600 30px "IBM Plex Mono", monospace'; g.fillStyle = '#d9cbb0';
+  g.fillText(`BET ${coins} · ${coins * COIN} CHIPS`, SW - 60, SH - 70);
+  screenTex.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------- play (SPEC §3)
+function hud() {
+  $('#chips').textContent = fmt(bank); $('#lastWin').textContent = lastWin ? fmt(lastWin) : '—';
+  $('#betN').textContent = coins;
+  const dealt = machine.phase === 'dealt';
+  $('#dealLbl').textContent = dealt ? 'Draw' : 'Deal';
+  document.querySelectorAll('[data-hold]').forEach((b) => { b.disabled = !dealt; b.classList.toggle('on', dealt && machine.held[+b.dataset.hold]); });
+  $('#bBet').disabled = dealt; $('#bMax').disabled = dealt;
+  holdBtns.forEach((b, i) => { const on = dealt && machine.held[i]; b.userData.m.emissiveIntensity = on ? 0.9 : dealt ? 0.3 : 0.12; });
+  dealBtn.userData.m.emissiveIntensity = 0.5 + (dealt ? 0.3 : 0);
+}
+function flipCard(i, to, delay) { const now = performance.now() + delay; flipStart[i] = now; flipFrom[i] = flip[i]; flipTo[i] = to; animUntil = Math.max(animUntil, now + 300); setTimeout(() => { flip[i] = to; if (to === 1) sfx.card(0.14); }, delay + 140); }
+function deal() {
+  if (machine.phase === 'dealt' || performance.now() < animUntil) return;
+  const cost = coins * COIN;
+  if (bank < cost) {
+    if (canRefill()) { bank = refill().bankroll; toast('The club topped your chips back up to 1,000.'); }
+    else { coins = Math.max(1, Math.floor(bank / COIN)); if (bank < COIN) return toast('Not enough chips for a coin.'); }
+  }
+  bank -= coins * COIN; save(); sfx.chip(); press(dealBtn);
+  winLine = null; lastWin = 0;
+  const { hand } = machine.deal(coins);
+  for (let i = 0; i < 5; i++) { flip[i] = 0; flipCard(i, 0, 0); }
+  setTimeout(() => { hand.forEach((c, i) => { shownCards[i] = c; flipCard(i, 1, i * 90); }); }, 160);
+  message = 'Hold with 1–5, then draw';
+  hud();
+}
+function draw() {
+  if (machine.phase !== 'dealt' || performance.now() < animUntil) return;
+  press(dealBtn);
+  const { hand, replaced, result } = machine.draw();
+  let d = 0;
+  for (const i of replaced) { flipCard(i, 0, d); setTimeout(((j) => () => { shownCards[j] = hand[j]; flipCard(j, 1, 0); })(i), d + 280); d += 120; }
+  setTimeout(() => {
+    stats.hands += 1;
+    if (result) {
+      const won = result.coins * COIN; bank += won; lastWin = won; winLine = result.name; stats.won += won;
+      message = `${result.name} · +${fmt(won)}`;
+      sfx.sting(result.coins / coins >= 25 ? 'big' : 'win');
+      if (result.coins > stats.bestCoins) { stats.bestCoins = result.coins; stats.best = result.name; }
+      rig.beat(new V3(0, 1.3, MZ), 0.06, -1.5, 500, 700, 900);
+    } else { message = 'No win this time'; lastWin = 0; }
+    save(); hud();
+  }, d + 420);
+  hud();
+}
+function toggle(i) { if (machine.phase !== 'dealt' || performance.now() < animUntil) return; machine.toggle(i); press(holdBtns[i]); hud(); }
+function betOne() { if (machine.phase === 'dealt') return; coins = coins % 5 + 1; press(betBtn); sfx.chip(); hud(); message = `Bet ${coins} · Space to deal`; }
+function maxBet() { if (machine.phase === 'dealt') return; coins = 5; hud(); deal(); }
+let toastTimer;
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2400); }
+
+addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  if (k === ' ' || k === 'enter') { e.preventDefault(); machine.phase === 'dealt' ? draw() : deal(); }
+  else if (k >= '1' && k <= '5') toggle(+k - 1);
+  else if (k === 'b') betOne();
+  else if (k === 'm') maxBet();
+});
+$('#bDeal').addEventListener('click', () => (machine.phase === 'dealt' ? draw() : deal()));
+$('#bBet').addEventListener('click', betOne);
+$('#bMax').addEventListener('click', maxBet);
+document.querySelectorAll('[data-hold]').forEach((b) => b.addEventListener('click', () => toggle(+b.dataset.hold)));
+// click the cards on the screen to hold them
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects([screen, ...buttons], false)[0]; if (!hit) return;
+  if (hit.object === screen) { const u = hit.uv.x * SW, v = (1 - hit.uv.y) * SH; if (v > 380 && v < 740) { const i = Math.floor((u - (SW - (5 * 210 + 4 * 22)) / 2) / 232); if (i >= 0 && i < 5) toggle(i); } return; }
+  const lbl = hit.object.userData.label;
+  if (lbl === 'deal') machine.phase === 'dealt' ? draw() : deal(); else if (lbl === 'bet') betOne(); else if (lbl?.startsWith('hold')) toggle(+lbl.slice(4));
+});
+
+// ---------------------------------------------------------------- leaving
+const playtime = trackPlaytime('videopoker');
+createLeaveGuard({ game: 'Video Poker', save: () => {
+  // a hand left mid-draw is drawn for you, so the bet is never lost to leaving
+  if (machine.phase === 'dealt') { const { result } = machine.draw(); if (result) bank += result.coins * COIN; }
+  playtime.flush(); save();
+} });
+addEventListener('pagehide', save);
+
+// ---------------------------------------------------------------- loop
+let last = performance.now(), elapsed = 0;
+function frame() {
+  const now = performance.now(), dt = Math.min(0.05, (now - last) / 1000); last = now; elapsed += dt;
+  rig.update(dt, elapsed);
+  drawScreen(now);
+  screenGlow.intensity = 0.5 + Math.sin(elapsed * 2) * 0.03;
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+async function boot() {
+  try { await Promise.race([Promise.all(['700 72px "Schibsted Grotesk"', '600 30px "IBM Plex Mono"', '400 92px "Young Serif"'].map((f) => document.fonts.load(f))), new Promise((r) => setTimeout(r, 2500))]); } catch { /* fonts optional */ }
+  back = drawBack(); cab.userData.drawSign();
+  L.resize(camera); addEventListener('resize', () => L.resize(camera));
+  L.applyDay(0.755);
+  hud(); frame();
+  $('#loading').classList.add('gone');
+  window.__vp = { machine, deal, draw, toggle, get bank() { return bank; } };
+}
+boot();
+</script>
+</body>
+</html>

@@ -22,8 +22,9 @@ shared profile.
    game shots; ← → Enter C.
 3. The door: manifesto, words light up with scroll.
 4. Blackjack chapter (sticky, 340vh): card opens to full bleed, callouts, night.
-5. Parking chapter (sticky, 420vh): horizontal filmstrip, counter, progress.
-6. Workshop: coming-soon teasers (Hold'em, Night Drive; owner wants them kept).
+5. Card room chapter (sticky, 320vh): Hold'em opens from a card on the left, then Video Poker takes over.
+6. Parking chapter (sticky, 420vh): horizontal filmstrip, counter, progress.
+7. Workshop: coming-soon teaser (Night Drive; owner wants teasers kept).
 7. Your evening: profile stats count up (sample data until profiles exist).
 8. The house: about + FAQ. 9. Night footer: giant wordmark rises.
 
@@ -34,8 +35,8 @@ end state. Keep that fallback working when adding sections.
 ## Rules
 
 - Accent per game: Blackjack `#f0a868`, Parking `#8fe3cf`, Hold'em `#d98a93`,
-  Night Drive `#9aa6ff`.
-- Links to games are site paths (`/blackjack/`, `/parking/play/`). Inside a
+  Video Poker `#e8b860`, Night Drive `#9aa6ff`.
+- Links to games are site paths (`/blackjack/`, `/holdem/`, `/videopoker/`, `/parking/play/`). Inside a
   sandboxed preview frame they show a toast instead of navigating.
 - Profile numbers on the page are sample data and must stay labelled so until
   `packages/shared` profile code feeds real values.

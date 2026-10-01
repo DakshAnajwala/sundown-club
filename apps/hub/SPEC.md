@@ -148,7 +148,8 @@ and one backdrop image.
 |---|---|---|---|---|---|
 | `blackjack` | Blackjack | `#f0a868` | Cards · New | `/blackjack/` | live when built |
 | `parking` | Parking Precision | `#8fe3cf` | Driving · 17 car parks | `/play/` | live |
-| `holdem` | Hold'em | `#d98a93` | Cards · Coming soon | none | soon (placeholder) |
+| `holdem` | Hold'em | `#d98a93` | Cards · New | `/holdem/` | live (1 Oct 2026) |
+| `videopoker` | Video Poker | `#e8b860` | Cards · New | `/videopoker/` | live (1 Oct 2026) |
 | `drive` | Night Drive | `#9aa6ff` | Driving · Coming soon | none | soon (placeholder) |
 
 Coming-soon tiles stay as teasers (owner, 30 Sep).

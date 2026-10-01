@@ -22,7 +22,7 @@ spec except for the contract Blackjack must honour (§13).
 | 7 | Actions | Split (to 4 hands), double, insurance / even money, late surrender. |
 | 8 | Seats | One seat, solo against the dealer. |
 | 9 | Side bets | None at launch. |
-| 10 | Bankroll | Persistent, free refill to 1,000 when broke (§5). |
+| 10 | Bankroll | Persistent, free refill to 1,000 when broke (§5). **1 Oct: one club bankroll shared with Hold'em and Video Poker** (`packages/shared/chips.js`, key `club.v1.chips`). |
 | 11 | Progression | Cosmetic unlocks, table tiers, achievements (§6). |
 | 12 | Leaderboard | Later. Design keeps it possible (main mode only). |
 | 13 | Hub currency | Hub XP only; no shared money. |

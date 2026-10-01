@@ -5,7 +5,7 @@
   "description": "Code shared by the hub and every game",
   "type": "module",
   "exports": {
-    "./profile": "./profile.js",
-    "./leave-guard": "./leave-guard.js"
+    "./*.js": "./*.js",
+    "./*": "./*.js"
   }
 }

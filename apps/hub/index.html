@@ -32,7 +32,7 @@
 }
 [hidden] { display: none !important; }
 * { box-sizing: border-box; }
-html { scroll-behavior: auto; }
+html { scroll-behavior: auto; overflow-x: clip; }
 body { margin: 0; background: #0d0b12; color: var(--ink); font-family: var(--sans); overflow-x: clip; }
 a { color: inherit; }
 .pad { padding-inline: var(--gutter); }
@@ -116,7 +116,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .tile:focus-visible .shot { box-shadow: 0 0 0 3px var(--ink); }
 .soon .shot img { filter: grayscale(.7) brightness(.42) blur(1.5px); }
 .lock { position: absolute; left: 10px; top: 10px; z-index: 1; font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(21,16,14,.7); border: 1px solid var(--line); color: var(--ink-2); }
-.cue { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: grid; justify-items: center; gap: 8px; font: 500 10px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); pointer-events: none; }
+.cue { position: absolute; right: 22px; bottom: 46vh; display: grid; justify-items: center; gap: 8px; font: 500 10px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); pointer-events: none; }
 .cue i { width: 1px; height: 34px; background: linear-gradient(var(--ink-2), transparent); transform-origin: top; animation: cue 2.2s ease-in-out infinite; }
 @keyframes cue { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
 
@@ -154,6 +154,22 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .nightnote { position: absolute; right: var(--gutter); top: 16vh; z-index: 2; max-width: 30ch; text-align: right; font: 400 20px/1.35 var(--serif); opacity: 0; }
 .nightnote small { display: block; margin-top: 8px; font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
 
+
+/* Card room: Hold'em opens from a card on the left, then Video Poker takes over */
+.cr { height: 320vh; }
+.crmedia { position: absolute; inset: 0; clip-path: inset(16% 52% 16% 5% round 22px); will-change: clip-path; }
+.crmedia img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.18); }
+#crVp { opacity: 0; clip-path: inset(0 round 0); }
+.cr .shade { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(270deg, rgba(14,10,10,.9) 0%, rgba(14,10,10,.5) 42%, rgba(14,10,10,.08) 75%), linear-gradient(0deg, rgba(14,10,10,.8) 0%, rgba(14,10,10,0) 40%); }
+.cr .copy { position: absolute; top: 50%; transform: translateY(-50%); max-width: min(560px, 44vw); z-index: 2; }
+.cr .copy .btn { margin-top: 26px; }
+.crcopy { left: auto !important; right: var(--gutter); text-align: right; }
+.crcopy .lead { margin-left: auto; }
+.crcopy .chap-num { justify-content: flex-end; color: var(--accent); }
+#crCopyB { opacity: 0; }
+.crnote { position: absolute; left: var(--gutter); bottom: 8vh; z-index: 2; max-width: 32ch; font: 400 20px/1.35 var(--serif); opacity: 0; }
+.static .crmedia { clip-path: none; position: relative; height: 70vh; } .static .crmedia img { transform: none; } .static #crVp, .static #crCopyB, .static .crnote, .static .cr .shade { opacity: 1; } .static .crcopy { position: relative; transform: none; top: auto; margin: 24px var(--gutter); }
+
 /* Parking: horizontal filmstrip */
 .pk { height: 420vh; --accent: var(--pk); }
 .pk .stick { display: grid; grid-template-rows: auto 1fr auto; padding-top: 104px; }
@@ -184,6 +200,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .sec-head h2 { margin: 0; font: 400 clamp(38px, 5vw, 68px)/1.02 var(--serif); letter-spacing: -.01em; }
 .sec-head p { margin: 0; font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 52ch; }
 .teasers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 2.4vw, 32px); }
+.teasers.one { grid-template-columns: minmax(0, 1fr); }
+.teasers.one .teaser { min-height: 420px; }
 .teaser { position: relative; border-radius: 18px; overflow: hidden; min-height: 360px; display: grid; align-content: end; padding: 26px; box-shadow: 0 0 0 1px var(--line); }
 .teaser img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(.6) brightness(.38) blur(3px); transform: scale(1.08); transition: filter .8s, transform .8s; }
 .teaser:hover img { filter: grayscale(.4) brightness(.46) blur(2px); transform: scale(1.12); }
@@ -246,6 +264,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
   .bj .copy { max-width: calc(100% - 2 * var(--gutter)); top: 22%; transform: none; }
   .ledger { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nightnote { display: none; }
+  .cr .copy { max-width: calc(100% - 2 * var(--gutter)); top: 20%; transform: none; right: var(--gutter); }
+  .crnote { max-width: calc(100% - 2 * var(--gutter)); }
 }
 /* Reduced motion (and no-GSAP fallback): chapters lay out as normal sections at their end state. */
 .static .door, .static .bj, .static .pk { height: auto; }
@@ -276,7 +296,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     <svg viewBox="0 0 28 18" aria-hidden="true"><clipPath id="hz"><rect x="0" y="0" width="28" height="13"/></clipPath><circle class="disc" cx="14" cy="13" r="8" clip-path="url(#hz)"/><line class="line" x1="1" y1="13.5" x2="27" y2="13.5"/><line class="line" x1="7" y1="17" x2="21" y2="17" opacity=".5"/></svg>
     sundown club
   </a>
-  <nav aria-label="Sections"><a href="#lobby" data-sec="lobby" class="on">Games</a><a href="#blackjack" data-sec="blackjack">Blackjack</a><a href="#parking" data-sec="parking">Parking</a><a href="#workshop" data-sec="workshop">Workshop</a><a href="#house" data-sec="house">About</a></nav>
+  <nav aria-label="Sections"><a href="#lobby" data-sec="lobby" class="on">Games</a><a href="#blackjack" data-sec="blackjack">Blackjack</a><a href="#cardroom" data-sec="cardroom">Card room</a><a href="#parking" data-sec="parking">Parking</a><a href="#workshop" data-sec="workshop">Workshop</a><a href="#house" data-sec="house">About</a></nav>
   <a class="me" href="#evening" title="Sample profile"><span class="av">DA</span><div><div class="lv">daksh · Lv 7</div><div class="xp"><b></b></div></div></a>
 </header>
 
@@ -304,7 +324,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
   <div class="stick">
     <div>
       <p id="words">Sundown Club is a small collection of browser games. Each one should feel like <span class="hl">the last hour of daylight:</span> warm, unhurried, a little strange. Nothing to install. No account. Come in when the sun goes down.</p>
-      <div class="kick">Two games open · two in the workshop</div>
+      <div class="kick">Four games open · one in the workshop</div>
     </div>
   </div>
 </section>
@@ -332,11 +352,33 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
   </div>
 </section>
 
+<!-- ============================================================== card room -->
+<section class="chapter cr" id="cardroom" aria-labelledby="cr-title">
+  <div class="stick">
+    <div class="crmedia" id="crHold"><img src="media/holdem.jpg" alt="Six-seat Hold'em table with five faceless regulars in suits, at golden hour"></div>
+    <div class="crmedia" id="crVp"><img src="media/videopoker.jpg" alt="A Jacks or Better video poker machine by the lounge window"></div>
+    <div class="shade" id="crShade"></div>
+    <div class="copy crcopy" id="crCopyA">
+      <div class="chap-num" style="--accent: #d98a93">02 · The card room</div>
+      <h2 id="cr-title">Hold'em</h2>
+      <p class="lead">Six seats, no limit, blinds of five and ten. Five regulars in suits, none of them with a face, each with a way of playing you can learn to read.</p>
+      <a class="btn fill" href="#" data-go="/holdem/" data-name="Hold'em" style="--accent: #d98a93">Sit in</a>
+    </div>
+    <div class="copy crcopy" id="crCopyB">
+      <div class="chap-num" style="--accent: #e8b860">02 · The card room</div>
+      <h2>Video Poker</h2>
+      <p class="lead">A full-pay Jacks or Better machine by the window. Five cards, hold what you like, draw once. The royal pays four thousand coins at max bet.</p>
+      <a class="btn fill" href="#" data-go="/videopoker/" data-name="Video Poker" style="--accent: #e8b860">Pull up a stool</a>
+    </div>
+    <div class="crnote" id="crNote">One bankroll for the whole card room: win at the blackjack table, take it to poker.</div>
+  </div>
+</section>
+
 <!-- ============================================================== parking -->
 <section class="chapter pk" id="parking" aria-labelledby="pk-title">
   <div class="stick" id="pkStick">
     <div class="head pad">
-      <div><div class="chap-num">02 · Driving</div><h2 id="pk-title">Parking Precision</h2>
+      <div><div class="chap-num">03 · Driving</div><h2 id="pk-title">Parking Precision</h2>
         <p class="lead">A real-sized car and a glowing bay. First person, with mirrors, sensors and a reversing camera. Every park is scored out of 100.</p></div>
       <div class="stats"><div><b>17</b><span>Levels</span></div><div><b>720°</b><span>Steering wheel</span></div><div><b>100</b><span>Points a park</span></div></div>
     </div>
@@ -357,10 +399,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 
 <!-- ============================================================== workshop -->
 <section class="shop pad" id="workshop" aria-labelledby="shop-title">
-  <div class="sec-head reveal"><div class="eyebrow">In the workshop</div><h2 id="shop-title">Two more, still being built.</h2><p>Same evening, new rooms. They'll open here when they're ready.</p></div>
-  <div class="teasers">
-    <article class="teaser" style="--t: #d98a93"><img src="media/bj-dusk.jpg" alt=""><span class="lock">Coming soon</span><h3>Hold'em</h3><p>Heads-up poker at the same table, against faceless regulars with their own habits.</p><div class="tag">Cards</div></article>
-    <article class="teaser" style="--t: #9aa6ff"><img src="media/rooftop-lane.webp" alt=""><span class="lock">Coming soon</span><h3>Night Drive</h3><p>The parking car, let out of the car park. A long road after dark.</p><div class="tag">Driving</div></article>
+  <div class="sec-head reveal"><div class="eyebrow">In the workshop</div><h2 id="shop-title">One more, still being built.</h2><p>Same evening, new rooms. They'll open here when they're ready.</p></div>
+  <div class="teasers one">
+        <article class="teaser" style="--t: #9aa6ff"><img src="media/rooftop-lane.webp" alt=""><span class="lock">Coming soon</span><h3>Night Drive</h3><p>The parking car, let out of the car park. A long road after dark.</p><div class="tag">Driving</div></article>
   </div>
 </section>
 
@@ -432,8 +473,12 @@ const GAMES = [
   { name: 'Parking Precision', accent: '#8fe3cf', img: 'media/rooftop-dusk.webp', pos: '55% 55%', tag: 'Driving', eyebrow: 'Driving · 17 levels', go: '/parking/play/',
     blurb: 'Park a real-sized car in a glowing bay, first person, scored out of 100. Mirrors, sensors and a reversing camera.',
     resume: 'Continue · Level 7, Rooftop', facts: [['38 / 51', 'Stars'], ['94', 'Best park'], ['2h 40m', 'Played']] },
-  { name: "Hold'em", accent: '#d98a93', img: 'media/bj-dusk.jpg', pos: '30% 45%', tag: 'Soon', eyebrow: 'Cards · Coming soon', soon: true,
-    blurb: 'Heads-up poker at the same table, against faceless regulars with their own habits.', facts: [] },
+  { name: "Hold'em", accent: '#d98a93', img: 'media/holdem.jpg', pos: '50% 40%', tag: 'Cards', eyebrow: 'Cards · New', go: '/holdem/',
+    blurb: 'No-limit Texas Hold\u2019em at a six-seat table, against five faceless regulars who each play their own way.',
+    resume: 'Continue · Blinds 5 / 10', facts: [['6', 'Seats'], ['5 / 10', 'Blinds'], ['5', 'Regulars']] },
+  { name: 'Video Poker', accent: '#e8b860', img: 'media/videopoker.jpg', pos: '50% 40%', tag: 'Cards', eyebrow: 'Cards · New', go: '/videopoker/',
+    blurb: 'Jacks or Better on a full-pay machine by the window. Hold, draw, and hope for the royal.',
+    resume: 'Continue · Max bet 25', facts: [['9 / 6', 'Full pay'], ['4,000', 'Royal, max bet'], ['5', 'Coins max']] },
   { name: 'Night Drive', accent: '#9aa6ff', img: 'media/rooftop-lane.webp', pos: '50% 50%', tag: 'Soon', eyebrow: 'Driving · Coming soon', soon: true,
     blurb: 'The parking car, let out of the car park. A long road after dark.', facts: [] },
 ];
@@ -508,7 +553,7 @@ if (motion) {
 
   // 2. Header turns solid after the lobby; nav follows the section in view.
   ScrollTrigger.create({ trigger: '#door', start: 'top 80px', onEnter: () => $('#bar').classList.add('solid'), onLeaveBack: () => $('#bar').classList.remove('solid') });
-  const navMap = { lobby: '#lobby', blackjack: '#blackjack', parking: '#parking', workshop: '#workshop', house: '#house' };
+  const navMap = { lobby: '#lobby', blackjack: '#blackjack', cardroom: '#cardroom', parking: '#parking', workshop: '#workshop', house: '#house' };
   Object.entries(navMap).forEach(([k, sel]) => ScrollTrigger.create({ trigger: sel, start: 'top 45%', end: 'bottom 45%',
     onToggle: (st) => { if (st.isActive) $$('.bar nav a').forEach((a) => a.classList.toggle('on', a.dataset.sec === k)); } }));
   ScrollTrigger.create({ trigger: '#blackjack', start: 'top 45%', end: 'bottom 45%', onToggle: (st) => st.isActive && $('#bar').style.setProperty('--accent', '#f0a868') });
@@ -546,6 +591,21 @@ if (motion) {
     .to('#bjNight', { opacity: 1, duration: 1, ease }, 7.2)
     .to('#bjMedia img', { scale: 1.08, duration: 3.4, ease }, 5.8)
     .to({}, { duration: .8 });
+
+  // 5b. Card room: Hold'em opens from the left, then Video Poker takes its place.
+  gsap.set('#crCopyA > *', { opacity: 0, y: 30 });
+  ScrollTrigger.create({ trigger: '#cardroom', start: 'top 45%', end: 'bottom 45%', onToggle: (st) => st.isActive && $('#bar').style.setProperty('--accent', '#d98a93') });
+  gsap.timeline({ scrollTrigger: { trigger: '#cardroom', start: 'top top', end: 'bottom bottom', scrub: .9 } })
+    .to('#crCopyA > *', { opacity: 1, y: 0, stagger: .25, duration: 1, ease: 'power2.out' }, 0)
+    .to('#crHold', { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 3, ease: 'power2.inOut' }, .5)
+    .to('#crHold img', { scale: 1.02, duration: 3, ease: 'power2.inOut' }, .5)
+    .to('#crShade', { opacity: 1, duration: 2, ease }, 1.5)
+    .to('#crNote', { opacity: 1, duration: .8, ease }, 3.2)
+    .to('#crCopyA', { opacity: 0, y: -30, duration: .8, ease }, 4.6)
+    .to('#crVp', { opacity: 1, duration: 1.4, ease }, 4.8)
+    .fromTo('#crVp img', { scale: 1.12 }, { scale: 1.02, duration: 3, ease }, 4.8)
+    .fromTo('#crCopyB', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1, ease: 'power2.out' }, 5.6)
+    .to({}, { duration: 1 });
 
   // 6. Parking: the filmstrip runs sideways while the section is pinned.
   const track = $('#track');

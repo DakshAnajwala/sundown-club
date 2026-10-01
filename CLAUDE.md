@@ -16,7 +16,9 @@ Licence: all rights reserved.
 | `apps/hub/` | Sundown Club homepage (game picker, scroll story, profile) | `/` | `apps/hub/CLAUDE.md` |
 | `apps/parking/` | Parking Precision (3D parking game, three.js + cannon-es) | `/parking/`, `/parking/play/` | `apps/parking/CLAUDE.md` |
 | `apps/blackjack/` | Blackjack (3D, three.js) | `/blackjack/` | `apps/blackjack/CLAUDE.md` |
-| `packages/shared/` | Code every app shares (profile/XP, leave guard, leaderboard client) | bundled into apps | `packages/shared/CLAUDE.md` |
+| `apps/holdem/` | No-Limit Texas Hold'em, 6 seats, 5 bots | `/holdem/` | `apps/holdem/CLAUDE.md` |
+| `apps/videopoker/` | Jacks or Better video poker | `/videopoker/` | `apps/videopoker/CLAUDE.md` |
+| `packages/shared/` | Code every app shares: the 3D lounge kit, deck + hand ranking, club bankroll, profile/XP, leave guard | `/shared/` + bundled into apps | `packages/shared/CLAUDE.md` |
 | `tools/build-site.mjs` | Assembles `dist/` from the apps | | |
 | `docs/deploy.md` | How the site deploys, what is live | | before any deploy |
 
@@ -48,6 +50,8 @@ npm workspaces: each app and package has its own `package.json` (names
 
 ## Shared conventions
 
+- One club bankroll for every casino game (`club.v1.chips`, `packages/shared/chips.js`; owner's call 1 Oct 2026). Play money only, never the word "$".
+- Every casino game is built from `packages/shared/lounge/` so the look stays one look: same room, day cycle, stylised deck, pastel chips, faceless figures.
 - One site, one origin: every game's `localStorage` is visible to the hub.
   Shared keys are `hub.v1.*` (see `apps/hub/SPEC.md` §8). Each game owns its
   own keys and never writes another game's.
@@ -66,10 +70,12 @@ npm install && npm install --no-save puppeteer-core   # puppeteer-core is for th
 npm run dev:parking                                   # Parking Precision dev server, port 5175
 npm run build                                         # all apps -> dist/
 npm run serve                                         # serve dist/ on http://localhost:5180 to check the assembled site
+npm run check                                         # pure-logic checks: hand ranking, Hold'em engine books, video poker pay table
 ```
 
-Hub and Blackjack are static pages today; open them from `dist/` via
-`npm run serve` (their links assume the site layout).
+Hub, Blackjack, Hold'em and Video Poker are static pages (no bundler yet).
+The casino games use an import map (`three` from jsDelivr, `@sundown/shared/`
+→ `/shared/`), so open them from `dist/` via `npm run serve`.
 
 ## Starting a session
 

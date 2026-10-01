@@ -7,6 +7,8 @@ Small browser games, made slowly. https://sundown-club.vercel.app
 | Hub | `apps/hub` | `/` |
 | Parking Precision | `apps/parking` | `/parking/` |
 | Blackjack | `apps/blackjack` | `/blackjack/` |
+| Hold'em | `apps/holdem` | `/holdem/` |
+| Video Poker | `apps/videopoker` | `/videopoker/` |
 
 ```
 npm install

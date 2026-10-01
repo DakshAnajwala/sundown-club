@@ -1,0 +1,10 @@
+{
+  "name": "@sundown/holdem",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Texas Hold'em",
+  "type": "module",
+  "dependencies": {
+    "@sundown/shared": "*"
+  }
+}
