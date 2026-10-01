@@ -27,6 +27,7 @@ drive only; its story previews are dev-server only).
 
 ## Deploy log
 
+- 1 Oct 2026, commit 4062e5d: club privacy policy, terms and notices at the site root; `/parking/{privacy,terms,notices}.html` redirect there; fonts, three.js and GSAP self-hosted under `/vendor/`. Every page checked live: no request to any other host.
 - 1 Oct 2026, commit e851fc4: hub, Blackjack, Hold'em, Video Poker, Parking, Esc-to-leave, tutorials. All routes 200, every page loaded headless with no errors. First CLI attempt answered "Not authorized"; an immediate retry worked (same as before).
   That deploy also carried Night Drive (052279e): `/racing/` test drive and the
   playable hub tile. Verified live the same day with
