@@ -266,7 +266,11 @@ function maxBet() { if (machine.phase === 'dealt' || !tutAllows('deal')) return;
 let toastTimer;
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 2400); }
 
+// Enter and Space on a keyboard-focused button, or anywhere in the tutorial or
+// leave card, press that button: they must not deal a hand behind it.
+const keyForControl = (e) => (e.key === ' ' || e.key === 'Enter') && !!(e.target.closest?.('.sc-coach, .sc-leave') || e.target.matches?.('button:focus-visible'));
 addEventListener('keydown', (e) => {
+  if (keyForControl(e)) return;
   const k = e.key.toLowerCase();
   if (k === ' ' || k === 'enter') { e.preventDefault(); machine.phase === 'dealt' ? draw() : deal(); }
   else if (k >= '1' && k <= '5') toggle(+k - 1);

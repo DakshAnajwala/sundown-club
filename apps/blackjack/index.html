@@ -1225,7 +1225,11 @@ function applyDay(t) {
 
 // ---------------------------------------------------------------- input
 const isField = (el) => el && (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA');
+// Enter and Space on a keyboard-focused button, or anywhere in the tutorial or
+// leave card, press that button: they must not deal a hand behind it.
+const keyForControl = (e) => (e.key === ' ' || e.key === 'Enter') && !!(e.target.closest?.('.sc-coach, .sc-leave') || e.target.matches?.('button:focus-visible'));
 addEventListener('keydown', (e) => {
+  if (keyForControl(e)) return;
   if (isField(e.target) && e.target.type !== 'checkbox' && e.target.type !== 'radio') return;
   const k = e.key.toLowerCase();
   if (k === 't' && !TUT.on) { startTutorial(); return; }

@@ -451,7 +451,11 @@ $('#bRaise').addEventListener('click', () => act({ type: 'raise', to: raiseTo },
 $('#slider').addEventListener('input', (e) => setRaise(+e.target.value));
 document.querySelectorAll('[data-size]').forEach((b) => b.addEventListener('click', () => act({ type: 'raise', to: sizeFor(b.dataset.size) }, b.dataset.size)));
 $('#bLearn').addEventListener('click', () => (T.on ? null : startTutorial()));
+// Enter and Space on a keyboard-focused button, or anywhere in the tutorial or
+// leave card, press that button instead of skipping the table's animations.
+const keyForControl = (e) => (e.key === ' ' || e.key === 'Enter') && !!(e.target.closest?.('.sc-coach, .sc-leave') || e.target.matches?.('button:focus-visible'));
 addEventListener('keydown', (e) => {
+  if (keyForControl(e)) return;
   if (e.target.closest?.('input, select, textarea') && e.key !== 'Escape') { if (e.key.toLowerCase() === 'r') { e.preventDefault(); $('#bRaise').click(); } return; }
   const k = e.key.toLowerCase();
   if (k === 't' && !T.on) { startTutorial(); return; }
