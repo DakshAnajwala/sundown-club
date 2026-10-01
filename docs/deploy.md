@@ -25,6 +25,10 @@ drive only; its story previews are dev-server only).
 - If the project is later connected to GitHub, `main` becomes live on every
   push. Update this file and the root `CLAUDE.md` the same day.
 
+## Deploy log
+
+- 1 Oct 2026, commit e851fc4: hub, Blackjack, Hold'em, Video Poker, Parking, Esc-to-leave, tutorials. All routes 200, every page loaded headless with no errors. First CLI attempt answered "Not authorized"; an immediate retry worked (same as before).
+
 ## Leaderboard API
 
 - `/api/*` is a rewrite to https://parking-precision.vercel.app/api/*. The
