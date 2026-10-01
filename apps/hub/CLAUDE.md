@@ -29,7 +29,7 @@ shared profile.
 7. Your evening: profile stats count up (sample data until profiles exist).
 8. The house: about + FAQ. 9. Night footer: giant wordmark rises.
 
-Scroll animation: GSAP 3.12.5 + ScrollTrigger from cdnjs (with SRI). With
+Scroll animation: GSAP 3.15 + ScrollTrigger, self-hosted at `/vendor/gsap/`. With
 `prefers-reduced-motion` or no GSAP, `html.static` lays everything out at its
 end state. Keep that fallback working when adding sections.
 
@@ -41,11 +41,13 @@ end state. Keep that fallback working when adding sections.
   sandboxed preview frame they show a toast instead of navigating.
 - Profile numbers on the page are sample data and must stay labelled so until
   `packages/shared` profile code feeds real values.
-- Legal links currently go to Parking's pages (`/parking/privacy.html` etc.).
-  The club needs its own privacy/terms before wide sharing.
+- Legal pages: `legal/privacy.html`, `legal/terms.html`, `legal/notices.html`
+  (+ `legal.css`), copied to the site root. `/parking/{privacy,terms,notices}.html`
+  redirect to them (`vercel.json`), so Parking's in-game links land here too.
+- Fonts and GSAP come from `/vendor/` (self-hosted); never add a CDN link.
 
 ## Open
 
 - Real profile data (read `hub.v1.profile`), sorting the rail by last played.
 - Leaderboard: designed in `SPEC-leaderboard.md` (mock `design/leaderboard.html`), waiting on the owner's answers (§9).
-- Own privacy/terms pages, robots.txt and sitemap at the site root.
+- robots.txt and sitemap at the site root.

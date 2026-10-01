@@ -25,7 +25,7 @@ timeline, SFX), `cards.js` (deck, ranking), `chips.js` (club bankroll),
   with `setBankroll` after every hand; never keep chips anywhere else.
 - Seat order is clockwise from above, seat 0 = you at 90°. The dealer stands
   at 295.7° and is not a seat.
-- Static page: imports go through the import map (`three`,
+- Static page: imports go through the import map (`three` → `/vendor/three/`,
   `@sundown/shared/` → `/shared/`), so open it from the built site
   (`npm run build && npm run serve`), not as a loose file.
 

@@ -47,6 +47,10 @@ caveman chat) live in the repo root `CLAUDE.md`. They apply here in full.
   (and its env vars) into this repo's Vercel project is an open task.
 - The old live site parking-precision.vercel.app is unchanged until the owner
   approves redirecting it to `/parking/`. Details: `docs/context/deploy.md`.
+- Privacy on Sundown Club: the club policy (`apps/hub/legal/privacy.html`, §2
+  and §5) describes this game's stored keys and leaderboard. Change it together
+  with `PRIVACY.md`/`public/privacy.html` (those still serve the old
+  parking-precision.vercel.app site).
 - Known, pre-existing: the homepage's four font `<link rel="preload">` tags
   point at `/node_modules/...` and 404 in production (harmless, fonts still
   load from the bundle).

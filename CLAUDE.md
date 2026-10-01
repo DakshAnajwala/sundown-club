@@ -42,7 +42,7 @@ npm workspaces: each app and package has its own `package.json` (names
 - **Shared imports work in node and browser.** Modules import
   `@sundown/shared/<file>.js`. Node resolves it through the workspace symlink
   and `packages/shared/package.json` `exports`; static pages resolve it with an
-  import map (`"@sundown/shared/": "/shared/"`, `"three"` → jsDelivr). Parking
+  import map (`"@sundown/shared/": "/shared/"`, `"three"` → `/vendor/three/`). Parking
   (Vite) imports `@sundown/shared/<file>` without `.js`.
 - **Casino games: engine decides, page animates.** `apps/holdem/engine.js`,
   `apps/videopoker/engine.js` and `packages/shared/cards.js` are pure (no DOM,
@@ -90,8 +90,12 @@ npm workspaces: each app and package has its own `package.json` (names
   from a sub-path. An absolute `/...` path means the site root (the hub).
 - Pages must not scroll sideways at 400 px; laptop/desktop is the target.
 - Respect `prefers-reduced-motion` everywhere.
-- Privacy text follows the code: any new network request updates the privacy
-  policy in the same commit.
+- Privacy text follows the code: the club policy is `apps/hub/legal/privacy.html`
+  (terms and notices beside it, served at `/privacy.html` etc.). Any new
+  network request, stored key or third-party file updates it in the same commit.
+- Nothing is loaded from another company's server (privacy §4): fonts, three.js
+  and GSAP are copied from `node_modules` into `dist/vendor/` by
+  `tools/build-site.mjs`. Never add a CDN or Google Fonts link.
 - Never read or change `.env*` files.
 
 ## Commands (repo root)
@@ -112,7 +116,7 @@ session's server (e.g. the old `~/parking-game-v1`), the probes silently test
 that code instead: check `lsof -iTCP:5175` first.
 
 Hub, Blackjack, Hold'em and Video Poker are static pages (no bundler yet).
-The casino games use an import map (`three` from jsDelivr, `@sundown/shared/`
+The casino games use an import map (`three` → `/vendor/three/`, `@sundown/shared/`
 → `/shared/`), so open them from `dist/` via `npm run serve`.
 
 ## Starting a session

@@ -6,9 +6,7 @@
 <meta name="description" content="Sundown Club: small browser games, made slowly. Blackjack and Parking Precision, free, nothing to install.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23f0a868'/%3E%3C/svg%3E">
 <title>Sundown Club</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Schibsted+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/vendor/fonts.css">
 <style>
 /* Layout: one long evening. A fixed sky behind the page sets as you scroll (golden hour -> dusk -> night).
    Lobby (approved first screen) -> the door (manifesto) -> Blackjack chapter (pinned, image opens to full bleed)
@@ -443,7 +441,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
       <div><dt>Do I need to download anything?</dt><dd>No. Everything runs in an up-to-date desktop browser with WebGL switched on.</dd></div>
       <div><dt>I’ve never played blackjack or poker.</dt><dd>That’s fine. Every card game has a short tutorial with practice chips that explains each step in plain words. It offers itself the first time you sit down, or press T at the table.</dd></div>
       <div><dt>Can I play on my phone?</dt><dd>Not yet. The games are built for a keyboard, so they need a computer.</dd></div>
-      <div><dt>What do you collect?</dt><dd>Progress and settings stay in your browser. Only Parking Precision can send a finished run's score to its leaderboard, and you can switch that off.</dd></div>
+      <div><dt>What do you collect?</dt><dd>Almost nothing. Your chips, progress and settings stay in your browser. No accounts, ads, tracking or analytics. The only thing ever sent is a Parking Precision leaderboard score under a made-up name, and you can switch that off. The <a href="/privacy.html">privacy policy</a> has the details.</dd></div>
     </dl>
   </div>
 </section>
@@ -452,13 +450,13 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <footer class="night pad" id="night">
   <div class="last reveal"><p>The lamp stays on. Pick a game whenever you're ready.</p><a class="btn fill" href="#lobby" id="toTop">Back to the games ↑</a></div>
   <div class="big" id="big" aria-label="sundown club">sundown club</div>
-  <div class="legal"><span>© 2026 Daksh Anajwala · Sundown Club</span><nav aria-label="Legal"><a href="/parking/privacy.html">Privacy</a><a href="/parking/terms.html">Terms</a><a href="/parking/notices.html">Third-party notices</a></nav></div>
+  <div class="legal"><span>© 2026 Daksh Anajwala · Sundown Club</span><nav aria-label="Legal"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/notices.html">Third-party notices</a></nav></div>
 </footer>
 </main>
 <div id="toast" role="status"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d" crossorigin="anonymous"></script>
+<script src="/vendor/gsap/gsap.min.js"></script>
+<script src="/vendor/gsap/ScrollTrigger.min.js"></script>
 <script>
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];

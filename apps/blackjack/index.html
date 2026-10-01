@@ -6,9 +6,7 @@
 <meta name="description" content="Blackjack at Sundown Club: six decks, one seat, and a dealer with no face.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23f0a868'/%3E%3C/svg%3E">
 <title>Blackjack · Sundown Club</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=IBM+Plex+Mono:wght@400;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/vendor/fonts.css">
 <style>
 /* Layout: the 3D room fills the window; small paper-like HUD pieces float over it. Single look (the room is the page). */
 :root {
@@ -171,7 +169,7 @@ select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid 
 </details>
 
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js';
+import * as THREE from '/vendor/three/three.module.js';
 // Shared Sundown Club code, copied to /shared/ by tools/build-site.mjs.
 import { createLeaveGuard } from '/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '/shared/profile.js';
