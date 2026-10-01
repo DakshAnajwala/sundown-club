@@ -12,7 +12,9 @@ Read before any push, deploy, Vercel or GitHub operation.
 | Build | `npm run build` → `dist/` (config in `vercel.json`) |
 
 `dist/` layout: `/` hub (`apps/hub`), `/blackjack/` (`apps/blackjack`),
-`/parking/` + `/parking/play/` (`apps/parking` Vite build).
+`/holdem/`, `/videopoker/`, `/parking/` + `/parking/play/` (`apps/parking`
+Vite build), `/racing/` (`apps/racing` Vite build: the Night Drive test
+drive only; its story previews are dev-server only).
 
 ## How it deploys (30 Sep 2026)
 

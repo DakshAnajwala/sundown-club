@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "dev:parking": "npm run dev -w @sundown/parking -- --port 5175 --strictPort",
-    "build": "npm run build -w @sundown/parking && node tools/build-site.mjs",
+    "dev:racing": "npm run dev -w @sundown/racing",
+    "build": "npm run build -w @sundown/parking && npm run build -w @sundown/racing && node tools/build-site.mjs",
     "serve": "npx --yes serve dist -l 5180",
     "check": "node tools/cards-check.mjs && node tools/holdem-sim.mjs 1500 && node tools/videopoker-check.mjs"
   }

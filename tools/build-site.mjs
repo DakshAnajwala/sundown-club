@@ -7,6 +7,7 @@
  *   dist/holdem/          apps/holdem       (static page + engine/bot modules)
  *   dist/videopoker/      apps/videopoker   (static page)
  *   dist/parking/         apps/parking/dist (Vite build: homepage, /play/, legal pages, design previews)
+ *   dist/racing/          apps/racing/dist  (Vite build: Night Drive test drive)
  *   dist/shared/          packages/shared (incl. lounge/), for the static pages' import maps
  */
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
@@ -29,5 +30,8 @@ cpSync('packages/shared', `${out}/shared`, { recursive: true, filter: (src) => !
 
 if (!existsSync('apps/parking/dist/index.html')) throw new Error('apps/parking/dist is missing: run the parking build first');
 cpSync('apps/parking/dist', `${out}/parking`, { recursive: true });
+
+if (!existsSync('apps/racing/dist/index.html')) throw new Error('apps/racing/dist is missing: run the racing build first');
+cpSync('apps/racing/dist', `${out}/racing`, { recursive: true });
 
 console.log('Sundown Club site assembled in dist/');

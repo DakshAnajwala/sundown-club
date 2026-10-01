@@ -401,7 +401,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <section class="shop pad" id="workshop" aria-labelledby="shop-title">
   <div class="sec-head reveal"><div class="eyebrow">In the workshop</div><h2 id="shop-title">One more, still being built.</h2><p>Same evening, new rooms. They'll open here when they're ready.</p></div>
   <div class="teasers one">
-        <article class="teaser" style="--t: #9aa6ff"><img src="media/rooftop-lane.webp" alt=""><span class="lock">Coming soon</span><h3>Night Drive</h3><p>The parking car, let out of the car park. A long road after dark.</p><div class="tag">Driving</div></article>
+        <article class="teaser" style="--t: #9aa6ff"><img src="media/nightdrive.jpg" alt=""><span class="lock">Early test drive</span><h3>Night Drive</h3><p>A street racing career after dark: rivals, crews, police and a city to win. The story is still being built; the cars are ready to take out.</p><div class="tag">Driving</div><a class="btn fill" href="#" data-go="/racing/" data-name="Night Drive" style="--accent: #9aa6ff; margin-top: 18px; justify-self: start">Test drive</a></article>
   </div>
 </section>
 
@@ -479,8 +479,9 @@ const GAMES = [
   { name: 'Video Poker', accent: '#e8b860', img: 'media/videopoker.jpg', pos: '50% 40%', tag: 'Cards', eyebrow: 'Cards · New', go: '/videopoker/',
     blurb: 'Jacks or Better on a full-pay machine by the window. Hold, draw, and hope for the royal.',
     resume: 'Continue · Max bet 25', facts: [['9 / 6', 'Full pay'], ['4,000', 'Royal, max bet'], ['5', 'Coins max']] },
-  { name: 'Night Drive', accent: '#9aa6ff', img: 'media/rooftop-lane.webp', pos: '50% 50%', tag: 'Soon', eyebrow: 'Driving · Coming soon', soon: true,
-    blurb: 'The parking car, let out of the car park. A long road after dark.', facts: [] },
+  { name: 'Night Drive', accent: '#9aa6ff', img: 'media/nightdrive.jpg', pos: '50% 55%', tag: 'Test drive', eyebrow: 'Driving · Early test drive', go: '/racing/',
+    blurb: 'A street racing career after dark, still in the workshop. The cars are ready to try: a lit straight, a drift pad and every setup slider.',
+    facts: [['2', 'Cars'], ['4', 'Preset tunes'], ['~200', 'km/h, starter']] },
 ];
 let cur = 0;
 GAMES.forEach((g, i) => {

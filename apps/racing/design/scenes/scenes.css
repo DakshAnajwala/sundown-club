@@ -1,0 +1,25 @@
+.panel {
+  z-index: 30;
+}
+.panel .scene-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 3px;
+}
+.panel .scene-list .ch {
+  margin: 10px 0 4px;
+  font-size: 11px;
+  color: #9aa6b6;
+}
+.panel input[type='range'] {
+  width: 100%;
+}
+.panel .time {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 12px;
+  color: #9aa6b6;
+}
+.panel.hidden {
+  display: none;
+}

@@ -1,0 +1,28 @@
+{
+    "car": "starter",
+    "setup": {
+        "powerStage": 0,
+        "shiftRpm": 6500,
+        "finalDrive": 3.65,
+        "gear1": 0.9,
+        "gear2": 1,
+        "gear3": 1,
+        "gear4": 1,
+        "gear5": 1,
+        "gear6": 0.97,
+        "compound": "sport",
+        "gripBias": 0.05,
+        "slideSustain": 0.1,
+        "stiffnessFront": 44,
+        "stiffnessRear": 60,
+        "damping": "hard",
+        "rideHeight": -0.04,
+        "rollInfluence": 0.01,
+        "brakeForce": 1.3,
+        "brakeBias": 0.62,
+        "diff": "open",
+        "nitroBottles": 2,
+        "maxLockDeg": 45,
+        "lockFadeKmh": 195
+    }
+}

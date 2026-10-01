@@ -22,6 +22,7 @@ Licence: all rights reserved.
 | `apps/blackjack/` | Blackjack (3D, three.js) | `/blackjack/` | `apps/blackjack/CLAUDE.md` |
 | `apps/holdem/` | No-Limit Texas Hold'em, 6 seats, 5 bots | `/holdem/` | `apps/holdem/CLAUDE.md` |
 | `apps/videopoker/` | Jacks or Better video poker | `/videopoker/` | `apps/videopoker/CLAUDE.md` |
+| `apps/racing/` | Night Drive: night street racing with a story (three.js + cannon-es, Vite). Public part = the test drive | `/racing/` | `apps/racing/CLAUDE.md` |
 | `packages/shared/` | Code every app shares: the 3D lounge kit, deck + hand ranking, club bankroll, profile/XP, leave guard | `/shared/` + bundled into apps | `packages/shared/CLAUDE.md` |
 | `tools/build-site.mjs` | Assembles `dist/` from the apps | | |
 | `docs/deploy.md` | How the site deploys, what is live | | before any deploy |
@@ -31,10 +32,11 @@ npm workspaces: each app and package has its own `package.json` (names
 
 ## Architecture (the parts that span files)
 
-- **One site from many apps.** `npm run build` builds Parking with Vite
-  (`apps/parking/dist`), then `tools/build-site.mjs` copies everything into
-  `dist/`: hub at `/`, each static game's `index.html` + sibling `.js` at
-  `/<app>/`, `packages/shared` at `/shared/`, Parking at `/parking/`.
+- **One site from many apps.** `npm run build` builds Parking and Night
+  Drive with Vite (`apps/parking/dist`, `apps/racing/dist`), then
+  `tools/build-site.mjs` copies everything into `dist/`: hub at `/`, each
+  static game's `index.html` + sibling `.js` at `/<app>/`, `packages/shared`
+  at `/shared/`, Parking at `/parking/`, Night Drive at `/racing/`.
   `vercel.json` serves `dist/`; `/api/*` is still a rewrite to the old
   parking-precision project (see `docs/deploy.md`).
 - **Shared imports work in node and browser.** Modules import
@@ -97,6 +99,7 @@ npm workspaces: each app and package has its own `package.json` (names
 ```
 npm install && npm install --no-save puppeteer-core   # puppeteer-core is for the headless probes; reinstall after any npm install <pkg>
 npm run dev:parking                                   # Parking Precision dev server, port 5175
+npm run dev:racing                                    # Night Drive dev server (labs + test drive), port 5177
 npm run build                                         # all apps -> dist/
 npm run serve                                         # serve dist/ on http://localhost:5180 to check the assembled site
 npm run check                                         # pure-logic checks: hand ranking, Hold'em engine books, video poker pay table
