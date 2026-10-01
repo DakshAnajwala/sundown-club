@@ -294,3 +294,12 @@ Drive" coming-soon slot (same accent #9aa6ff) became the playable tile and the
 workshop teaser gained a "Test drive" button; picture
 `apps/hub/media/nightdrive.jpg` from `tools/hub-still.mjs` (a real frame at
 speed, panels hidden). `tools/site-check.mjs` checks the assembled site.
+
+## 1 Oct 2026 — public test drive: no tuning (owner's call)
+
+From the design audit (`docs/design/AUDIT.md`, item 4): the public `/racing/`
+page is the Handling Lab, with 37 controls and engineering read-outs over the
+road and no goal. Owner's decision at the audit sign-off: **no tuning in
+public**. The public test drive becomes car and camera only; the Lab (sliders,
+presets, telemetry, "Copy setup") stays on the dev server. Built in the design
+overhaul's Night Drive UI step, on the branch `design/overhaul`.
