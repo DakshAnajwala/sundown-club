@@ -234,6 +234,7 @@ saveGame();   // the buy-in is written straight away, so closing the tab never l
 // what the table shows right now (the engine is always ahead of the animation)
 const shown = { stack: P.map((p) => p.stack), bet: P.map(() => 0), pot: 0, say: P.map(() => ''), folded: P.map(() => false), turn: -1, won: P.map(() => false) };
 let holeMeshes = P.map(() => []), boardMeshes = [], myPot = 0;
+const won = { amount: P.map(() => 0), desc: P.map(() => null) };   // this hand's winnings per seat, all side pots together
 
 // ---------------------------------------------------------------- HUD
 const tags = P.map((p, i) => {
@@ -285,10 +286,21 @@ const fly = (mesh, from, to, dur, { arc = 0.06, flipTo = null, flipFrom = Math.P
     update(k) { const e = easeInOut(k); mesh.position.lerpVectors(from, to, e); mesh.position.y += Math.sin(Math.PI * e) * arc; mesh.rotation.y = yaw * e; if (flipTo != null) cards.setFlip(mesh, flipFrom + (flipTo - flipFrom) * easeInOut(Math.max(0, (k - 0.5) / 0.5))); },
   }, dur * 0.45);
 };
-function slideChips(fromIdx, toPos, amount, after) {
+// Start a step at the current moment, beside whatever is already queued.
+// TL.add() called from inside a TL.call() queues after everything already
+// scheduled, so pot and payout slides used to land after handOver() had set
+// the real stacks, and the winner's stack was counted twice.
+function addNow(dur, fns) {
+  const it = { t0: TL.clock, dur, ...fns, started: false };
+  const at = TL.items.findIndex((x) => x.t0 > it.t0);
+  TL.items.splice(at < 0 ? TL.items.length : at, 0, it);
+  return it;
+}
+function slideChips(fromIdx, toPos, amount, after, now = false) {
   const k = chipKit.stack(); k.set(amount);
   const from = fromIdx === 'pot' ? POT_AT.clone() : seats[fromIdx].bet.clone();
-  TL.add(380, { start() { sfx.chip(); }, update(e) { k.group.position.lerpVectors(from, toPos, easeInOut(e)); k.group.position.y += Math.sin(Math.PI * e) * 0.03; }, end() { scene.remove(k.group); after?.(); refreshHud(); } });
+  const step = { start() { sfx.chip(); }, update(e) { k.group.position.lerpVectors(from, toPos, easeInOut(e)); k.group.position.y += Math.sin(Math.PI * e) * 0.03; }, end() { scene.remove(k.group); after?.(); refreshHud(); } };
+  if (now) addNow(380, step); else TL.add(380, step);
 }
 function sayFor(e) {
   switch (e.action) {
@@ -327,7 +339,7 @@ function animate(ev) {
       TL.wait(e.seat === 0 ? 150 : 350);
     } else if (e.type === 'collect') {
       TL.call(() => {
-        P.forEach((_, s) => { if (shown.bet[s] > 0) { const amt = shown.bet[s]; shown.bet[s] = 0; slideChips(s, POT_AT, amt, () => { shown.pot += amt; }); } });
+        P.forEach((_, s) => { if (shown.bet[s] > 0) { const amt = shown.bet[s]; shown.bet[s] = 0; slideChips(s, POT_AT, amt, () => { shown.pot += amt; }, true); } });
         refreshHud();
       });
       TL.wait(420);
@@ -347,9 +359,12 @@ function animate(ev) {
       TL.wait(500);
     } else if (e.type === 'win') {
       TL.call(() => {
-        shown.won[i] = true; if (i === 0) myPot += e.amount; shown.say[i] = `Wins ${fmt(e.amount)}${e.desc ? ' · ' + e.desc : ''}`;
-        if (i === 0) { sfx.sting(e.amount >= 200 ? 'big' : 'win'); rig.beat(POT_AT, 0.08); }
-        slideChips('pot', seats[i].stack, e.amount, () => { shown.stack[i] += e.amount; });
+        // One win event per side-pot level: add them up, so the label shows the whole amount.
+        const first = !shown.won[i];
+        shown.won[i] = true; won.amount[i] += e.amount; if (e.desc) won.desc[i] = e.desc; if (i === 0) myPot += e.amount;
+        shown.say[i] = `Wins ${fmt(won.amount[i])}${won.desc[i] ? ' · ' + won.desc[i] : ''}`;
+        if (i === 0 && first) { sfx.sting(e.amount >= 200 ? 'big' : 'win'); rig.beat(POT_AT, 0.08); }
+        slideChips('pot', seats[i].stack, e.amount, () => { shown.stack[i] += e.amount; }, true);
         shown.pot = Math.max(0, shown.pot - e.amount); refreshHud();
       });
       TL.wait(500);
@@ -372,6 +387,7 @@ function nextStep() {
 function newHand(startOpts) {
   for (const m of [...holeMeshes.flat(), ...boardMeshes]) scene.remove(m);
   holeMeshes = P.map(() => []); boardMeshes = []; myPot = 0;
+  won.amount = P.map(() => 0); won.desc = P.map(() => null);
   P.forEach((p, i) => { if (i > 0 && p.stack <= 0) { p.stack = 500; shown.stack[i] = 500; shown.say[i] = 'Rebuys'; } });
   if (P[0].stack <= 0) return askRebuy();
   shown.folded = P.map((p) => p.stack <= 0); shown.won = P.map(() => false); shown.say = P.map((_, i) => (shown.say[i] === 'Rebuys' ? 'Rebuys' : ''));
@@ -383,6 +399,17 @@ function newHand(startOpts) {
   TL.call(() => hint(`<b>${myHandText()}</b>`));
   nextStep();
 }
+// One line for you at the end of every hand: who took the pot, and with what.
+function handResult(myWin) {
+  if (myWin) return `<b>Your pot: ${fmt(myPot)}.</b>`;
+  const winners = P.map((p, s) => s).filter((s) => won.amount[s] > 0);
+  if (!winners.length) return '';
+  const names = winners.map((s) => P[s].name).join(' and ');
+  const total = winners.reduce((n, s) => n + won.amount[s], 0);
+  const desc = won.desc[winners[0]];
+  const mine = !shown.folded[0] && table.state.board.length >= 3 ? myHandText() : '';
+  return `<b>${names} ${winners.length > 1 ? 'split' : 'wins'} ${fmt(total)}</b>${desc ? ' · ' + desc : ''}${mine ? ' · you had ' + mine : ''}.`;
+}
 function handOver() {
   if (T.on) { shown.stack = P.map((p) => p.stack); refreshHud(); hint(''); tutEmit('handEnd'); return; }
   stats.hands += 1;
@@ -391,7 +418,7 @@ function handOver() {
   stats.biggest = Math.max(stats.biggest, myPot);
   shown.stack = P.map((p) => p.stack); refreshHud();
   saveGame();
-  hint(myWin ? '<b>Your pot.</b> Next hand in a moment · <kbd>Space</kbd> deals now' : 'Next hand in a moment · <kbd>Space</kbd> deals now');
+  hint(`${handResult(myWin)} Next hand in a moment · <kbd>Space</kbd> deals now`);
   TL.wait(2200);
   TL.call(newHand);
 }
