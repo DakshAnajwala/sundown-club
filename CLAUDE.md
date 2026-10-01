@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Sundown Club
 
 Monorepo for Sundown Club, a small collection of browser games by Daksh
@@ -24,6 +28,31 @@ Licence: all rights reserved.
 
 npm workspaces: each app and package has its own `package.json` (names
 `@sundown/<app>`); one `node_modules` and one lockfile at the root.
+
+## Architecture (the parts that span files)
+
+- **One site from many apps.** `npm run build` builds Parking with Vite
+  (`apps/parking/dist`), then `tools/build-site.mjs` copies everything into
+  `dist/`: hub at `/`, each static game's `index.html` + sibling `.js` at
+  `/<app>/`, `packages/shared` at `/shared/`, Parking at `/parking/`.
+  `vercel.json` serves `dist/`; `/api/*` is still a rewrite to the old
+  parking-precision project (see `docs/deploy.md`).
+- **Shared imports work in node and browser.** Modules import
+  `@sundown/shared/<file>.js`. Node resolves it through the workspace symlink
+  and `packages/shared/package.json` `exports`; static pages resolve it with an
+  import map (`"@sundown/shared/": "/shared/"`, `"three"` → jsDelivr). Parking
+  (Vite) imports `@sundown/shared/<file>` without `.js`.
+- **Casino games: engine decides, page animates.** `apps/holdem/engine.js`,
+  `apps/videopoker/engine.js` and `packages/shared/cards.js` are pure (no DOM,
+  no three.js) and return state/events; `index.html` plays those events on
+  the shared timeline (`lounge/util.js` `createTimeline`, `skipAll()` = Space).
+  The 3D scene is built from `packages/shared/lounge/` (`createLounge`,
+  `createCardKit`, `createChipKit`, `createFigure`, `createCameraRig`).
+  Blackjack's `index.html` predates the kit and still carries its own copy.
+- **Saving is local only.** Club bankroll `club.v1.chips` (`chips.js`), hub
+  profile `hub.v1.profile` (`profile.js`: summary, play time, streak), plus one
+  stats key per game. Every game leaves through `leave-guard.js` (Esc asks, Esc
+  again saves and goes to `/`).
 
 ## Working with the user
 
@@ -71,7 +100,13 @@ npm run dev:parking                                   # Parking Precision dev se
 npm run build                                         # all apps -> dist/
 npm run serve                                         # serve dist/ on http://localhost:5180 to check the assembled site
 npm run check                                         # pure-logic checks: hand ranking, Hold'em engine books, video poker pay table
+node tools/holdem-sim.mjs 3000                        # one check on its own (also cards-check.mjs, videopoker-check.mjs)
 ```
+
+Parking's own regression probes (puppeteer, `apps/parking/tools/*.mjs`) need its
+dev server on 5175; see `apps/parking/CLAUDE.md`. If 5175 is taken by another
+session's server (e.g. the old `~/parking-game-v1`), the probes silently test
+that code instead: check `lsof -iTCP:5175` first.
 
 Hub, Blackjack, Hold'em and Video Poker are static pages (no bundler yet).
 The casino games use an import map (`three` from jsDelivr, `@sundown/shared/`
