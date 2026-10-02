@@ -1124,6 +1124,10 @@ function deal() {
   if (G.bet < G.tier.min) return say(`Minimum bet is ${fmt(G.tier.min)}.`);
   if (G.cardsOnTable.length) clearTable();
   if (G.dealt >= 234 || !G.shoe.length) { newShoe(); toast('New shoe, shuffled'); }
+  if (G.hands === 0 && !TUT.on && !practice && !G.firstDone) {   // a gentle first hand (you 19, dealer 6 then bust): the welcome
+    G.firstDone = true; G.firstHand = true;
+    newShoe(); G.shoe.push(...[card('10', 'S'), card('6', 'D'), card('9', 'H'), card('10', 'C'), card('K', 'D')].reverse());
+  }
   G.bank -= G.bet; G.lastBet = G.bet; G.phase = 'busy'; G.doubled = false;
   G.player = []; G.dealer = [];
   updateHud(); showBars();
@@ -1198,6 +1202,7 @@ function settle() {
     const back = kind === 'lose' ? 0 : G.bet + win;
     countBank(G.bank + back); G.bank += back;
     if (!TUT.on) { G.hands += 1; if (kind === 'natural') G.naturals += 1; } G.peak = Math.max(G.peak, G.bank); saveGame();
+    if (G.firstHand) { G.firstHand = false; say('That first hand was a practice deal. Every hand from here is a fair shuffle.'); }
     if (!TUT.on && !practice) showRoundPanel(reportRound('blackjack', 'hand', { result: kind, total: p, cards: G.player.length, doubled: !!G.doubled, bust: p > 21, net: kind === 'lose' ? -G.bet : win, bet: G.bet }));
     G.betChips = []; G.bet = 0; G.phase = 'bet'; updateHud(); showBars();
     tutEmit('handEnd');

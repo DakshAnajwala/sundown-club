@@ -321,6 +321,23 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .rename .msg:empty { display: none; }
 
 
+.picker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
+.picker button { font: 500 14px var(--sans); color: var(--ink); background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; cursor: pointer; backdrop-filter: blur(10px); transition: border-color .2s, background .2s; }
+.picker button:hover { border-color: var(--ink-3); background: rgba(243,231,216,.1); }
+.picker button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.badgeline { margin-left: 18px; font: 500 13px var(--mono); color: var(--ink-2); }
+#welcomeDlg { max-width: min(560px, calc(100vw - 32px)); width: 100%; border: 1px solid var(--line); border-radius: 16px; padding: 26px 26px 22px; background: #1a1620; color: var(--ink); }
+#welcomeDlg::backdrop { background: rgba(8,6,12,.7); }
+#welcomeDlg h2 { font: 400 28px/1.1 var(--serif); margin: 0 0 6px; }
+#welcomeDlg h3 { font: 600 12px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin: 22px 0 10px; }
+#welcomeDlg .dsub { color: var(--ink-2); font-size: 14px; margin: 0; }
+#welcomeDlg .drow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+#welcomeDlg .btn { padding: 9px 15px; font-size: 14px; }
+#welcomeDlg .btn[aria-checked="true"], #welcomeDlg .btn.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+#welcomeDlg .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#welcomeDlg .wlevel { display: grid; gap: 8px; }
+#welcomeDlg .msg { font-size: 13px; color: var(--ink-2); }
+
 /* ------------------------------------------------------------------ tonight (lobby strip + daily table) */
 .tonight { display: inline-flex; align-items: center; gap: 10px; width: fit-content; font: 500 13px var(--mono); color: var(--ink-2); text-decoration: none; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--glass); backdrop-filter: blur(10px); transition: color .2s, border-color .2s; }
 .tonight:hover { color: var(--ink); border-color: var(--ink-3); }
@@ -457,6 +474,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     <div class="eyebrow" id="eyebrow"></div>
     <h1 id="title"></h1>
     <p class="blurb" id="blurb"></p>
+    <div class="picker" id="picker" role="group" aria-label="What brings you in?" hidden><span>What brings you in?</span><button type="button" data-pick="cards">Cards</button><button type="button" data-pick="cars">Cars</button><button type="button" data-pick="both">A bit of both</button></div>
     <div class="ctas"><button class="btn fill" id="play">Play <kbd>Enter</kbd></button><button class="btn" id="resume"></button></div>
     <div class="facts" id="facts"></div>
     <a class="tonight" id="tonight" href="#evening"><i></i><span id="tonightTxt"></span></a>
@@ -560,6 +578,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     <div class="rename">
       <button class="linkbtn" id="renameBtn" type="button">Change name</button>
       <button class="linkbtn" id="saveBtn" type="button" style="margin-left:18px">Save &amp; settings</button>
+      <span class="badgeline" id="badgeLine"></span>
       <form id="renameForm" hidden><label for="renameIn">New name</label><input id="renameIn" autocomplete="off" spellcheck="false" aria-describedby="renameMsg"><button class="btn fill" type="submit">Save</button><button class="btn" type="button" id="renameCancel">Cancel</button><span class="msg" id="renameMsg" role="status"></span></form>
     </div>
   </div>
@@ -616,6 +635,20 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 </footer>
 </main>
 
+<dialog id="welcomeDlg" aria-labelledby="wTitle">
+  <h2 id="wTitle"></h2>
+  <p class="dsub" id="wLead"></p>
+  <h3>Your name</h3>
+  <div class="drow" id="wNames"></div>
+  <h3>Pick a badge</h3>
+  <div class="drow" id="wBadges" role="radiogroup" aria-label="Starter badge"></div>
+  <h3>Tonight</h3>
+  <div class="wlevel"><div class="xpbar"><b id="wBar"></b></div><span class="msg" id="wLevel"></span></div>
+  <div class="drow"><button class="btn fill" type="button" id="wClaim"></button></div>
+  <p class="dsub" style="margin-top:14px">Tomorrow there is a fresh Daily Table. Seven days in a row earns a streak freeze.</p>
+  <div class="drow"><button class="btn" type="button" id="wDone">Done</button></div>
+</dialog>
+
 <dialog id="clubDlg" aria-labelledby="clubDlgT">
   <form method="dialog" class="dlgx"><button aria-label="Close" class="x">×</button></form>
   <h2 id="clubDlgT">Your save</h2>
@@ -635,10 +668,12 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <script src="/vendor/gsap/gsap.min.js"></script>
 <script src="/vendor/gsap/ScrollTrigger.min.js"></script>
 <script type="module">
-import { ensureIdentity, readProfile, levelFor, titleFor, setHandle, today, HANDLE_MAX } from '/shared/profile.js';
+import { ensureIdentity, readProfile, levelFor, titleFor, setHandle, suggestHandles, today, HANDLE_MAX } from '/shared/profile.js';
 import { exportSave, parseSave, importSave, resetSave } from '/shared/save.js';
 import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, chooseRestDay, seedResults } from '/shared/retention.js';
 import { dayNumber, msToNextSeed } from '/shared/seed.js';
+import { onboarding, setPick, markStep, completeWelcome } from '/shared/retention.js';
+import { STARTER_BADGES, itemName } from '/shared/catalog.js';
 import { getChips } from '/shared/chips.js';
 import { initTelemetry, telemetryEnabled, setTelemetry } from '/shared/telemetry.js';
 initTelemetry({ game: 'hub' });
@@ -704,6 +739,8 @@ GAMES.forEach((g) => {
 // Last played first; never-played games keep the order above; coming-soon last (hub SPEC §4.5).
 GAMES.sort((a, b) => (!!a.soon - !!b.soon) || (b.lastPlayed - a.lastPlayed));
 let cur = 0;
+const onb = onboarding();
+const firstVisit = onb.isNew;   // nobody has finished a round yet: one clear action instead of a menu
 GAMES.forEach((g, i) => {
   const im = document.createElement('img'); im.src = g.img; im.alt = ''; $('#bg').appendChild(im); g.bgEl = im;
   const w = document.createElement('button');
@@ -719,7 +756,7 @@ function select(i) {
   $('#lobby').style.setProperty('--accent', g.accent);
   $('#bar').style.setProperty('--accent', g.accent);
   $('#eyebrow').textContent = g.eyebrow; $('#title').textContent = g.name; $('#blurb').textContent = g.blurb;
-  $('#play').disabled = !!g.soon; $('#play').firstChild.textContent = g.soon ? 'In the workshop ' : 'Play ';
+  $('#play').disabled = !!g.soon; $('#play').firstChild.textContent = g.soon ? 'In the workshop ' : firstVisit ? (g.id === 'parking' || g.id === 'racing' ? 'Take the wheel ' : 'Take a seat ') : 'Play ';
   // Saved summaries are text, never markup.
   $('#resume').hidden = !g.resume; $('#resume').replaceChildren(`${g.resume || ''} `, el('kbd', null, 'C'));
   $('#facts').replaceChildren(...g.facts.map(([v, l]) => el('div', null, el('b', null, v), el('span', null, l))));
@@ -741,6 +778,20 @@ addEventListener('keydown', (e) => {
   else if (e.key.toLowerCase() === 'c') play();
 });
 select(0);
+{
+  const PICK_GAME = { cards: 'blackjack', cars: 'parking', both: 'blackjack' };
+  const choose = (pick) => { const i = GAMES.findIndex((x) => x.id === PICK_GAME[pick]); if (i >= 0) select(i); };
+  const fromUrl = new URLSearchParams(location.search).get('pick');   // share links can say ?pick=cars
+  if (firstVisit) {
+    markStep('landing');
+    if (['cards', 'cars', 'both'].includes(fromUrl) && !onb.pick) { setPick(fromUrl); onb.pick = fromUrl; }
+    if (onb.pick) choose(onb.pick);
+    else {
+      const box = $('#picker'); box.hidden = false;
+      box.addEventListener('click', (e) => { const b = e.target.closest('[data-pick]'); if (!b) return; setPick(b.dataset.pick); choose(b.dataset.pick); box.hidden = true; $('#play').focus(); });
+    }
+  }
+}
 
 /* -------------------------------------------------------------- the header chip and "Your evening" */
 const anyPlayed = Object.keys(played).length > 0 || cardsPlayed;
@@ -877,6 +928,38 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     if (n.t === 'broken') note(`Your ${n.days}-day run ended. It is on your record (best: ${dayView.streak.best}). A new run starts the next time you play.`);
   }
   setInterval(() => { if (document.visibilityState === 'visible') { render(dayView); renderSeed(); } }, 60000);
+}
+
+
+// The welcome table: after the first win. Pick a name, a starter badge, claim the day's reward.
+{
+  const dlg = $('#welcomeDlg');
+  const showBadge = () => { const b = readProfile().badges[0]; $('#badgeLine').textContent = b ? `Badge: ${itemName(b)}` : ''; };
+  showBadge();
+  if (onb.needsWelcome && dlg.showModal) {
+    let badge = null;
+    const p0 = readProfile();
+    $('#wTitle').textContent = `Welcome to the club, ${me.handle}.`;
+    $('#wLead').textContent = 'That was your first win. Two quick things, then back to the tables.';
+    const names = () => {
+      const row = [el('button', 'btn on', `Keep ${me.handle}`)]; row[0].type = 'button';
+      for (const h of suggestHandles(3, me.handle)) { const b = el('button', 'btn', h); b.type = 'button'; b.addEventListener('click', () => { me.handle = setHandle(h) || me.handle; showName(); $('#wTitle').textContent = `Welcome to the club, ${me.handle}.`; names(); }); row.push(b); }
+      const again = el('button', 'btn', 'Roll again'); again.type = 'button'; again.addEventListener('click', names); row.push(again);
+      $('#wNames').replaceChildren(...row);
+    };
+    names();
+    $('#wBadges').replaceChildren(...STARTER_BADGES.map((id, i) => { const b = el('button', 'btn', itemName(id)); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false'); b.addEventListener('click', () => { badge = id; $('#wBadges').querySelectorAll('button').forEach((x) => x.setAttribute('aria-checked', String(x === b))); }); return b; }));
+    const lv = levelFor(p0.xp), tonight = dayView.quests.reduce((n, q) => n + (q.done ? 0 : q.xp), 0);
+    $('#wBar').style.width = `${lv.next ? (lv.into / lv.next) * 100 : 100}%`;
+    $('#wLevel').textContent = `Level ${lv.level} · ${fmt(lv.next - lv.into)} XP to level ${lv.level + 1}. Tonight's three quests are worth ${tonight} XP.`;
+    const paintClaim = () => { const c = $('#wClaim'); c.disabled = !dayView.canClaim; c.textContent = dayView.canClaim ? `Claim daily reward · +${dayView.reward.xp} XP · +${dayView.reward.chips} chips` : 'Daily reward claimed'; };
+    paintClaim();
+    $('#wClaim').addEventListener('click', () => { $('#claim').click(); paintClaim(); const l = levelFor(readProfile().xp); $('#wBar').style.width = `${l.next ? (l.into / l.next) * 100 : 100}%`; $('#wLevel').textContent = `Level ${l.level} · ${fmt(l.next - l.into)} XP to level ${l.level + 1}.`; });
+    $('#wDone').addEventListener('click', () => { completeWelcome(badge); showBadge(); dlg.close(); });
+    dlg.addEventListener('cancel', () => { completeWelcome(badge); showBadge(); });
+    markStep('welcome_open');
+    setTimeout(() => dlg.showModal(), 700);
+  }
 }
 
 // Save & settings: copy the whole club save out, load one in, usage counters, start over.

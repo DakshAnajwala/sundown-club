@@ -141,6 +141,14 @@ export function ensureIdentity() {
   return { id: p.id, handle: p.handle, fresh };
 }
 
+/** A few evening names to pick from (not the current one, no repeats). */
+export function suggestHandles(n = 3, current = '') {
+  const out = new Set();
+  let guard = 0;
+  while (out.size < n && guard++ < 200) { const h = newHandle(); if (h !== current) out.add(h); }
+  return [...out];
+}
+
 /** Rename this browser's player. Returns the stored name, or null if `name` is empty after cleaning. */
 export function setHandle(name) {
   const handle = cleanHandle(name);

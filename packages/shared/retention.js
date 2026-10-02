@@ -19,6 +19,8 @@ import { track } from './telemetry.js';
 import { dayNumber } from './seed.js';
 
 export const SEED_XP = 50;
+export const FIRST_WIN_XP = 150;   // with the round's XP and the daily reward this reaches level 2 in the first sitting
+const PICKS = ['cards', 'cars', 'both'];
 
 const lastPlayedOf = (p) => Object.fromEntries(Object.entries(p.games).map(([g, s]) => [g, Number(s?.lastPlayed) || 0]));
 const ctxOf = (p, now) => ({ player: p.id, lastPlayed: lastPlayedOf(p), now });
@@ -38,6 +40,26 @@ function settle(p, now = Date.now()) {
   p.daily = ensureDay(p.daily, t, ctxOf(p, now));
   if (fresh) for (const q of p.daily.quests) track('quest_seen', { id: q.id.slice(0, 24), tier: describe(q).tier });
   return t;
+}
+
+/** The onboarding state in the profile, cleaned. `win` / `round` are epoch ms of the first win / first finished round. */
+function cleanOnb(o) {
+  const x = o && typeof o === 'object' ? o : {};
+  return { pick: PICKS.includes(x.pick) ? x.pick : null, round: Number(x.round) || 0, win: Number(x.win) || 0, welcomed: !!x.welcomed, steps: (Array.isArray(x.steps) ? x.steps : []).filter((s) => typeof s === 'string').slice(0, 12) };
+}
+function step(onb, name, extra) {
+  if (onb.steps.includes(name)) return;
+  onb.steps.push(name);
+  track('onboarding_step', { step: name, ...extra });
+}
+/** Did this round count as a win (the first one earns the welcome)? */
+function isWin(game, d) {
+  if (game === 'blackjack') return d.result === 'win' || d.result === 'natural';
+  if (game === 'holdem') return !!d.won;
+  if (game === 'videopoker') return !!d.win;
+  if (game === 'parking') return Number(d.stars) >= 1;
+  if (game === 'racing') return Number(d.topKmh) >= 100;
+  return false;
 }
 
 function view(p, t) {
@@ -90,15 +112,21 @@ export function reportRound(game, kind, data = {}) {
     const out = updateProfile((p) => {
       const t = settle(p);
       const before = levelFor(p.xp);
+      const onb = cleanOnb(p.onb);
+      let firstWin = false;
+      if (!onb.round) { onb.round = Date.now(); step(onb, 'first_round', { game }); }
+      if (!onb.win && isWin(game, data)) { onb.win = Date.now(); firstWin = true; step(onb, 'first_win', { game }); p.xp += FIRST_WIN_XP; }
+      p.onb = onb;
       const r = progress(p.daily, ev, data, t);
       p.daily = r.daily;
       p.xp = Math.max(0, p.xp + r.xp);
       p.tokens = Math.min(MAX_TOKENS, p.tokens + r.tokens);
+      if (firstWin) r.xp += FIRST_WIN_XP;
       let events = [];
       if (r.justDone.length) { const e = earnDay(p.streak, t); p.streak = e.streak; events = e.events; }
       const after = levelFor(p.xp);
       const v = view(p, t);
-      return { ...r, level: { ...v.level, from: before.level, leveled: after.level > before.level }, quests: v.quests.map((q) => ({ ...q, justDone: r.justDone.includes(q.id) })), streak: v.streak, streakEvents: events, tokens: p.tokens, xpTotal: p.xp };
+      return { ...r, firstWin, firstWinXp: firstWin ? FIRST_WIN_XP : 0, firstRound: onb.round > 0 && Date.now() - onb.round < 5000, level: { ...v.level, from: before.level, leveled: after.level > before.level }, quests: v.quests.map((q) => ({ ...q, justDone: r.justDone.includes(q.id) })), streak: v.streak, streakEvents: events, tokens: p.tokens, xpTotal: p.xp };
     });
     track('round_end', { game, result: String(data.result ?? (data.won === true ? 'win' : data.won === false ? 'lose' : data.win === true ? 'win' : data.stars != null ? `stars${data.stars}` : 'done')).slice(0, 16) });
     for (const id of out.justDone) track('quest_completed', { id: id.slice(0, 24) });
@@ -144,6 +172,40 @@ export function restoreRun() {
     const r = restoreStreak(p.streak, t, p.tokens);
     if (r.ok) { p.streak = r.streak; p.tokens -= 1; track('streak_saved', { kind: 'restore' }); }
     return { ok: r.ok, reason: r.reason, view: view(p, t) };
+  });
+}
+
+/** Where a new player is in the first-visit path. */
+export function onboarding() {
+  const p = readProfile();
+  const o = cleanOnb(p.onb);
+  const played = Object.keys(p.games).length > 0 || o.round > 0;
+  return { ...o, isNew: !played, needsWelcome: o.win > 0 && !o.welcomed };
+}
+
+/** Remember the one-question answer: cards, cars or both. */
+export function setPick(pick) {
+  if (!PICKS.includes(pick)) return null;
+  updateProfile((p) => { const o = cleanOnb(p.onb); o.pick = pick; step(o, 'picked', { kind: pick }); p.onb = o; });
+  return pick;
+}
+
+/** A funnel step seen on the hub (landing, welcome_open, welcome_done). Counted once per player. */
+export function markStep(name) {
+  updateProfile((p) => { const o = cleanOnb(p.onb); step(o, String(name).slice(0, 16)); p.onb = o; });
+}
+
+/** The welcome table is done: keep the starter badge (equipped), never show it again. */
+export function completeWelcome(badgeId) {
+  return updateProfile((p) => {
+    const o = cleanOnb(p.onb);
+    o.welcomed = true; step(o, 'welcome_done');
+    p.onb = o;
+    if (typeof badgeId === 'string' && /^badge\.[a-z-]{1,30}$/.test(badgeId)) {
+      if (!p.inv.owned.includes(badgeId)) { p.inv.owned.push(badgeId); p.found[badgeId] = Date.now(); }
+      p.badges = [badgeId, ...p.badges.filter((b) => b !== badgeId)].slice(0, 3);
+    }
+    return { badges: p.badges };
   });
 }
 

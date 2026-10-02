@@ -66,7 +66,8 @@ export function showRoundPanel(r, opts = {}) {
       row.append(line, bar); root.append(row);
     }
     const foot = el('div', 'f');
-    if (r.allDone) foot.textContent = "Tonight's table is cleared: +60 XP and a token.";
+    if (r.firstWin) foot.textContent = `First win! +${r.firstWinXp} XP. Press Esc twice to open the club and set up your table.`;
+    else if (r.allDone) foot.textContent = "Tonight's table is cleared: +60 XP and a token.";
     else if (r.streak?.earnedToday) foot.textContent = r.streak.days > 1 ? `Day ${r.streak.days} in a row.` : 'Today counts. Day 1.';
     else foot.textContent = 'Play 5 minutes or finish a quest to count today.';
     root.append(foot);
