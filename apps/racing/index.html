@@ -3,14 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Night Drive at Sundown Club: an early test drive of a night-time street racing game. Two cars, a lit straight, a drift pad, every setup slider." />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%239aa6ff'/%3E%3C/svg%3E" />
-    <title>Night Drive · Test drive · Sundown Club</title>
+    <title>Night Drive: night street racing test drive · Sundown Club</title>
+    <meta name="description" content="Night Drive is a street racing game set after dark, still being built. Take its cars out in a free test drive in your browser: a lit straight and a drift pad.">
+    <link rel="canonical" href="https://sundown-club.vercel.app/racing/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Sundown Club">
+    <meta property="og:title" content="Night Drive: night street racing test drive · Sundown Club">
+    <meta property="og:description" content="Night Drive is a street racing game set after dark, still being built. Take its cars out in a free test drive in your browser: a lit straight and a drift pad.">
+    <meta property="og:url" content="https://sundown-club.vercel.app/racing/">
+    <meta property="og:image" content="https://sundown-club.vercel.app/media/og/racing.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="An orange car on a lit city highway at night">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Night Drive: night street racing test drive · Sundown Club">
+    <meta name="twitter:description" content="Night Drive is a street racing game set after dark, still being built. Take its cars out in a free test drive in your browser: a lit straight and a drift pad.">
+    <meta name="twitter:image" content="https://sundown-club.vercel.app/media/og/racing.jpg">
+    <meta name="twitter:image:alt" content="An orange car on a lit city highway at night">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Night Drive",
+      "alternateName": "Sundown Club Night Drive",
+      "url": "https://sundown-club.vercel.app/racing/",
+      "description": "Night Drive is a street racing game set after dark, still being built. Take its cars out in a free test drive in your browser: a lit straight and a drift pad.",
+      "image": "https://sundown-club.vercel.app/media/og/racing.jpg",
+      "genre": [
+        "Racing",
+        "Driving"
+      ],
+      "gamePlatform": "Web browser",
+      "operatingSystem": "Any (desktop browser with WebGL and a keyboard)",
+      "applicationCategory": "Game",
+      "playMode": "SinglePlayer",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Daksh Anajwala",
+        "url": "https://github.com/DakshAnajwala"
+      },
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "Sundown Club",
+        "url": "https://sundown-club.vercel.app/"
+      }
+    }
+    </script>
     <link rel="stylesheet" href="./design/handling/lab.css" />
+    <style>
+      .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    </style>
   </head>
   <body>
     <!-- The public test drive is the Handling Lab (design/handling/), the
          same page the cars are tuned in. -->
+    <h1 class="sr-only">Night Drive test drive</h1>
     <div id="app"></div>
     <script type="module" src="./design/handling/handling.js"></script>
   </body>

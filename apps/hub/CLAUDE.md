@@ -51,9 +51,9 @@ end state. Keep that fallback working when adding sections.
   (+ `legal.css`), copied to the site root. `/parking/{privacy,terms,notices}.html`
   redirect to them (`vercel.json`), so Parking's in-game links land here too.
 - Fonts and GSAP come from `/vendor/` (self-hosted); never add a CDN link.
+- Search engines: `docs/seo.md`. Game links are real `href`s so crawlers can follow them; keep the `<head>` tags (canonical, share cards, JSON-LD) when editing.
 
 ## Open
 
 - XP: no game calls `addXp` yet, so every player stays Level 1. The XP sources are in SPEC §8; wiring them changes saved data, so it needs the owner's yes.
 - Leaderboard: designed in `SPEC-leaderboard.md` (mock `design/leaderboard.html`), waiting on the owner's answers (§9).
-- robots.txt and sitemap at the site root.

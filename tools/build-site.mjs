@@ -12,6 +12,7 @@
  *   dist/vendor/          three.js, GSAP and the fonts, copied from node_modules so no page
  *                         loads anything from another company's server (privacy policy §4)
  *   dist/privacy.html …   the club's legal pages (apps/hub/legal/)
+ *   dist/robots.txt, sitemap.xml, favicon.svg   for search engines (docs/seo.md)
  */
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 
@@ -21,6 +22,25 @@ mkdirSync(out, { recursive: true });
 
 cpSync('apps/hub/index.html', `${out}/index.html`);
 cpSync('apps/hub/media', `${out}/media`, { recursive: true });
+cpSync('apps/hub/favicon.svg', `${out}/favicon.svg`);
+
+// Search engines (docs/seo.md): one list of public pages feeds robots.txt and sitemap.xml.
+// Parking Precision is left out on purpose: its pages still name parking-precision.vercel.app
+// as canonical, and a sitemap must only list canonical URLs.
+const SITE = 'https://sundown-club.vercel.app';
+const PAGES = ['/', '/blackjack/', '/holdem/', '/videopoker/', '/racing/'];
+writeFileSync(`${out}/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${PAGES.map((p) => `  <url><loc>${SITE}${p}</loc></url>`).join('\n')}
+</urlset>
+`);
+writeFileSync(`${out}/robots.txt`, `User-agent: *
+Allow: /
+Disallow: /parking/design/
+Disallow: /api/
+
+Sitemap: ${SITE}/sitemap.xml
+`);
 
 // Static game pages: index.html plus any sibling .js modules (engine, bots).
 for (const app of ['blackjack', 'holdem', 'videopoker']) {

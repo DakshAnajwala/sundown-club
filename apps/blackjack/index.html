@@ -3,9 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Blackjack at Sundown Club: six decks, one seat, and a dealer with no face.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23f0a868'/%3E%3C/svg%3E">
-<title>Blackjack · Sundown Club</title>
+<title>Blackjack: free 3D blackjack in your browser · Sundown Club</title>
+<meta name="description" content="Free blackjack in your browser: six decks, dealer stands on all 17s, blackjack pays 3 to 2. A 3D lounge at golden hour, play chips only, nothing to install.">
+<link rel="canonical" href="https://sundown-club.vercel.app/blackjack/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sundown Club">
+<meta property="og:title" content="Blackjack: free 3D blackjack in your browser · Sundown Club">
+<meta property="og:description" content="Free blackjack in your browser: six decks, dealer stands on all 17s, blackjack pays 3 to 2. A 3D lounge at golden hour, play chips only, nothing to install.">
+<meta property="og:url" content="https://sundown-club.vercel.app/blackjack/">
+<meta property="og:image" content="https://sundown-club.vercel.app/media/og/blackjack.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A faceless dealer in a charcoal suit behind a blackjack table, golden hour through the window">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Blackjack: free 3D blackjack in your browser · Sundown Club">
+<meta name="twitter:description" content="Free blackjack in your browser: six decks, dealer stands on all 17s, blackjack pays 3 to 2. A 3D lounge at golden hour, play chips only, nothing to install.">
+<meta name="twitter:image" content="https://sundown-club.vercel.app/media/og/blackjack.jpg">
+<meta name="twitter:image:alt" content="A faceless dealer in a charcoal suit behind a blackjack table, golden hour through the window">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Blackjack",
+  "alternateName": "Sundown Club Blackjack",
+  "url": "https://sundown-club.vercel.app/blackjack/",
+  "description": "Free blackjack in your browser: six decks, dealer stands on all 17s, blackjack pays 3 to 2. A 3D lounge at golden hour, play chips only, nothing to install.",
+  "image": "https://sundown-club.vercel.app/media/og/blackjack.jpg",
+  "genre": [
+    "Card game",
+    "Casino"
+  ],
+  "gamePlatform": "Web browser",
+  "operatingSystem": "Any (desktop browser with WebGL and a keyboard)",
+  "applicationCategory": "Game",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Daksh Anajwala",
+    "url": "https://github.com/DakshAnajwala"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Sundown Club",
+    "url": "https://sundown-club.vercel.app/"
+  }
+}
+</script>
 <link rel="stylesheet" href="/vendor/fonts.css">
 <style>
 /* Layout: the 3D room fills the window; small paper-like HUD pieces float over it. Single look (the room is the page). */
@@ -102,9 +153,11 @@ select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid 
 :focus-visible { outline: 2px solid #3d5f86; outline-offset: 2px; }
 #loading { position: fixed; inset: 0; display: grid; place-items: center; color: #e9e1cf; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; pointer-events: none; transition: opacity .6s; }
 #loading.gone { opacity: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
 </head>
 <body>
+<h1 class="sr-only">Blackjack</h1>
 <div id="stage" aria-label="Blackjack table, 3D view"></div>
 <div class="vignette"></div>
 <div id="loading">Setting the table</div>

@@ -3,9 +3,87 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Sundown Club: small browser games, made slowly. Blackjack and Parking Precision, free, nothing to install.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23f0a868'/%3E%3C/svg%3E">
-<title>Sundown Club</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Sundown Club: free 3D browser games, nothing to install</title>
+<meta name="description" content="Free 3D browser games by Daksh Anajwala: Blackjack, Texas Hold'em, Video Poker, Parking Precision and the Night Drive test drive. Play chips only, no account.">
+<link rel="canonical" href="https://sundown-club.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sundown Club">
+<meta property="og:title" content="Sundown Club: free 3D browser games, nothing to install">
+<meta property="og:description" content="Free 3D browser games by Daksh Anajwala: Blackjack, Texas Hold'em, Video Poker, Parking Precision and the Night Drive test drive. Play chips only, no account.">
+<meta property="og:url" content="https://sundown-club.vercel.app/">
+<meta property="og:image" content="https://sundown-club.vercel.app/media/og/club.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A quiet card lounge at golden hour: a faceless dealer behind a blackjack table, hills through the window">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sundown Club: free 3D browser games, nothing to install">
+<meta name="twitter:description" content="Free 3D browser games by Daksh Anajwala: Blackjack, Texas Hold'em, Video Poker, Parking Precision and the Night Drive test drive. Play chips only, no account.">
+<meta name="twitter:image" content="https://sundown-club.vercel.app/media/og/club.jpg">
+<meta name="twitter:image:alt" content="A quiet card lounge at golden hour: a faceless dealer behind a blackjack table, hills through the window">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://sundown-club.vercel.app/#website",
+      "name": "Sundown Club",
+      "url": "https://sundown-club.vercel.app/",
+      "description": "Free 3D browser games by Daksh Anajwala: Blackjack, Texas Hold'em, Video Poker, Parking Precision and the Night Drive test drive. Play chips only, no account.",
+      "inLanguage": "en",
+      "publisher": {
+        "@id": "https://sundown-club.vercel.app/#daksh"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://sundown-club.vercel.app/#daksh",
+      "name": "Daksh Anajwala",
+      "url": "https://github.com/DakshAnajwala",
+      "sameAs": [
+        "https://github.com/DakshAnajwala"
+      ]
+    },
+    {
+      "@type": "ItemList",
+      "name": "Games at Sundown Club",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Blackjack",
+          "url": "https://sundown-club.vercel.app/blackjack/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Texas Hold'em",
+          "url": "https://sundown-club.vercel.app/holdem/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Video Poker",
+          "url": "https://sundown-club.vercel.app/videopoker/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Parking Precision",
+          "url": "https://parking-precision.vercel.app/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "name": "Night Drive",
+          "url": "https://sundown-club.vercel.app/racing/"
+        }
+      ]
+    }
+  ]
+}
+</script>
 <link rel="stylesheet" href="/vendor/fonts.css">
 <style>
 /* Layout: one long evening. A fixed sky behind the page sets as you scroll (golden hour -> dusk -> night).
@@ -351,7 +429,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
       <div class="chap-num">01 · Cards</div>
       <h2 id="bj-title">Blackjack</h2>
       <p class="lead">A quiet room at golden hour, a six-deck shoe, and a dealer in a charcoal suit who has never once shown his face.</p>
-      <a class="btn fill" href="#" data-go="/blackjack/" data-name="Blackjack">Take a seat</a>
+      <a class="btn fill" href="/blackjack/" data-go="/blackjack/" data-name="Blackjack">Take a seat</a>
     </div>
     <div class="nightnote" id="bjNight">Stay long enough and the sun sets in there too.<small>Golden hour by default · live day and night</small></div>
     <div class="callouts" id="bjCallouts">
@@ -372,13 +450,13 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
       <div class="chap-num" style="--accent: #d98a93">02 · The card room</div>
       <h2 id="cr-title">Hold'em</h2>
       <p class="lead">Six seats, no limit, blinds of five and ten. Five regulars in suits, none of them with a face, each with a way of playing you can learn to read.</p>
-      <a class="btn fill" href="#" data-go="/holdem/" data-name="Hold'em" style="--accent: #d98a93">Sit in</a>
+      <a class="btn fill" href="/holdem/" data-go="/holdem/" data-name="Hold'em" style="--accent: #d98a93">Sit in</a>
     </div>
     <div class="copy crcopy" id="crCopyB">
       <div class="chap-num" style="--accent: #e8b860">02 · The card room</div>
       <h2>Video Poker</h2>
       <p class="lead">A full-pay Jacks or Better machine by the window. Five cards, hold what you like, draw once. The royal pays four thousand coins at max bet.</p>
-      <a class="btn fill" href="#" data-go="/videopoker/" data-name="Video Poker" style="--accent: #e8b860">Pull up a stool</a>
+      <a class="btn fill" href="/videopoker/" data-go="/videopoker/" data-name="Video Poker" style="--accent: #e8b860">Pull up a stool</a>
     </div>
     <div class="crnote" id="crNote">One bankroll for the whole card room: win at the blackjack table, take it to poker.</div>
   </div>
@@ -400,7 +478,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
         <figure class="frame" style="margin: 0"><div class="pic"><img src="media/rooftop-lane.webp" alt="Narrow rooftop lane between parked cars"></div><figcaption class="cap"><b><i>04</i>Rooftop lane</b><span>Tight lanes between parked cars.</span></figcaption></figure>
         <figure class="frame" style="margin: 0"><div class="pic"><img src="media/driver-seat.webp" alt="Driver's seat view with the steering wheel and dashboard"></div><figcaption class="cap"><b><i>05</i>Driver's seat</b><span>The 720° wheel, hands and all.</span></figcaption></figure>
         <figure class="frame" style="margin: 0"><div class="pic"><img src="media/reverse-camera.webp" alt="Reversing camera view with guidelines"></div><figcaption class="cap"><b><i>06</i>Reversing camera</b><span>Guidelines, and sensors that beep faster.</span></figcaption></figure>
-        <div class="frame end"><p>Find the glowing bay.</p><a class="btn fill" href="#" data-go="/parking/play/" data-name="Parking Precision" style="justify-self: start">Start driving</a></div>
+        <div class="frame end"><p>Find the glowing bay.</p><a class="btn fill" href="/parking/play/" data-go="/parking/play/" data-name="Parking Precision" style="justify-self: start">Start driving</a></div>
       </div>
     </div>
     <div class="foot"><span class="count" id="pkCount">01 / 06</span><div class="prog"><b id="pkProg"></b></div></div>
@@ -411,7 +489,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <section class="shop pad" id="workshop" aria-labelledby="shop-title">
   <div class="sec-head reveal"><div class="eyebrow">In the workshop</div><h2 id="shop-title">One more, still being built.</h2><p>Same evening, new rooms. They'll open here when they're ready.</p></div>
   <div class="teasers one">
-        <article class="teaser" style="--t: #9aa6ff"><img src="media/nightdrive.jpg" alt=""><span class="lock">Early test drive</span><h3>Night Drive</h3><p>A street racing career after dark: rivals, crews, police and a city to win. The story is still being built; the cars are ready to take out.</p><div class="tag">Driving</div><a class="btn fill" href="#" data-go="/racing/" data-name="Night Drive" style="--accent: #9aa6ff; margin-top: 18px; justify-self: start">Test drive</a></article>
+        <article class="teaser" style="--t: #9aa6ff"><img src="media/nightdrive.jpg" alt=""><span class="lock">Early test drive</span><h3>Night Drive</h3><p>A street racing career after dark: rivals, crews, police and a city to win. The story is still being built; the cars are ready to take out.</p><div class="tag">Driving</div><a class="btn fill" href="/racing/" data-go="/racing/" data-name="Night Drive" style="--accent: #9aa6ff; margin-top: 18px; justify-self: start">Test drive</a></article>
   </div>
 </section>
 
@@ -544,14 +622,15 @@ function select(i) {
   $('#resume').hidden = !g.resume; $('#resume').replaceChildren(`${g.resume || ''} `, el('kbd', null, 'C'));
   $('#facts').replaceChildren(...g.facts.map(([v, l]) => el('div', null, el('b', null, v), el('span', null, l))));
 }
-// Inside a sandboxed preview frame, links can't leave the page; everywhere else they navigate.
+// Game links are real hrefs so search engines can follow them. Inside a sandboxed preview frame,
+// links can't leave the page, so they show a toast; everywhere else they navigate.
 const local = window.self === window.top;
 let tt;
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 2200); }
 function go(url, name) { if (local) location.href = url; else toast(`In the real hub this opens ${name}.`); }
 function play() { const g = GAMES[cur]; if (!g.soon) go(g.go, g.name); }
 $('#play').addEventListener('click', play); $('#resume').addEventListener('click', play);
-document.addEventListener('click', (e) => { const a = e.target.closest('[data-go]'); if (a) { e.preventDefault(); go(a.dataset.go, a.dataset.name); } });
+document.addEventListener('click', (e) => { const a = e.target.closest('[data-go]'); if (a && !local) { e.preventDefault(); go(a.dataset.go, a.dataset.name); } });
 addEventListener('keydown', (e) => {
   if (scrollY > innerHeight * 0.6 || e.target.closest?.('input, select, textarea')) return;
   if (e.key === 'ArrowRight') { e.preventDefault(); select(cur + 1); }
