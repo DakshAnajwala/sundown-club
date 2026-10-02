@@ -175,8 +175,9 @@ Coming-soon tiles stay as teasers (owner, 30 Sep).
   30 px), caption (13 px).
 - Cells (owner, 2 Oct 2026): Card games · club chips (live bankroll); Card
   games · hands played (Blackjack + Hold'em + Video Poker); Parking · stars
-  (x / 51); Parking · best park, out of 100; Night Drive · top speed, km/h;
-  Everything · time played.
+  (x / 51); Parking · best park, out of 100; Blackjack · blackjacks;
+  Everything · time played. Night Drive's top-speed cell was removed when it
+  left the homepage (owner, 2 Oct 2026).
 - Never-played game: its cells show "—" and caption "Not played yet".
 - Footer: "Browser games by Daksh Anajwala · github.com/DakshAnajwala ·
   progress stays on this device"; links Privacy, Terms, Third-party notices.

@@ -24,8 +24,10 @@ shared profile.
 4. Blackjack chapter (sticky, 340vh): card opens to full bleed, callouts, night.
 5. Card room chapter (sticky, 320vh): Hold'em opens from a card on the left, then Video Poker takes over.
 6. Parking chapter (sticky, 420vh): horizontal filmstrip, counter, progress.
-7. Workshop: Night Drive teaser (owner wants teasers kept). Since 1 Oct it
-   is an early test drive with a "Test drive" button to `/racing/`.
+7. Workshop: a quiet Night Drive teaser marked "In development", with no
+   way in (owner, 2 Oct 2026). Night Drive is not in the rail, the menu or the
+   ledger, and nothing on the hub links to `/racing/`; the test drive is
+   reached only by its address.
 7. Your evening: this browser's player (random name, changeable) with level,
    streak and a ledger of real numbers that count up.
 8. The house: about + FAQ. 9. Night footer: giant wordmark rises.
@@ -38,7 +40,7 @@ end state. Keep that fallback working when adding sections.
 
 - Accent per game: Blackjack `#f0a868`, Parking `#8fe3cf`, Hold'em `#d98a93`,
   Video Poker `#e8b860`, Night Drive `#9aa6ff`.
-- Links to games are site paths (`/blackjack/`, `/holdem/`, `/videopoker/`, `/parking/play/`, `/racing/`). Inside a
+- Links to games are site paths (`/blackjack/`, `/holdem/`, `/videopoker/`, `/parking/play/`). Inside a
   sandboxed preview frame they show a toast instead of navigating.
 - Every number about the player is real, read from `hub.v1.profile` and
   `club.v1.chips` through `packages/shared/profile.js` and `chips.js`. Never

@@ -9,7 +9,7 @@ moving the site to a new address.
 | Thing | Where | Notes |
 |---|---|---|
 | `robots.txt` | made by `tools/build-site.mjs` | Allows everything except `/parking/design/` (design previews) and `/api/`. Names the sitemap. |
-| `sitemap.xml` | made by `tools/build-site.mjs` from its `PAGES` list | `/`, `/blackjack/`, `/holdem/`, `/videopoker/`, `/racing/`. No `lastmod`, because Vercel builds without git history. |
+| `sitemap.xml` | made by `tools/build-site.mjs` from its `PAGES` list | `/`, `/blackjack/`, `/holdem/`, `/videopoker/`. No `lastmod`, because Vercel builds without git history. |
 | Favicon | `apps/hub/favicon.svg`, served at `/favicon.svg` | The sun on the horizon. Search results show the home page's icon. |
 | Title + description | every page's `<head>` | A title under about 60 characters, with the words people search for first ("Blackjack: free 3D blackjack in your browser"). A description of 140–160 characters. |
 | Canonical URL | every page | An absolute `https://sundown-club.vercel.app/...` with the trailing slash. |
@@ -34,6 +34,17 @@ site"), do all of these in the same change:
 - Change the hub's `ItemList` entry for Parking.
 - Use 301 (permanent) redirects on the old site.
 
+## Night Drive: kept out of search (for now)
+
+Night Drive is in development (owner, 2 Oct 2026). Its test drive at
+`/racing/` has `<meta name="robots" content="noindex">`, is not in the sitemap
+or the hub's `ItemList`, and nothing on the hub links to it. Its share card
+still works when someone is sent the link. When it is ready, do all of these:
+
+- Remove the `noindex` tag.
+- Add `/racing/` to `PAGES`.
+- Add it back to the hub's `ItemList` and description.
+
 ## What only the owner can do
 
 These steps need the owner's own Google and Microsoft accounts.
@@ -44,7 +55,7 @@ These steps need the owner's own Google and Microsoft accounts.
    - Choose the "HTML tag" method. Send the `content="…"` code to whoever is working on the site; it goes into the hub's `<head>` as `<meta name="google-site-verification" content="…">` and is deployed.
    - Press Verify.
    - Under Sitemaps, submit `sitemap.xml`.
-   - Under URL inspection, request indexing for `/`, `/blackjack/`, `/holdem/`, `/videopoker/` and `/racing/`.
+   - Under URL inspection, request indexing for `/`, `/blackjack/`, `/holdem/` and `/videopoker/`.
 2. **Bing Webmaster Tools** (this also covers DuckDuckGo, Yahoo and Ecosia).
    - Go to https://www.bing.com/webmasters.
    - Choose "Import from Google Search Console".
@@ -53,7 +64,7 @@ These steps need the owner's own Google and Microsoft accounts.
 ## What to expect
 
 - New pages take days to weeks to appear.
-- Searches for the names will work first: "Sundown Club", "Parking Precision", "Sundown Club blackjack", "Night Drive Sundown Club".
+- Searches for the names will work first: "Sundown Club", "Parking Precision", "Sundown Club blackjack".
 - Plain "blackjack" or "video poker" are dominated by large sites; a small site will not rank for them soon.
 - A custom domain (for example `sundownclub.com`) would rank and share better than a `vercel.app` address. If the site moves, change `SITE` in `tools/build-site.mjs` and every canonical, `og:` and JSON-LD URL.
 

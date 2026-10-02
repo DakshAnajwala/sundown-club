@@ -21,8 +21,16 @@ Built so far: the race car model (`src/vehicle/RaceCar.js`, `cars.js`,
 
 On the site (since 1 Oct 2026): `/racing/` is the test drive, `index.html`,
 which runs the Handling Lab with the club's Esc-twice-to-leave and the hub
-profile entry (`racing`). The labs and story previews are dev-server only
-(`DESIGN=1 npm run build -w @sundown/racing` also builds them).
+profile entry (`racing`). Since 2 Oct (owner) the test drive:
+- is marked `data-test-drive`, which strips the Lab down to car and camera:
+  no tuning, presets, gearbox or speed-cue switches, always stock setups,
+  nothing saved;
+- says it is in development and may have bugs;
+- is `noindex`;
+- is not playable or linked from the hub, which has only a quiet teaser.
+
+The labs and story previews are dev-server only (`DESIGN=1 npm run build -w
+@sundown/racing` also builds them).
 
 ## Working with the owner
 
@@ -36,8 +44,9 @@ profile entry (`racing`). The labs and story previews are dev-server only
 - When the owner says to go ahead ("don't ask", "do whatever you have to"),
   take the option the spec marks as recommended (or, with none, the one that
   keeps today's behaviour), write the choice down in the spec or `NOTES.md`,
-  and keep going. Anything public (deploying, making the repo public) still
-  needs an explicit yes.
+  and keep going. Anything public (deploying) still needs an explicit yes.
+  The repo is public since 2 Oct 2026 (owner's choice): never commit a
+  secret.
 - End a task with a done / not done checklist.
 - The owner may chat in a terse "caveman" style. Code, docs and commits stay
   in normal English.
@@ -85,7 +94,7 @@ profile entry (`racing`). The labs and story previews are dev-server only
 ```
 # from the repo root: npm install && npm install --no-save puppeteer-core
 npm run dev:racing                   # (repo root) vite on port 5177; run the tools below from apps/racing
-node tools/site-check.mjs            # the built site (root: npm run build && npm run serve): hub tile -> /racing/, renders, Esc twice, profile entry
+node tools/site-check.mjs            # the built site (root: npm run build && npm run serve): hub has no way in, /racing/ says in development, no tuning, noindex, renders, Esc twice, profile entry
 node tools/hub-still.mjs             # (repo root) regenerates apps/hub/media/nightdrive.jpg from the dev server
 node tools/race-physics-probe.mjs    # headless handling numbers vs SPEC §6 bands; exits 1 if any is out
 node tools/race-physics-probe.mjs --setup design/handling/setups/<file>.json   # measure a Lab "Copy setup" (safety rows only can fail)

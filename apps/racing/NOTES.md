@@ -294,3 +294,24 @@ Drive" coming-soon slot (same accent #9aa6ff) became the playable tile and the
 workshop teaser gained a "Test drive" button; picture
 `apps/hub/media/nightdrive.jpg` from `tools/hub-still.mjs` (a real frame at
 speed, panels hidden). `tools/site-check.mjs` checks the assembled site.
+
+## 2 Oct 2026 — the public test drive is quiet and plain
+
+Owner: no tuning on the public page ("i dont want this modifiable stuff"), say
+plainly that it is in development and may have bugs, and make it "a lot more
+subtle and hidden": not playable from the homepage.
+
+- `index.html` sets `data-test-drive`. `handling.js` then shows only:
+  - the car buttons and the camera button;
+  - an "In development" badge with a line about bugs.
+- Gone from the public page:
+  - every slider, the presets, Stock and Copy setup;
+  - the gearbox switch (so `E`/`Q` leave the key list);
+  - the Rumble/Blur/Streaks switches, which stay on, or off with `prefers-reduced-motion`.
+- Setups are always stock and nothing is saved.
+- The Lab at `design/handling/` is unchanged; `handling-shot` 0 console errors.
+- The hub:
+  - drops Night Drive from the rail, the menu and the ledger;
+  - keeps a smaller teaser marked "In development" with no button.
+- `/racing/` is `noindex` and out of the sitemap (`docs/seo.md`).
+- `tools/site-check.mjs` checks all of this (11/11).

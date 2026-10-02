@@ -2,9 +2,11 @@
  * site-check.mjs — Night Drive inside the assembled Sundown Club site.
  *
  * Serve the built site first (repo root: npm run build && npm run serve, port
- * 5180). Checks: the hub's Night Drive tile plays /racing/; the test drive
- * boots with 0 console errors and draws; Esc opens the club's leave card and
- * Esc again saves the profile entry and lands on the hub.
+ * 5180). Checks: the hub does not offer Night Drive as playable (owner, 2 Oct
+ * 2026: in development, reached only by its address) and its teaser says so;
+ * the test drive says it is in development, has no tuning controls, boots with
+ * 0 console errors and draws; Esc opens the club's leave card and Esc again
+ * saves the profile entry and lands on the hub.
  *
  *   node apps/racing/tools/site-check.mjs [base]
  */
@@ -28,18 +30,25 @@ const ok = (name, pass, detail = '') => {
   console.log(`${pass ? 'ok  ' : 'FAIL'} ${name}${detail ? ` — ${detail}` : ''}`);
 };
 
-// Hub: select Night Drive in the rail and press Play.
+// Hub: Night Drive is a quiet teaser only, with no way in.
 await page.goto(`${BASE}/`, { waitUntil: 'networkidle0' });
-const tile = await page.evaluate(() => {
-  const tiles = [...document.querySelectorAll('.tile')];
-  const t = tiles.find((el) => /Night Drive/.test(el.getAttribute('aria-label') || ''));
-  if (!t) return null;
-  t.click();
-  return { soon: t.classList.contains('soon'), play: document.querySelector('#play').disabled, title: document.querySelector('#title').textContent };
-});
-ok('hub has a playable Night Drive tile', tile && !tile.soon && !tile.play && tile.title === 'Night Drive', JSON.stringify(tile));
-await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle0' }), page.click('#play')]);
-ok('Play opens /racing/', new URL(page.url()).pathname === '/racing/', page.url());
+const hub = await page.evaluate(() => ({
+  tile: [...document.querySelectorAll('.tile')].some((el) => /Night Drive/.test(el.getAttribute('aria-label') || '')),
+  links: [...document.querySelectorAll('a[href]')].filter((a) => /\/racing\//.test(a.getAttribute('href'))).length,
+  teaser: document.querySelector('#workshop .teaser .lock')?.textContent ?? null,
+}));
+ok('hub has no Night Drive tile and no link to /racing/', !hub.tile && hub.links === 0, JSON.stringify(hub));
+ok('hub teaser says it is in development', hub.teaser === 'In development', String(hub.teaser));
+await page.goto(`${BASE}/racing/`, { waitUntil: 'networkidle0' });
+const notice = await page.evaluate(() => ({
+  badge: document.querySelector('.tune .dev')?.textContent ?? null,
+  bugs: /expect bugs/.test(document.querySelector('.tune .about')?.textContent ?? ''),
+  sliders: document.querySelectorAll('input[type=range], .fields').length,
+  robots: document.querySelector('meta[name=robots]')?.content ?? null,
+}));
+ok('test drive says it is in development and may have bugs', notice.badge === 'In development' && notice.bugs, JSON.stringify(notice));
+ok('test drive has no tuning controls', notice.sliders === 0, JSON.stringify(notice));
+ok('test drive is kept out of search results', notice.robots === 'noindex', String(notice.robots));
 
 // Test drive boots and draws something that is not black.
 await page.waitForSelector('canvas', { timeout: 30000 });

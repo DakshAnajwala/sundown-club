@@ -25,10 +25,11 @@ cpSync('apps/hub/media', `${out}/media`, { recursive: true });
 cpSync('apps/hub/favicon.svg', `${out}/favicon.svg`);
 
 // Search engines (docs/seo.md): one list of public pages feeds robots.txt and sitemap.xml.
-// Parking Precision is left out on purpose: its pages still name parking-precision.vercel.app
-// as canonical, and a sitemap must only list canonical URLs.
+// Left out on purpose: Parking Precision, whose pages still name parking-precision.vercel.app
+// as canonical (a sitemap only lists canonical URLs), and Night Drive, which is in development
+// and marked noindex until it is ready (owner, 2 Oct 2026).
 const SITE = 'https://sundown-club.vercel.app';
-const PAGES = ['/', '/blackjack/', '/holdem/', '/videopoker/', '/racing/'];
+const PAGES = ['/', '/blackjack/', '/holdem/', '/videopoker/'];
 writeFileSync(`${out}/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${PAGES.map((p) => `  <url><loc>${SITE}${p}</loc></url>`).join('\n')}

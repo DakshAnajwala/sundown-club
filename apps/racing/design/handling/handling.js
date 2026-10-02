@@ -120,11 +120,17 @@ let headlight = null;
 let cameraMode = 'chase';
 let speedFeel = null;
 const streaks = createSpeedStreaks({ scene });
-/** Lab switches for judging each speed cue on its own. */
-const feel = { shake: true, blur: true, streaks: true };
+// The public test drive (/racing/, apps/racing/index.html) runs this page with the
+// tuning taken out (owner, 2 Oct 2026): car and camera only, stock setups, nothing
+// saved, and a plain "in development" note. The Lab itself keeps everything.
+const TEST_DRIVE = document.documentElement.hasAttribute('data-test-drive');
+const calm = TEST_DRIVE && matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Lab switches for judging each speed cue on its own (all off in a reduced-motion test drive). */
+const feel = { shake: !calm, blur: !calm, streaks: !calm };
 let manual = false;
 
 function loadSetup(id) {
+  if (TEST_DRIVE) return defaultTuning(CARS[id]);
   try {
     const raw = JSON.parse(localStorage.getItem(`handling-lab:setup:${id}`) ?? 'null');
     if (raw && typeof raw === 'object') {
@@ -138,6 +144,7 @@ function loadSetup(id) {
   return defaultTuning(CARS[id]);
 }
 function saveSetup(id, setup) {
+  if (TEST_DRIVE) return;
   try {
     localStorage.setItem(`handling-lab:setup:${id}`, JSON.stringify(setup));
   } catch {
@@ -428,7 +435,7 @@ function buildHud() {
   const keys = el(
     'div',
     'panel keys',
-    '<kbd>W</kbd><kbd>S</kbd><kbd>A</kbd><kbd>D</kbd> drive · <kbd>Space</kbd> handbrake · <kbd>Shift</kbd> nitrous · <kbd>E</kbd><kbd>Q</kbd> shift (manual) · <kbd>C</kbd> camera · <kbd>R</kbd> reset upright · <kbd>Home</kbd> start line · <kbd>T</kbd> clear timers · hold RMB look back · <kbd>Esc</kbd> back to the club <span class="pad" hidden>· gamepad active</span>'
+    `<kbd>W</kbd><kbd>S</kbd><kbd>A</kbd><kbd>D</kbd> drive · <kbd>Space</kbd> handbrake · <kbd>Shift</kbd> nitrous · ${TEST_DRIVE ? '' : '<kbd>E</kbd><kbd>Q</kbd> shift (manual) · '}<kbd>C</kbd> camera · <kbd>R</kbd> reset upright · <kbd>Home</kbd> start line · <kbd>T</kbd> clear timers · hold RMB look back · <kbd>Esc</kbd> back to the club <span class="pad" hidden>· gamepad active</span>`
   );
   const toast = el('div', 'panel toast');
   document.body.append(tele, runsEl, keys, toast);
@@ -482,7 +489,9 @@ function buildPanel() {
   const car = CARS[carId];
   panel.innerHTML = '';
   const header = document.createElement('header');
-  header.innerHTML = '<h1>Night Drive <small style="font-weight:400;color:var(--ink-faint)">· test drive, early build</small></h1>';
+  header.innerHTML = TEST_DRIVE
+    ? '<h1>Night Drive <span class="dev">In development</span></h1><p class="about">A street racing game set after dark. It is still being built, so expect bugs and rough edges. This early test drive lets you take its two cars out on a lit straight and a drift pad; the city, the story and the races come later.</p>'
+    : '<h1>Night Drive <small style="font-weight:400;color:var(--ink-faint)">· test drive, early build</small></h1>';
   const carRow = document.createElement('div');
   carRow.className = 'row';
   for (const c of Object.values(CARS)) {
@@ -504,6 +513,14 @@ function buildPanel() {
     camBtn.blur();
     toggleCamera();
   });
+  panelRefs.camBtn = camBtn;
+  if (TEST_DRIVE) {
+    panel.classList.add('drive');
+    optRow.append(camBtn);
+    header.append(carRow, optRow);
+    panel.append(header);
+    return;
+  }
   const boxBtn = document.createElement('button');
   boxBtn.textContent = `Gearbox: ${manual ? 'manual' : 'auto'}`;
   boxBtn.addEventListener('click', () => {
@@ -578,7 +595,6 @@ function buildPanel() {
     feelRow.append(b);
   }
   header.append(carRow, optRow, presetRow, feelRow);
-  panelRefs.camBtn = camBtn;
 
   const fields = document.createElement('div');
   fields.className = 'fields';

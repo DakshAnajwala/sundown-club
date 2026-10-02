@@ -6,7 +6,7 @@ Read before any push, deploy, Vercel or GitHub operation.
 
 | Thing | Value |
 |---|---|
-| Repo | `github.com/DakshAnajwala/sundown-club` (private), local `~/sundown-club`, remote `origin` |
+| Repo | `github.com/DakshAnajwala/sundown-club` (public since 2 Oct 2026, the owner's choice), local `~/sundown-club`, remote `origin` |
 | Vercel project | `sundown-club` (team `daksh-personal1`, project id `prj_aRP0cbQakAAbPxL2ccCMbS0CMeAd`), linked by `.vercel/` in the repo root |
 | Live URL | https://sundown-club.vercel.app |
 | Build | `npm run build` → `dist/` (config in `vercel.json`) |
