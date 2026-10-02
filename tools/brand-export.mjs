@@ -8,6 +8,7 @@
  *   mark-400.png, mark-1024.png        square logo (LinkedIn company page: 400 × 400)
  *   cover-1128x191.png, cover-2256x382.png   LinkedIn cover banner (1× and 2×)
  *   lockup-dark.png, lockup-light.png  logo + name on a transparent background
+ *   social-preview-1280x640.png        GitHub repo social preview (Settings > Social preview)
  * and the site's icons: apps/hub/favicon.svg, apps/hub/apple-touch-icon.png.
  *
  * Needs puppeteer-core (npm install --no-save puppeteer-core) and Google Chrome.
@@ -49,6 +50,21 @@ const cover = `<div style="position:relative;width:1128px;height:191px;overflow:
   </div>
 </div>`;
 
+// GitHub's link card: the lamp, the name and one line, on the dusk sky, centred with wide margins.
+const social = `<div style="position:relative;width:1280px;height:640px;overflow:hidden;background:linear-gradient(180deg,#101230 0%,#231a3c 50%,#4a2230 84%,#7a3a2c 100%)">
+  <svg width="1280" height="640" viewBox="0 0 1280 640" style="position:absolute;inset:0">
+    ${[[160, 90, 2], [300, 160, 1.4], [470, 70, 1.6], [820, 110, 1.5], [1010, 60, 2], [1130, 170, 1.3], [640, 40, 1.2]]
+      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#e9ecff" opacity=".8"/>`).join('')}
+    <path d="M0 540 C160 510 300 520 440 536 S720 556 860 530 S1120 506 1280 524 V640 H0Z" fill="#2b1824"/>
+    <path d="M0 586 C180 570 340 578 520 590 S820 600 980 584 S1180 572 1280 580 V640 H0Z" fill="#160d14"/>
+  </svg>
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding-bottom:70px">
+    <div style="width:150px;height:150px;border-radius:34px;overflow:hidden;box-shadow:0 24px 60px -24px rgba(0,0,0,.9)">${mark.replace('<svg ', '<svg width="150" height="150" ')}</div>
+    <div style="font:400 96px/1 'Young Serif';color:#f3e7d8;letter-spacing:-.01em">sundown club</div>
+    <div style="font:400 28px 'Schibsted Grotesk';color:#e2d5c5">Small 3D browser games, set in one long evening.</div>
+  </div>
+</div>`;
+
 const lockup = (svg, ink) => `<div style="display:inline-flex;align-items:center;gap:28px;padding:24px">
   <div style="width:120px;height:120px;border-radius:26px;overflow:hidden">${svg.replace('<svg ', '<svg width="120" height="120" ')}</div>
   <div style="font:400 84px/1 'Young Serif';color:${ink};letter-spacing:-.01em;white-space:nowrap">sundown club</div>
@@ -61,6 +77,7 @@ const shots = [
   { file: 'cover-2256x382.png', w: 1128, h: 191, scale: 2, html: cover },
   { file: 'lockup-dark.png', w: 760, h: 168, html: lockup(mark, '#f3e7d8'), transparent: true },
   { file: 'lockup-light.png', w: 760, h: 168, html: lockup(markLight, '#1b1411'), transparent: true },
+  { file: 'social-preview-1280x640.png', w: 1280, h: 640, html: social },
   { file: '../../apps/hub/apple-touch-icon.png', w: 180, h: 180, html: mark.replace('<svg ', '<svg width="180" height="180" ') },
 ];
 

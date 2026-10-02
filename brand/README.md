@@ -13,6 +13,7 @@ the owner on 2 Oct 2026 from five options, kept in `options/`.
 | `logo/mark-400.png` | LinkedIn company page logo (400 × 400). |
 | `logo/mark-1024.png` | Large square logo, for anywhere that wants a big image. |
 | `logo/cover-1128x191.png`, `logo/cover-2256x382.png` | LinkedIn cover banner (1× and a sharper 2×). Upload the 2× one if LinkedIn accepts it. |
+| `logo/social-preview-1280x640.png` | GitHub link picture: upload under the repo's Settings › General › Social preview. |
 | `logo/lockup-dark.png`, `logo/lockup-light.png` | Logo and name together on a transparent background, for dark and light pages. |
 | `options/` | The five options the lamp was chosen from (A Horizon, B Last light, C Card at dusk, D Pendant lamp, E S and reflection). |
 
