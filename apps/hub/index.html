@@ -36,7 +36,6 @@ a { color: inherit; }
 .pad { padding-inline: var(--gutter); }
 .mono { font-family: var(--mono); }
 .eyebrow { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
-.sample { font: 500 11px var(--mono); color: var(--ink-2); border: 1px dashed var(--line); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; opacity: .6; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
@@ -68,9 +67,12 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .bar nav a.on { color: var(--ink); background: rgba(243,231,216,.08); }
 .me { display: flex; align-items: center; gap: 12px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(10px); text-decoration: none; }
 .me .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--sans); background: var(--wood); }
-.me .lv { font: 500 12px var(--mono); color: var(--ink-2); }
+.me .lv { font: 500 12px var(--mono); color: var(--ink-2); white-space: nowrap; }
+.me .nm { display: inline-block; vertical-align: bottom; max-width: 18ch; overflow: hidden; text-overflow: ellipsis; }
+.me .sep { white-space: pre; }
+@media (max-width: 520px) { .me .nm, .me .sep { display: none; } }
 .me .xp { width: 72px; height: 4px; border-radius: 4px; background: rgba(243,231,216,.14); overflow: hidden; margin-top: 3px; }
-.me .xp b { display: block; height: 100%; width: 67%; background: var(--accent); transition: background .6s; }
+.me .xp b { display: block; height: 100%; width: 0; background: var(--accent); transition: background .6s; }
 
 /* ------------------------------------------------------------------ lobby (approved first screen) */
 .lobby { position: relative; min-height: 100vh; display: grid; grid-template-rows: 88px 1fr auto; isolation: isolate; }
@@ -220,7 +222,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .lvlring .sm { font: 500 9px var(--mono); fill: var(--ink-2); letter-spacing: .14em; }
 .who .lvl { font: 500 13px var(--mono); color: var(--ink-2); }
 .xpbar { height: 6px; border-radius: 6px; background: rgba(243,231,216,.1); overflow: hidden; max-width: 300px; }
-.xpbar b { display: block; height: 100%; width: 67%; background: linear-gradient(90deg, #c9733f, var(--bj)); transform-origin: left; }
+.xpbar b { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #c9733f, var(--bj)); transform-origin: left; }
 .streak { display: flex; gap: 6px; max-width: 300px; }
 .streak i { flex: 1; height: 26px; border-radius: 6px; background: rgba(243,231,216,.07); display: grid; place-items: center; font: 500 10px var(--mono); font-style: normal; color: var(--ink-3); }
 .streak i.on { background: linear-gradient(180deg, #f5c286, var(--bj)); color: #2a1a0c; }
@@ -229,6 +231,16 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .ledger b { font: 500 30px var(--mono); font-variant-numeric: tabular-nums; }
 .ledger > div > span { font-size: 13px; color: var(--ink-2); }
 .ledger em { font: 500 11px var(--mono); font-style: normal; letter-spacing: .1em; text-transform: uppercase; }
+.evening .sec-head h2 { text-wrap: balance; }
+.rename { display: flex; align-items: center; min-height: 46px; }
+.linkbtn { font: 500 15px var(--sans); color: var(--ink); background: none; border: 0; padding: 10px 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 5px; transition: text-decoration-color .2s; }
+.linkbtn:hover { text-decoration-color: var(--ink); }
+.rename form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rename label { font-size: 15px; color: var(--ink-2); }
+.rename input { font: 500 16px var(--sans); color: var(--ink); caret-color: var(--accent); background: rgba(16, 12, 16, .82); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; width: min(16em, 100%); }
+.rename .btn { padding: 10px 16px; font-size: 15px; }
+.rename .msg { flex-basis: 100%; font-size: 14px; color: #f5c3ad; }
+.rename .msg:empty { display: none; }
 
 /* ------------------------------------------------------------------ the house */
 .house { padding-block: 16vh 10vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(28px, 6vw, 96px); }
@@ -295,7 +307,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     sundown club
   </a>
   <nav aria-label="Sections"><a href="#lobby" data-sec="lobby" class="on">Games</a><a href="#blackjack" data-sec="blackjack">Blackjack</a><a href="#cardroom" data-sec="cardroom">Card room</a><a href="#parking" data-sec="parking">Parking</a><a href="#workshop" data-sec="workshop">Workshop</a><a href="#house" data-sec="house">About</a></nav>
-  <a class="me" href="#evening" title="Sample profile"><span class="av">DA</span><div><div class="lv">daksh · Lv 7</div><div class="xp"><b></b></div></div></a>
+  <a class="me" href="#evening" id="me"><span class="av" id="meAv" aria-hidden="true"></span><div><div class="lv"><span class="nm" id="meName"></span><span class="sep"> · </span>Lv <span id="meLvl"></span></div><div class="xp"><b id="meXp"></b></div></div></a>
 </header>
 
 <main>
@@ -311,7 +323,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     <div class="facts" id="facts"></div>
   </div>
   <div class="railwrap pad" id="railwrap">
-    <div class="railhead"><span>Games <span class="sample" style="margin-left: 8px">Sample profile data</span></span><div class="keys"><span><kbd>←</kbd><kbd>→</kbd>choose</span><span><kbd>Enter</kbd>play</span><span><kbd>C</kbd>continue</span></div></div>
+    <div class="railhead"><span>Games</span><div class="keys"><span><kbd>←</kbd><kbd>→</kbd>choose</span><span><kbd>Enter</kbd>play</span><span><kbd>C</kbd>continue</span></div></div>
     <div class="rail" id="rail" role="tablist" aria-label="Games"></div>
   </div>
   <div class="cue" aria-hidden="true">Scroll<i></i></div>
@@ -405,24 +417,22 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 
 <!-- ============================================================== your evening -->
 <section class="evening pad" id="evening" aria-labelledby="eve-title">
-  <div class="sec-head reveal"><div class="eyebrow">Your evening</div><h2 id="eve-title">So far tonight, daksh.</h2><p>Everything here is read from this browser. Nothing is sent anywhere. <span class="sample">Sample profile data</span></p></div>
+  <div class="sec-head reveal"><div class="eyebrow">Your evening</div><h2 id="eve-title"></h2><p>Kept in this browser and never sent anywhere. Another browser or device starts its own evening.</p>
+    <div class="rename">
+      <button class="linkbtn" id="renameBtn" type="button">Change name</button>
+      <form id="renameForm" hidden><label for="renameIn">New name</label><input id="renameIn" autocomplete="off" spellcheck="false" aria-describedby="renameMsg"><button class="btn fill" type="submit">Save</button><button class="btn" type="button" id="renameCancel">Cancel</button><span class="msg" id="renameMsg" role="status"></span></form>
+    </div>
+  </div>
   <div class="eve">
     <div class="who">
       <div class="lvlring">
-        <svg viewBox="0 0 120 120" aria-label="Level 7, 67 percent to level 8"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(243,231,216,.1)" stroke-width="9"/><circle id="ring" cx="60" cy="60" r="50" fill="none" stroke="#f0a868" stroke-width="9" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="103.7" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" data-count="7">7</text><text class="sm" x="60" y="86" text-anchor="middle">LEVEL</text></svg>
-        <div><div class="lvl"><span data-count="1340" data-fmt>1,340</span> / 1,750 XP</div><div class="lvl" style="margin-top: 4px">410 XP to level 8</div></div>
+        <svg viewBox="0 0 120 120" id="lvlSvg" role="img"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(243,231,216,.1)" stroke-width="9"/><circle id="ring" cx="60" cy="60" r="50" fill="none" stroke="#f0a868" stroke-width="9" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" id="lvlNum"></text><text class="sm" x="60" y="86" text-anchor="middle">LEVEL</text></svg>
+        <div><div class="lvl" id="xpLine"></div><div class="lvl" style="margin-top: 4px" id="xpNext"></div></div>
       </div>
       <div class="xpbar"><b id="xp"></b></div>
-      <div class="streak" id="streak" aria-label="Played 3 days in a row"><i>M</i><i>T</i><i>W</i><i>T</i><i class="on">F</i><i class="on">S</i><i class="on">S</i></div>
+      <div class="streak" id="streak" role="img"></div>
     </div>
-    <div class="ledger">
-      <div><em style="color: var(--bj)">Blackjack</em><b data-count="4100" data-fmt>4,100</b><span>Peak chips</span></div>
-      <div><em style="color: var(--bj)">Blackjack</em><b data-count="312">312</b><span>Hands played</span></div>
-      <div><em style="color: var(--bj)">Blackjack</em><b data-count="14">14</b><span>Blackjacks</span></div>
-      <div><em style="color: var(--pk)">Parking</em><b><span data-count="38">38</span> / 51</b><span>Stars</span></div>
-      <div><em style="color: var(--pk)">Parking</em><b data-count="94">94</b><span>Best park</span></div>
-      <div><em>Everything</em><b>4h <span data-count="12">12</span>m</b><span>Time played</span></div>
-    </div>
+    <div class="ledger" id="ledger"></div>
   </div>
 </section>
 
@@ -457,31 +467,62 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 
 <script src="/vendor/gsap/gsap.min.js"></script>
 <script src="/vendor/gsap/ScrollTrigger.min.js"></script>
-<script>
+<script type="module">
+import { ensureIdentity, readProfile, levelFor, setHandle, today, HANDLE_MAX } from '/shared/profile.js';
+import { getChips } from '/shared/chips.js';
+
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const el = (tag, cls, ...kids) => { const n = document.createElement(tag); if (cls) n.className = cls; n.append(...kids); return n; };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const motion = !reduce && window.gsap && window.ScrollTrigger;
 if (!motion) document.documentElement.classList.add('static');
 
+/* -------------------------------------------------------------- this visitor: hub.v1.profile + club.v1.chips, this browser only */
+const me = ensureIdentity();
+const profile = readProfile();
+const played = profile.games;
+const lvl = levelFor(profile.xp);
+const fmt = (n) => Math.round(n).toLocaleString('en-US');
+const CARD_GAMES = ['blackjack', 'holdem', 'videopoker'];
+const hasKey = (k) => { try { return localStorage.getItem(k) != null; } catch { return false; } };
+const cardsPlayed = CARD_GAMES.some((id) => played[id]) || hasKey('club.v1.chips');
+const bank = getChips().bankroll;
+
 /* -------------------------------------------------------------- lobby (approved behaviour) */
+// Facts here are about each game; once you have played one, its own summary replaces them.
 const GAMES = [
-  { name: 'Blackjack', accent: '#f0a868', img: 'media/bj-clean.jpg', pos: '50% 35%', tag: 'Cards', eyebrow: 'Cards · New', go: '/blackjack/',
+  { id: 'blackjack', name: 'Blackjack', accent: '#f0a868', img: 'media/bj-clean.jpg', pos: '50% 35%', tag: 'Cards', eyebrow: 'Cards · New', go: '/blackjack/',
     blurb: 'Six decks, one seat, and a dealer with no face. Golden hour through the window, chips that click.',
-    resume: 'Continue · 2,450 chips', facts: [['2,450', 'Chips'], ['4,100', 'Peak'], ['312', 'Hands']] },
-  { name: 'Parking Precision', accent: '#8fe3cf', img: 'media/rooftop-dusk.webp', pos: '55% 55%', tag: 'Driving', eyebrow: 'Driving · 17 levels', go: '/parking/play/',
+    facts: [['6', 'Decks'], ['3 : 2', 'Blackjack pays'], ['1,000', 'Starting chips']] },
+  { id: 'parking', name: 'Parking Precision', accent: '#8fe3cf', img: 'media/rooftop-dusk.webp', pos: '55% 55%', tag: 'Driving', eyebrow: 'Driving · 17 levels', go: '/parking/play/',
     blurb: 'Park a real-sized car in a glowing bay, first person, scored out of 100. Mirrors, sensors and a reversing camera.',
-    resume: 'Continue · Level 7, Rooftop', facts: [['38 / 51', 'Stars'], ['94', 'Best park'], ['2h 40m', 'Played']] },
-  { name: "Hold'em", accent: '#d98a93', img: 'media/holdem.jpg', pos: '50% 40%', tag: 'Cards', eyebrow: 'Cards · New', go: '/holdem/',
-    blurb: 'No-limit Texas Hold\u2019em at a six-seat table, against five faceless regulars who each play their own way.',
-    resume: 'Continue · Blinds 5 / 10', facts: [['6', 'Seats'], ['5 / 10', 'Blinds'], ['5', 'Regulars']] },
-  { name: 'Video Poker', accent: '#e8b860', img: 'media/videopoker.jpg', pos: '50% 40%', tag: 'Cards', eyebrow: 'Cards · New', go: '/videopoker/',
+    facts: [['17', 'Car parks'], ['100', 'Best possible park'], ['720°', 'Steering wheel']] },
+  { id: 'holdem', name: "Hold'em", accent: '#d98a93', img: 'media/holdem.jpg', pos: '50% 40%', tag: 'Cards', eyebrow: 'Cards · New', go: '/holdem/',
+    blurb: 'No-limit Texas Hold’em at a six-seat table, against five faceless regulars who each play their own way.',
+    facts: [['6', 'Seats'], ['5 / 10', 'Blinds'], ['5', 'Regulars']] },
+  { id: 'videopoker', name: 'Video Poker', accent: '#e8b860', img: 'media/videopoker.jpg', pos: '50% 40%', tag: 'Cards', eyebrow: 'Cards · New', go: '/videopoker/',
     blurb: 'Jacks or Better on a full-pay machine by the window. Hold, draw, and hope for the royal.',
-    resume: 'Continue · Max bet 25', facts: [['9 / 6', 'Full pay'], ['4,000', 'Royal, max bet'], ['5', 'Coins max']] },
-  { name: 'Night Drive', accent: '#9aa6ff', img: 'media/nightdrive.jpg', pos: '50% 55%', tag: 'Test drive', eyebrow: 'Driving · Early test drive', go: '/racing/',
+    facts: [['9 / 6', 'Full pay'], ['4,000', 'Royal, max bet'], ['5', 'Coins max']] },
+  { id: 'racing', name: 'Night Drive', accent: '#9aa6ff', img: 'media/nightdrive.jpg', pos: '50% 55%', tag: 'Test drive', eyebrow: 'Driving · Early test drive', go: '/racing/',
     blurb: 'A street racing career after dark, still in the workshop. The cars are ready to try: a lit straight, a drift pad and every setup slider.',
     facts: [['2', 'Cars'], ['4', 'Preset tunes'], ['~200', 'km/h, starter']] },
 ];
+GAMES.forEach((g) => {
+  const s = played[g.id];
+  g.lastPlayed = Number(s?.lastPlayed) || 0;
+  if (!s) return;
+  if (typeof s.resume === 'string' && s.resume) g.resume = s.resume;
+  const facts = Array.isArray(s.facts) ? s.facts.filter((f) => Array.isArray(f) && f.length === 2).slice(0, 3).map(([v, l]) => [String(v), String(l)]) : [];
+  if (facts.length) g.facts = facts;
+  if (CARD_GAMES.includes(g.id)) {
+    // The bankroll is shared, so show today's, not the one saved when this game was last left.
+    g.resume = `Continue · ${fmt(bank)} chips`;
+    g.facts = g.facts.map(([v, l]) => (/^(club )?chips$/i.test(l) ? [fmt(bank), l] : [v, l]));
+  }
+});
+// Last played first; never-played games keep the order above; coming-soon last (hub SPEC §4.5).
+GAMES.sort((a, b) => (!!a.soon - !!b.soon) || (b.lastPlayed - a.lastPlayed));
 let cur = 0;
 GAMES.forEach((g, i) => {
   const im = document.createElement('img'); im.src = g.img; im.alt = ''; $('#bg').appendChild(im); g.bgEl = im;
@@ -499,8 +540,9 @@ function select(i) {
   $('#bar').style.setProperty('--accent', g.accent);
   $('#eyebrow').textContent = g.eyebrow; $('#title').textContent = g.name; $('#blurb').textContent = g.blurb;
   $('#play').disabled = !!g.soon; $('#play').firstChild.textContent = g.soon ? 'In the workshop ' : 'Play ';
-  $('#resume').hidden = !g.resume; $('#resume').innerHTML = `${g.resume || ''} <kbd>C</kbd>`;
-  $('#facts').innerHTML = g.facts.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('');
+  // Saved summaries are text, never markup.
+  $('#resume').hidden = !g.resume; $('#resume').replaceChildren(`${g.resume || ''} `, el('kbd', null, 'C'));
+  $('#facts').replaceChildren(...g.facts.map(([v, l]) => el('div', null, el('b', null, v), el('span', null, l))));
 }
 // Inside a sandboxed preview frame, links can't leave the page; everywhere else they navigate.
 const local = window.self === window.top;
@@ -518,6 +560,85 @@ addEventListener('keydown', (e) => {
   else if (e.key.toLowerCase() === 'c') play();
 });
 select(0);
+
+/* -------------------------------------------------------------- the header chip and "Your evening" */
+const anyPlayed = Object.keys(played).length > 0 || cardsPlayed;
+function initials(name) {
+  const w = name.split(' ').filter(Boolean).map((x) => [...x]);
+  return ((w[0]?.[0] || '') + (w[1]?.[0] || w[0]?.[1] || '')).toUpperCase();
+}
+function showName() {
+  $('#meAv').textContent = initials(me.handle);
+  $('#meName').textContent = me.handle; $('#meLvl').textContent = lvl.level;
+  $('#me').setAttribute('aria-label', `${me.handle}, level ${lvl.level}: your evening`);
+  $('#eve-title').textContent = anyPlayed ? `So far tonight, ${me.handle}.` : `Pull up a chair, ${me.handle}.`;
+}
+showName();
+
+const xpShare = lvl.into / lvl.next;
+const RING = 314.16, ringTo = RING * (1 - xpShare);
+$('#meXp').style.width = `${xpShare * 100}%`;
+$('#xp').style.width = `${xpShare * 100}%`;
+$('#ring').setAttribute('stroke-dashoffset', ringTo);
+if (!xpShare) $('#ring').style.display = 'none';   // a round cap would draw a dot at 0
+$('#lvlNum').textContent = lvl.level; $('#lvlNum').dataset.count = lvl.level;
+$('#lvlSvg').setAttribute('aria-label', `Level ${lvl.level}, ${Math.floor(xpShare * 100)} percent of the way to level ${lvl.level + 1}`);
+const count = (n) => { const s = el('span', null, fmt(n)); s.dataset.count = Math.round(n); s.dataset.fmt = ''; return s; };
+$('#xpLine').replaceChildren(count(lvl.into), ` / ${fmt(lvl.next)} XP`);
+$('#xpNext').textContent = `${fmt(lvl.next - lvl.into)} XP to level ${lvl.level + 1}`;
+
+// Streak: the last seven days, lit for each day of the current run.
+{
+  const now = new Date(), yest = new Date(now); yest.setDate(now.getDate() - 1);
+  const { days, last } = profile.streak;
+  const endsBack = last === today(now) ? 0 : last === today(yest) ? 1 : -1;   // -1: no run going
+  const run = endsBack < 0 ? 0 : days;
+  const box = $('#streak');
+  for (let back = 6; back >= 0; back--) {
+    const d = new Date(now); d.setDate(now.getDate() - back);
+    box.append(el('i', run && back >= endsBack && back < endsBack + run ? 'on' : null, d.toLocaleDateString('en-GB', { weekday: 'narrow' })));
+  }
+  box.setAttribute('aria-label', run ? `Played ${run} day${run === 1 ? '' : 's'} in a row` : 'No days in a row yet');
+}
+
+// Ledger: one row of numbers per game family, and the evening's total. Unplayed cells say so.
+{
+  const L = (id) => (played[id]?.ledger && typeof played[id].ledger === 'object' ? played[id].ledger : {});
+  const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const hands = CARD_GAMES.reduce((t, id) => t + n(L(id).hands), 0);
+  const pk = L('parking'), nd = L('racing');
+  const ms = Object.values(played).reduce((t, s) => t + n(s?.timeMs), 0);
+  const mins = Math.round(ms / 60000), h = Math.floor(mins / 60);
+  const cells = [
+    ['Card games', null, cardsPlayed && [count(bank)], 'Club chips'],
+    ['Card games', null, cardsPlayed && [count(hands)], 'Hands played'],
+    ['Parking', 'var(--pk)', played.parking && [count(n(pk.stars)), ` / ${n(pk.starsMax) || 51}`], 'Stars'],
+    ['Parking', 'var(--pk)', played.parking && [count(n(pk.best))], 'Best park, out of 100'],
+    ['Night Drive', '#9aa6ff', played.racing && [count(n(nd.topKmh))], 'Top speed, km/h'],
+    ['Everything', null, ms > 0 && (mins < 1 ? ['<1m'] : h ? [`${h}h `, count(mins % 60), 'm'] : [count(mins), 'm']), 'Time played'],
+  ];
+  $('#ledger').replaceChildren(...cells.map(([label, color, value, caption]) => {
+    const em = el('em', null, label); if (color) em.style.color = color;
+    return el('div', null, em, el('b', null, ...(value || ['—'])), el('span', null, value ? caption : 'Not played yet'));
+  }));
+}
+
+// Rename: the name lives in hub.v1.profile next to the id; nothing leaves the browser.
+{
+  const btn = $('#renameBtn'), form = $('#renameForm'), input = $('#renameIn'), msg = $('#renameMsg');
+  input.maxLength = HANDLE_MAX;
+  const open = () => { btn.hidden = true; form.hidden = false; msg.textContent = ''; input.value = me.handle; input.focus(); input.select(); };
+  const close = () => { form.hidden = true; btn.hidden = false; btn.focus(); };
+  btn.addEventListener('click', open);
+  $('#renameCancel').addEventListener('click', close);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); } });
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const h = setHandle(input.value);
+    if (!h) { msg.textContent = 'Type a name first, or press Cancel to keep this one.'; input.focus(); return; }
+    me.handle = h; showName(); close();
+  });
+}
 
 /* stars */
 {
@@ -630,13 +751,14 @@ if (motion) {
   counters.forEach((el) => { el.dataset.final = el.textContent; el.textContent = '0'; });
   gsap.set('#ring', { strokeDashoffset: 314.16 });
   gsap.set('#xp', { scaleX: 0 });
-  gsap.set('#streak i.on', { opacity: .15, scale: .8 });
+  const lit = $$('#streak i.on');
+  if (lit.length) gsap.set(lit, { opacity: .15, scale: .8 });
   gsap.from('.ledger > div', { opacity: 0, y: 24, stagger: .06, duration: .8, ease: 'power2.out', scrollTrigger: { trigger: '.ledger', start: 'top 80%' } });
   ScrollTrigger.create({ trigger: '#evening .eve', start: 'top 78%', once: true, onEnter: () => {
     counters.forEach((el) => { const o = { v: 0 }, end = +el.dataset.count, f = 'fmt' in el.dataset; gsap.to(o, { v: end, duration: 1.6, ease: 'power2.out', onUpdate: () => { el.textContent = f ? Math.round(o.v).toLocaleString('en-US') : Math.round(o.v); } }); });
-    gsap.to('#ring', { strokeDashoffset: 103.7, duration: 1.8, ease: 'power2.inOut' });
+    gsap.to('#ring', { strokeDashoffset: ringTo, duration: 1.8, ease: 'power2.inOut' });
     gsap.to('#xp', { scaleX: 1, duration: 1.6, ease: 'power2.inOut', delay: .2 });
-    gsap.to('#streak i.on', { opacity: 1, scale: 1, stagger: .15, duration: .5, ease: 'back.out(2)', delay: .6 });
+    if (lit.length) gsap.to(lit, { opacity: 1, scale: 1, stagger: .15, duration: .5, ease: 'back.out(2)', delay: .6 });
   } });
 
   // 9. Night: the giant wordmark rises letter by letter out of the horizon.

@@ -89,8 +89,9 @@ without `.css` (repo gotcha).
 
 - Wordmark: 12 px accent dot with `box-shadow: 0 0 16px accent`, then "afterglow".
 - Nav links 14 px `--ink-2`, hover `--ink`. Hidden below 820 px.
-- Profile chip: 30 px avatar (initials), "handle · Lv N" in mono 12 px, 72 × 4 px
-  XP bar in accent. Click scrolls to "Your evening".
+- Profile chip: 30 px avatar (initials of the handle), "handle · Lv N" in mono
+  12 px (handle cut with an ellipsis past 18 characters; below 520 px only
+  "Lv N"), 72 × 4 px XP bar in accent. Click scrolls to "Your evening".
 
 ### 4.3 Hero
 
@@ -98,9 +99,12 @@ without `.css` (repo gotcha).
 - Title: game name. Blurb: 18 px / 1.55, max 44ch, `#e2d5c5`.
 - Buttons: Play (accent fill, text `#1b1209`, keycap "Enter"); Continue
   (glass, keycap "C", label from the game's resume text). Continue hidden
-  when the game has no saved progress. Coming-soon: Play reads "In the
-  workshop", disabled; no Continue.
-- Facts: up to 3 pairs, value mono 20 px, label 12 px.
+  when the game has no saved progress. Card games build the label from the
+  live club bankroll ("Continue · 2,045 chips"), since chips are shared.
+  Coming-soon: Play reads "In the workshop", disabled; no Continue.
+- Facts: up to 3 pairs, value mono 20 px, label 12 px. Never played: facts
+  about the game (Blackjack: 6 decks, 3 : 2, 1,000 starting chips). Played:
+  the game's own `facts`, with any chips value replaced by the live bankroll.
 - `aria-live="polite"` on the hero so selection changes are announced.
 
 ### 4.4 Rail
@@ -156,13 +160,23 @@ Coming-soon tiles stay as teasers (owner, 30 Sep).
 
 ## 7. "Your evening" and footer
 
-- Left: "Your evening, <handle>" (Young Serif 32 px), "Level N · xp / next XP"
-  in mono 13 px, 6 px XP bar (gradient `#c9733f` → accent), max 280 px.
-- Right: ledger, 3 columns × 2 rows (2 columns below 620 px), 1 px `--line`
-  gaps, each cell: game label (mono 11 px accent uppercase), value (mono
-  22 px), caption (13 px).
-- Cells v1: Blackjack peak chips, Blackjack hands, Parking stars, Parking best
-  park, total time played, current day streak.
+- Heading: "So far tonight, <handle>." once anything has been played;
+  "Pull up a chair, <handle>." for a newcomer. Under it: "Kept in this browser
+  and never sent anywhere. Another browser or device starts its own evening."
+- "Change name" (text button) opens an inline form: label "New name", input
+  (max 24 characters), Save, Cancel. Enter saves, Esc or Cancel closes, focus
+  returns to "Change name". An empty name is refused with "Type a name first,
+  or press Cancel to keep this one."
+- Left: level ring (hidden at 0 XP into the level), "into / next XP",
+  "N XP to level L+1", 6 px XP bar (gradient `#c9733f` → accent), streak: the
+  last seven days by weekday initial, lit for the current run.
+- Right: ledger, 3 columns × 2 rows (2 columns below 900 px), 1 px `--line`
+  gaps, each cell: label (mono 11 px uppercase, game accent), value (mono
+  30 px), caption (13 px).
+- Cells (owner, 2 Oct 2026): Card games · club chips (live bankroll); Card
+  games · hands played (Blackjack + Hold'em + Video Poker); Parking · stars
+  (x / 51); Parking · best park, out of 100; Night Drive · top speed, km/h;
+  Everything · time played.
 - Never-played game: its cells show "—" and caption "Not played yet".
 - Footer: "Browser games by Daksh Anajwala · github.com/DakshAnajwala ·
   progress stays on this device"; links Privacy, Terms, Third-party notices.
@@ -175,7 +189,8 @@ Extends `apps/blackjack/SPEC.md` §13.
 ```js
 // localStorage "hub.v1.profile"
 {
-  handle: "daksh",            // shared with the parking leaderboard handle when set
+  id: "52f37248-f49e-422b-8cd4-ba2618c73d09", // random, made on the first hub visit
+  handle: "Warm Tern",        // random evening name until the player changes it
   xp: 1340,
   streak: { days: 3, last: "2026-09-30" },
   games: {
@@ -189,9 +204,21 @@ Extends `apps/blackjack/SPEC.md` §13.
 }
 ```
 
+- Identity (owner, 2 Oct 2026: "everyone should have their own unique user
+  id"): `ensureIdentity()` in `packages/shared/profile.js` makes `id`
+  (`crypto.randomUUID()`, random-bytes fallback outside a secure context) and
+  `handle` (an adjective + night creature, e.g. "Amber Heron") on the first
+  hub visit. `setHandle()` renames (trimmed, control characters removed, max
+  24). Both stay in this browser: no network, no accounts, so another browser
+  or device is another player. Syncing across devices would need accounts and
+  a server (owner's call). The id is not shown on the page; it is kept for the
+  club leaderboard. The handle is separate from Parking's server-owned
+  leaderboard name.
+- `readProfile()` keeps `id` and `handle`, so every game's read-modify-write
+  preserves them.
 - Each game writes its own entry when a session ends and on `pagehide`. The
-  hub only reads. Reads and writes are wrapped in try/catch; bad data =
-  defaults.
+  hub writes only the identity. Reads and writes are wrapped in try/catch;
+  bad data = defaults.
 - Level curve: reaching level L+1 from L costs `250 × L` XP (L1→2 = 250,
   L7→8 = 1,750).
 - XP sources: Blackjack per its spec §6.1. Parking: finished park 5 XP + 5 per

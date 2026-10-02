@@ -26,7 +26,8 @@ shared profile.
 6. Parking chapter (sticky, 420vh): horizontal filmstrip, counter, progress.
 7. Workshop: Night Drive teaser (owner wants teasers kept). Since 1 Oct it
    is an early test drive with a "Test drive" button to `/racing/`.
-7. Your evening: profile stats count up (sample data until profiles exist).
+7. Your evening: this browser's player (random name, changeable) with level,
+   streak and a ledger of real numbers that count up.
 8. The house: about + FAQ. 9. Night footer: giant wordmark rises.
 
 Scroll animation: GSAP 3.15 + ScrollTrigger, self-hosted at `/vendor/gsap/`. With
@@ -39,8 +40,13 @@ end state. Keep that fallback working when adding sections.
   Video Poker `#e8b860`, Night Drive `#9aa6ff`.
 - Links to games are site paths (`/blackjack/`, `/holdem/`, `/videopoker/`, `/parking/play/`, `/racing/`). Inside a
   sandboxed preview frame they show a toast instead of navigating.
-- Profile numbers on the page are sample data and must stay labelled so until
-  `packages/shared` profile code feeds real values.
+- Every number about the player is real, read from `hub.v1.profile` and
+  `club.v1.chips` through `packages/shared/profile.js` and `chips.js`. Never
+  show sample data. Each browser is its own player: `ensureIdentity()` gives
+  it a random id and name on the first visit (SPEC §8). Saved summaries are
+  rendered as text, never as markup.
+- The hub script is a module (`<script type="module">`) importing
+  `/shared/*.js`, so open the page from `dist/` (`npm run serve`).
 - Legal pages: `legal/privacy.html`, `legal/terms.html`, `legal/notices.html`
   (+ `legal.css`), copied to the site root. `/parking/{privacy,terms,notices}.html`
   redirect to them (`vercel.json`), so Parking's in-game links land here too.
@@ -48,6 +54,6 @@ end state. Keep that fallback working when adding sections.
 
 ## Open
 
-- Real profile data (read `hub.v1.profile`), sorting the rail by last played.
+- XP: no game calls `addXp` yet, so every player stays Level 1. The XP sources are in SPEC §8; wiring them changes saved data, so it needs the owner's yes.
 - Leaderboard: designed in `SPEC-leaderboard.md` (mock `design/leaderboard.html`), waiting on the owner's answers (§9).
 - robots.txt and sitemap at the site root.
