@@ -95,6 +95,12 @@ export async function rerollBoardName() {
   return post({ a: 'reroll', player: ensureIdentity().id });
 }
 
+/** Report a finished Daily Blackjack tournament's final stack to the weekly board. Returns true when the server took it. */
+export async function submitTournament(stack) {
+  if (!boardEnabled() || !Number.isInteger(stack)) return false;
+  return !!(await post({ a: 'submit', player: ensureIdentity().id, board: 'bt', data: { stack } }));
+}
+
 /** Report Blackjack's peak and Parking's stars from the saved profile, only when they went up since the last report. */
 export async function submitFromProfile() {
   try {

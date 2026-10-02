@@ -175,6 +175,8 @@ select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid 
   <div class="row"><span class="lbl">Chips</span><span id="bank" class="num">1,000</span></div>
   <div class="row"><span class="lbl">Bet</span><span id="bet" class="num small">0</span></div>
   <button class="learn" id="bLearn" type="button">Learn to play <kbd>T</kbd></button>
+  <button class="learn" id="bTour" type="button">Daily tournament <kbd>N</kbd></button>
+  <button class="learn" id="bShare" type="button" hidden>Share my tournament</button>
 </header>
 
 <div id="tags"><div id="dTag" class="htag panel off"><span class="t"></span><span class="r"></span></div><div id="pTag" class="htag panel off"><span class="t"></span><span class="r"></span></div></div>
@@ -243,8 +245,13 @@ select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid 
 import * as THREE from '/vendor/three/three.module.js';
 // Shared Sundown Club code, copied to /shared/ by tools/build-site.mjs.
 import { createLeaveGuard } from '/shared/leave-guard.js';
-import { trackPlaytime, updateGame } from '/shared/profile.js';
-import { initTelemetry } from '/shared/telemetry.js';
+import { trackPlaytime, updateGame, levelFor, titleFor, readProfile } from '/shared/profile.js';
+import { seededShuffle, seedFor, dayNumber } from '/shared/seed.js';
+import { reportSeed, seedResults } from '/shared/retention.js';
+import { submitTournament } from '/shared/leaderboard.js';
+import { renderShareCard, shareResult } from '/shared/sharecard.js';
+import { showNote } from '/shared/roundpanel.js';
+import { initTelemetry, track } from '/shared/telemetry.js';
 import { reportRound } from '/shared/retention.js';
 import { cardBackPalette, feltColor } from '/shared/cosmetics.js';
 import { showRoundPanel } from '/shared/roundpanel.js';
@@ -921,8 +928,13 @@ const saved = (() => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) |
 // One club bankroll for every casino game (packages/shared/chips.js); Blackjack keeps its own stats.
 G.bank = G.shownBank = getChips().bankroll;
 G.peak = Math.max(Number(saved.peak) || 0, G.bank); G.hands = Number(saved.hands) || 0; G.naturals = Number(saved.naturals) || 0;
+// The Daily Blackjack tournament: 20 hands from one shoe everyone gets today (seeded by the UTC date), starting with 1,000 chips
+// of its own. Nothing here touches the club chips, the peak or the hand count; the final stack is the score, one go a day.
+const TOUR = { on: false, hands: 0, max: 20 };
+const TOUR_KEY = 'bj.v1.tour';
+let lastTour = null;
 function saveGame() {
-  if (TUT.on) return;   // tutorial chips are pretend
+  if (TUT.on || TOUR.on) return;   // tutorial and tournament chips are pretend
   setBankroll(G.bank);
   try { localStorage.setItem(SAVE_KEY, JSON.stringify({ peak: G.peak, hands: G.hands, naturals: G.naturals })); } catch { /* storage blocked */ }
   updateGame('blackjack', {
@@ -1025,6 +1037,56 @@ function endTutorial() {
   newShoe(); updateHud(); showBars();
   say('Place a bet to start. Press T any time to see the tutorial again.');
 }
+function startTournament() {
+  if (TUT.on || TOUR.on || G.phase !== 'bet' || TL.busy) return;
+  const done = seedResults().blackjack;
+  if (done) { toast(`Today's tournament: ${fmt(done.stack)} chips. A new one starts at midnight UTC.`); return; }
+  let st = {}; try { st = JSON.parse(localStorage.getItem(TOUR_KEY)) || {}; } catch { /* none */ }
+  if (st.n === dayNumber()) { toast("You already started today's tournament. The next one starts at midnight UTC."); return; }
+  try { localStorage.setItem(TOUR_KEY, JSON.stringify({ n: dayNumber() })); } catch { /* blocked */ }
+  TOUR.on = true; TOUR.hands = 0;
+  resetTable();
+  if (G.tier !== TIERS.lounge) setTier('lounge');
+  G.bank = G.shownBank = 1000; G.lastBet = 0; TL.speed = 1;
+  const s = [];
+  for (let d = 0; d < 6; d++) for (const suit of 'SHDC') for (const rank of RANKS) s.push({ rank, suit });
+  G.shoe = seededShuffle(s, seedFor('blackjack')); G.dealt = 0;
+  $('#bShare').hidden = true; $('#practiceTag').hidden = false; $('#practiceTag').textContent = `Tournament 0 / ${TOUR.max}`;
+  updateHud(); showBars();
+  say(`Today's tournament: ${TOUR.max} hands from the same shoe as everyone. The biggest stack wins.`);
+}
+function tourHandDone() {
+  TOUR.hands += 1;
+  $('#practiceTag').textContent = `Tournament ${TOUR.hands} / ${TOUR.max}`;
+  if (TOUR.hands >= TOUR.max || G.bank < G.tier.min) finishTournament(false);
+}
+function finishTournament(forfeit) {
+  if (!TOUR.on) return;
+  TOUR.on = false;
+  const stack = Math.max(0, Math.round(G.bank));
+  const r = reportSeed('blackjack', { stack, hands: TOUR.hands });
+  const kept = r.result || { stack };
+  submitTournament(kept.stack);
+  lastTour = { stack: kept.stack, hands: TOUR.hands, day: dayNumber() };
+  resetTable();
+  G.bank = G.shownBank = getChips().bankroll; G.lastBet = 50;
+  $('#practiceTag').hidden = true; $('#practiceTag').textContent = 'Practice';
+  newShoe(); updateHud(); showBars();
+  $('#bShare').hidden = false;
+  showNote(forfeit ? `You left the tournament: it counts with ${fmt(kept.stack)} chips.` : `Tournament over: ${fmt(kept.stack)} chips after ${lastTour.hands} hands${r.first ? ` · +${r.xp} XP` : ''}. Use Share to send your result.`, { ttl: 12000, corner: 'bl' });
+}
+async function shareTour() {
+  if (!lastTour) return;
+  const p = readProfile(), lvl = levelFor(p.xp), btn = $('#bShare');
+  btn.disabled = true;
+  try {
+    const eyebrow = `Sundown Daily #${lastTour.day}`, title = `${fmt(lastTour.stack)} chips`;
+    const png = await renderShareCard({ eyebrow, title, sub: `Blackjack tournament · ${lastTour.hands} hands, the same shoe for everyone`, game: 'Blackjack', accent: '#f0a868', foot: `Level ${lvl.level} · ${titleFor(lvl.level)}${p.streak?.days > 1 ? ` · ${p.streak.days}-day streak` : ''}` });
+    const how = await shareResult({ title: eyebrow, text: `${eyebrow} · Blackjack tournament\n${title} after ${lastTour.hands} hands`, url: `${location.origin}/blackjack/?tournament=1`, png });
+    track('share_click', { kind: how });
+    toast(how === 'copied' ? 'Result and link copied.' : how === 'downloaded' ? 'Picture saved.' : how === 'shared' ? 'Shared.' : 'Could not share that.');
+  } finally { btn.disabled = false; }
+}
 const playtime = trackPlaytime('blackjack');
 // Esc once: "Leave Blackjack?"; Esc again: void any round in play (its stake comes back), save, go to the club.
 createLeaveGuard({
@@ -1032,6 +1094,7 @@ createLeaveGuard({
   save: () => {
     TL.skipAll();
     if (G.phase !== 'bet' && G.bet) { G.bank += G.bet; G.bet = 0; }
+    if (TOUR.on) finishTournament(true);   // leaving mid-tournament counts as it stands, so the same shoe cannot be replayed
     playtime.flush();
     saveGame();
   },
@@ -1133,8 +1196,8 @@ function deal() {
   }
   if (G.bet < G.tier.min) return say(`Minimum bet is ${fmt(G.tier.min)}.`);
   if (G.cardsOnTable.length) clearTable();
-  if (G.dealt >= 234 || !G.shoe.length) { newShoe(); toast('New shoe, shuffled'); }
-  if (G.hands === 0 && !TUT.on && !practice && !G.firstDone) {   // a gentle first hand (you 19, dealer 6 then bust): the welcome
+  if ((G.dealt >= 234 && !TOUR.on) || !G.shoe.length) { newShoe(); toast('New shoe, shuffled'); }
+  if (G.hands === 0 && !TUT.on && !TOUR.on && !practice && !G.firstDone) {   // a gentle first hand (you 19, dealer 6 then bust): the welcome
     G.firstDone = true; G.firstHand = true;
     newShoe(); G.shoe.push(...[card('10', 'S'), card('6', 'D'), card('9', 'H'), card('10', 'C'), card('K', 'D')].reverse());
   }
@@ -1211,12 +1274,13 @@ function settle() {
   TL.call(() => {
     const back = kind === 'lose' ? 0 : G.bet + win;
     countBank(G.bank + back); G.bank += back;
-    if (!TUT.on) { G.hands += 1; if (kind === 'natural') G.naturals += 1; } G.peak = Math.max(G.peak, G.bank); saveGame();
+    if (!TUT.on && !TOUR.on) { G.hands += 1; if (kind === 'natural') G.naturals += 1; G.peak = Math.max(G.peak, G.bank); } saveGame();
     if (G.firstHand) { G.firstHand = false; say('That first hand was a practice deal. Every hand from here is a fair shuffle.'); }
     if (!TUT.on && !practice) showRoundPanel(reportRound('blackjack', 'hand', { result: kind, total: p, cards: G.player.length, doubled: !!G.doubled, bust: p > 21, net: kind === 'lose' ? -G.bet : win, bet: G.bet }));
     G.betChips = []; G.bet = 0; G.phase = 'bet'; updateHud(); showBars();
     tutEmit('handEnd');
-    if (!TUT.on && G.bank < G.tier.min) say(G.bank < 10 ? 'Out of chips. In the build: Refill to 1,000.' : `Below this room's minimum.`);
+    if (TOUR.on) tourHandDone();
+    if (!TUT.on && !TOUR.on && G.bank < G.tier.min) say(G.bank < 10 ? 'Out of chips. In the build: Refill to 1,000.' : `Below this room's minimum.`);
   });
 }
 
@@ -1317,14 +1381,17 @@ addEventListener('keydown', (e) => {
   if (keyForControl(e)) return;
   if (isField(e.target) && e.target.type !== 'checkbox' && e.target.type !== 'radio') return;
   const k = e.key.toLowerCase();
-  if (k === 't' && !TUT.on) { startTutorial(); return; }
+  if (k === 't' && !TUT.on && !TOUR.on) { startTutorial(); return; }
+  if (k === 'n') { startTournament(); return; }
   if (k === ' ') { e.preventDefault(); if (TL.busy) { if (!TUT.on) TL.skipAll(); } else if (G.phase === 'bet') deal(); return; }
   if (k >= '1' && k <= '9') { const v = G.tier.chips[+k - 1]; if (v) placeChip(v); return; }
   const map = { h: hit, s: stand, d: double, z: undoChip, backspace: undoChip, c: clearBet };
   if (map[k]) { e.preventDefault(); map[k](); return; }
   if (k === 'x' && G.phase === 'bet' && G.lastBet) { clearBet(); const v = Math.min(G.lastBet * 2, G.tier.max, G.bank); G.lastBet = v; deal(); }
 });
-$('#bLearn').addEventListener('click', () => (TUT.on ? null : startTutorial()));
+$('#bLearn').addEventListener('click', () => (TUT.on || TOUR.on ? null : startTutorial()));
+$('#bTour').addEventListener('click', startTournament);
+$('#bShare').addEventListener('click', shareTour);
 document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => ({ hit, stand, double, undo: undoChip, clear: clearBet, deal })[b.dataset.act]()));
 renderer.domElement.addEventListener('pointerdown', () => { if (TL.busy) TL.skipAll(); });
 addEventListener('pointerdown', () => { if (ac?.state === 'suspended') ac.resume(); }, { capture: true });
@@ -1390,14 +1457,16 @@ async function boot() {
   frame();
   $('#loading').classList.add('gone');
   // Open in a working state: a 50 bet, dealt.
-  const offered = G.hands === 0 && coach.offerOnce('blackjack', {
+  const wantTour = /[?&]tournament\b/.test(location.search);   // the hub's "Today's tournament" link
+  const offered = !wantTour && G.hands === 0 && coach.offerOnce('blackjack', {
     title: 'New to blackjack?',
     body: ['A short tutorial walks you through four practice hands with pretend chips. It takes about two minutes, and you can leave it whenever you like.'],
     onYes: () => startTutorial(),
     onNo: () => say('Place a bet to start. Press T any time for the tutorial.'),
   });
-  if (!offered) setTimeout(() => { if (!TUT.on && G.phase === 'bet' && !G.cardsOnTable.length) { G.lastBet = 50; deal(); } }, 900);
-  window.__bj = { T: TUT, startTutorial, endTutorial, G, TL, setTod: (t) => { tod = t; live = false; applyDay(t); }, setCam: (m) => (camMode = m), renderer, scene, camera };
+  if (wantTour) setTimeout(startTournament, 700);
+  else if (!offered) setTimeout(() => { if (!TUT.on && !TOUR.on && G.phase === 'bet' && !G.cardsOnTable.length) { G.lastBet = 50; deal(); } }, 900);
+  window.__bj = { T: TUT, TOUR, startTournament, finishTournament, deal, stand, startTutorial, endTutorial, G, TL, setTod: (t) => { tod = t; live = false; applyDay(t); }, setCam: (m) => (camMode = m), renderer, scene, camera };
 }
 boot();
 </script>

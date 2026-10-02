@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       res.status(200).json(s); return;
     }
     if (a === 'submit') {
-      const r = await submit(store, player, body.board, body.data);
+      const r = await submit(store, player, body.board, body.data, now);
       res.status(r.ok ? 200 : r.status).json(r.ok ? { ok: true } : { error: 'rejected' }); return;
     }
     if (a === 'name') { res.status(200).json({ name: await nameOf(store, player) }); return; }

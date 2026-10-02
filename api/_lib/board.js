@@ -14,6 +14,7 @@
  *   b:bj            zset  id -> peak chips
  *   b:pk            zset  id -> stars * 1000 + best park
  *   b:streak        zset  id -> best run of UTC days with 5+ minutes
+ *   b:bt:w:<mon>    zset  id -> best final stack in the Daily Blackjack tournament this week (60 days)
  */
 import { createHash, randomBytes } from 'node:crypto';
 import { hash32 } from '../../packages/shared/daily.js';
@@ -26,6 +27,7 @@ export const SESSION_MAX_S = 6 * 3600;
 export const DAY_MAX_S = 16 * 3600;
 export const STREAK_DAY_S = 300;
 export const BJ_MAX = 10_000_000;
+export const TOUR_MAX = 21_000;   // 1,000 start + 20 hands of at most 1,000 won each (a doubled 500 bet)
 export const STARS_MAX = 51;
 export const ROLLS_PER_DAY = 3;
 export const LIMITS = { submit: [12, 600], beat: [90, 600], session: [30, 600], name: [10, 600], read: [240, 60], club: [20, 600], invite: [20, 600] };
@@ -136,7 +138,7 @@ async function bumpStreak(store, player, now) {
 
 // ------------------------------------------------------------------ client-reported boards (unverified, so only sanity)
 /** data: bj { peak }, pk { stars, best }. Returns { ok, status? } (422 = impossible numbers). */
-export async function submit(store, player, board, data) {
+export async function submit(store, player, board, data, now = Date.now()) {
   const int = (x, lo, hi) => (Number.isInteger(x) && x >= lo && x <= hi ? x : null);
   if (board === 'bj') {
     const peak = int(data?.peak, 0, BJ_MAX);
@@ -145,6 +147,16 @@ export async function submit(store, player, board, data) {
     if (peak > 1000 + (Number(secs) || 0) * 400) return { ok: false, status: 422 };   // chips cannot grow faster than the time played allows
     await nameOf(store, player);
     await store.run([['ZADD', 'b:bj', 'GT', peak, player]]);
+    return { ok: true };
+  }
+  if (board === 'bt') {
+    const stack = int(data?.stack, 0, TOUR_MAX);
+    if (stack === null) return { ok: false, status: 422 };
+    const [secs] = await store.run([['HGET', `b:pg:${player}`, 'blackjack']]);
+    if ((Number(secs) || 0) < 90) return { ok: false, status: 422 };   // twenty hands take more than a minute and a half of play
+    await nameOf(store, player);
+    const key = `b:bt:w:${weekKey(now)}`;
+    await store.run([['ZADD', key, 'GT', stack, player], ['EXPIRE', key, WEEK_TTL]]);
     return { ok: true };
   }
   if (board === 'pk') {
@@ -164,6 +176,7 @@ export async function submit(store, player, board, data) {
 export function boardKey(tab, win, now) {
   if (tab === 'time') return win === 'all' ? 'b:time:all' : `b:time:w:${weekKey(now)}`;
   if (tab === 'bj') return 'b:bj';
+  if (tab === 'tour') return `b:bt:w:${weekKey(now)}`;
   if (tab === 'pk') return 'b:pk';
   if (tab === 'streak') return 'b:streak';
   return null;
@@ -200,7 +213,7 @@ export async function readBoard(store, { tab, win = 'week', player = null }, now
 export async function leave(store, player, now = Date.now()) {
   const [name] = await store.run([['HGET', `b:p:${player}`, 'name']]);
   const cmds = [['ZREM', 'b:time:all', player], ['ZREM', 'b:bj', player], ['ZREM', 'b:pk', player], ['ZREM', 'b:streak', player]];
-  for (let w = 0; w < 9; w++) cmds.push(['ZREM', `b:time:w:${weekKey(now - w * 7 * DAY_MS)}`, player]);
+  for (let w = 0; w < 9; w++) cmds.push(['ZREM', `b:time:w:${weekKey(now - w * 7 * DAY_MS)}`, player], ['ZREM', `b:bt:w:${weekKey(now - w * 7 * DAY_MS)}`, player]);
   if (name) cmds.push(['HDEL', 'b:names', name]);
   const club = await clubOf(store, player);
   if (club) cmds.push(['SREM', `b:club:${club}`, player]);

@@ -85,6 +85,19 @@ await ok(async () => { // submit
   assert.equal((await B.submit(s, p, 'zz', {})).status, 400);
   assert.equal(Number((await s.run([['ZSCORE', 'b:pk', p]]))[0]), 30094);
 });
+await ok(async () => { // the Daily Blackjack tournament board
+  const s = memoryStore(), p = id(1);
+  assert.equal((await B.submit(s, p, 'bt', { stack: 1500 }, T0)).status, 422, 'no play time yet');
+  await play(s, p, 'blackjack', T0, 5);
+  assert.ok((await B.submit(s, p, 'bt', { stack: 1500 }, T0 + 6 * MIN)).ok);
+  assert.ok((await B.submit(s, p, 'bt', { stack: 900 }, T0 + 6 * MIN)).ok);
+  const b = await B.readBoard(s, { tab: 'tour', win: 'week', player: p }, T0 + 6 * MIN);
+  assert.deepEqual([b.rows.length, b.rows[0].value, b.you.rank], [1, 1500, 1], 'the best stack of the week stays');
+  for (const bad of [{ stack: 21001 }, { stack: -1 }, { stack: 10.5 }, { stack: '5' }, {}, null]) assert.equal((await B.submit(s, p, 'bt', bad, T0 + 6 * MIN)).status, 422);
+  assert.equal((await B.readBoard(s, { tab: 'tour', win: 'week' }, T0 + 7 * DAY)).rows.length, 0, 'resets on Monday');
+  await B.leave(s, p, T0 + 7 * MIN);
+  assert.equal((await B.readBoard(s, { tab: 'tour', win: 'week' }, T0 + 7 * MIN)).rows.length, 0, 'leaving removes it');
+});
 await ok(async () => { // ranks, ties, "you" pinned, windows
   const s = memoryStore();
   for (let i = 1; i <= 14; i++) await play(s, id(i), 'blackjack', T0, i <= 3 ? 20 : 20 - i);   // 1-3 tie at 20 min, then falling

@@ -1095,7 +1095,7 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     const res = seedResults(), ms = msToNextSeed();
     $('#dseed-h').textContent = `Sundown Daily #${dayNumber()}`;
     $('#dseedMeta').textContent = `same for everyone · new in ${Math.floor(ms / 3600000)}h ${String(Math.floor(ms / 60000) % 60).padStart(2, '0')}m (UTC midnight)`;
-    const vp = res.videopoker, pk = res.parking;
+    const vp = res.videopoker, pk = res.parking, bt = res.blackjack;
     const share = async (game, line, sub, accent) => {
       const p = readProfile(), l = levelFor(p.xp), eyebrow = `Sundown Daily #${dayNumber()}`;
       const png = await renderShareCard({ eyebrow, title: line, sub, game, accent, foot: `Level ${l.level} · ${titleFor(l.level)}${p.streak?.days > 1 ? ` · ${p.streak.days}-day streak` : ''}` });
@@ -1111,6 +1111,7 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     };
     $('#dsrows').replaceChildren(
       row('/videopoker/?daily=1', 'Video Poker', vp ? `${vp.name}${vp.coins ? ` · ${vp.coins} coins` : ''}` : 'Play', "Today's hand: the same five cards and the same draw for everyone. One go, free play, +50 XP.", !!vp, () => share('Video Poker', vp.name, vp.coins ? `${vp.coins} coins` : '', '#e8b860')),
+      row('/blackjack/?tournament=1', 'Blackjack tournament', bt ? `${Number(bt.stack).toLocaleString('en-US')} chips` : 'Play', "Today's tournament: 20 hands from one shoe shared by everyone, with tournament chips of their own. One go, +50 XP, and a weekly board.", !!bt, () => share('Blackjack', `${Number(bt.stack).toLocaleString('en-US')} chips`, 'Tournament, 20 hands', '#f0a868')),
       row('/parking/play/', 'Parking Precision', pk ? `${pk.score} pts · ${pk.stars} star${pk.stars === 1 ? '' : 's'}` : 'Play', "Today's lot, a fresh variant of a car park. It is in the menu as Today's daily. +50 XP the first time.", !!pk, () => share('Parking Precision', `${pk.score} points`, `${pk.stars} star${pk.stars === 1 ? '' : 's'}`, '#8fe3cf')),
     );
   }
@@ -1184,6 +1185,7 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     time: { label: 'Play time', accent: '#f0a868', eyebrow: 'The board · resets Mondays', title: "Who's been here longest.", sub: 'Minutes actually played across every game, counted by the server. Idle tabs do not count.', win: true, fmt: (r) => hm(r.value), empty: 'Nobody yet this week. Play for a few minutes to be first.' },
     bj: { label: 'Blackjack', accent: '#f0a868', eyebrow: 'Blackjack · peak chips · unverified', title: 'Best night at the table.', sub: 'The most chips you have held in Blackjack. Reported by your browser, so treat it as friendly.', fmt: (r) => r.value.toLocaleString('en-US'), empty: 'No one has reported a peak yet.' },
     pk: { label: 'Parking', accent: '#8fe3cf', eyebrow: 'Parking Precision · stars · unverified', title: 'Tidiest drivers.', sub: 'Stars across all 17 levels (51 is perfect). Ties go to the better best park.', fmt: (r) => `${r.value} / 51`, empty: 'No one has reported stars yet.' },
+    tour: { label: 'Tournament', accent: '#f0a868', eyebrow: 'Daily Blackjack tournament · best stack this week · unverified', title: 'Biggest stack.', sub: 'The best final stack in the Daily Blackjack tournament this week: 20 hands from the same shoe for everyone, 1,000 tournament chips each. Reported by your browser, so treat it as friendly.', fmt: (r) => r.value.toLocaleString('en-US'), empty: 'Nobody has finished this week\'s tournaments yet.' },
     friends: { label: 'Friends', accent: '#d98a93', eyebrow: 'Friends · play time · private', title: 'Just us.', sub: 'A private board for people with the same six-character code. Same rules as the club board: names are made up, minutes are counted by the server.', win: true, fmt: (r) => hm(r.value), empty: 'Nobody in your club has played this week yet.' },
     streak: { label: 'Streak', accent: '#f0a868', eyebrow: 'Streak · days in a row', title: 'Regulars.', sub: 'Most UTC days in a row with at least five minutes of play, counted by the server.', fmt: (r) => `${r.value} day${r.value === 1 ? '' : 's'}`, empty: 'Nobody has a run yet.' },
   };

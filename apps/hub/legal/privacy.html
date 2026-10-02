@@ -46,6 +46,7 @@
     <tr><td><code>hub.v1.invite</code></td><td>An invite code from a link you opened, kept until you finish your first round.</td></tr>
     <tr><td><code>hub.v1.tele</code></td><td>The day you first opened the club on this browser, so the usage counters can say “day 5”. Never sent as a date, only as a number of days.</td></tr>
     <tr><td><code>tut.v1.…</code></td><td>Whether you have already been offered each game’s tutorial, so it doesn’t ask again.</td></tr>
+    <tr><td><code>bj.v1.tour</code></td><td>Blackjack: the day number you started the daily tournament, so the same shoe cannot be replayed.</td></tr>
     <tr><td><code>bj.v1.main</code></td><td>Blackjack: your highest chip count, hands played and blackjacks.</td></tr>
     <tr><td><code>holdem.v1</code></td><td>Hold’em: hands played, hands won and the biggest pot you have won.</td></tr>
     <tr><td><code>vp.v1</code></td><td>Video Poker: hands played, your best hand and chips won.</td></tr>
@@ -100,7 +101,7 @@
 <h3>What is sent</h3>
 <ul>
   <li><strong>Play time:</strong> when a game page opens it asks the club’s server for a session; then, only while the page is on screen and you have pressed a key or moved the pointer in the last two minutes, it sends one small “still here” message a minute. It names the game (for example <em>blackjack</em>) and nothing else. Hidden or idle pages send nothing, and the server counts at most 75 seconds per message, six hours a session and sixteen hours a day.</li>
-  <li><strong>Blackjack and Parking numbers:</strong> your best chip count and your Parking star total with your best park. These come from your browser, so they can be edited by someone who tries; the board says “unverified” and the server refuses impossible values.</li>
+  <li><strong>Blackjack and Parking numbers:</strong> your best chip count, your Parking star total with your best park, and your final stack in the Daily Blackjack tournament (the best of the week is shown). These come from your browser, so they can be edited by someone who tries; the board says “unverified” and the server refuses impossible values.</li>
   <li>The random identifier from your profile goes with each message. <strong>No name you typed is ever sent.</strong> The name on the board is made up by the server from that identifier (for example “Amber Heron 42”). “New name” makes another, up to three a day.</li>
 </ul>
 <h3>What is kept and who sees it</h3>
