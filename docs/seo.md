@@ -62,5 +62,5 @@ These steps need the owner's own Google and Microsoft accounts.
 - Every new public page gets a title, a description, a canonical URL, share tags, JSON-LD that matches what is on the page, and an entry in `PAGES`.
 - Never invent ratings, reviews, player counts or awards in structured data.
 - Copy rules still apply in titles and descriptions: plain English, play chips only (never "$"), no mention of AI, no school name.
-- No analytics or search tracking script: the privacy policy says there is none (§3).
+- No third-party analytics or search tracking script (privacy §3). The club's own anonymous counters are described in privacy §6 and `docs/retention/SPEC-telemetry.md`.
 - The React rebuild (Phase 3) must keep every tag above. Check that the built HTML, not only the rendered page, carries them.

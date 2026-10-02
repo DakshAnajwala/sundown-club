@@ -16,15 +16,15 @@
 </header>
 <main>
 <h1>Privacy policy</h1>
-<p class="updated">Last updated 2 October 2026</p>
+<p class="updated">Last updated 2 October 2026 (anonymous usage counters added)</p>
 
 <div class="short">
 <h2 style="border: 0; margin-top: 18px; padding-top: 0">The short version</h2>
 <ul>
   <li><strong>No accounts.</strong> No sign-up, no password, no email address. You never type your name anywhere.</li>
   <li><strong>Your progress stays in your browser.</strong> Chips, scores, settings and play time are saved on your own device and are not sent to us.</li>
-  <li><strong>One thing is ever sent:</strong> Parking Precision’s leaderboard scores, with a made-up name. You can switch that off (section 5).</li>
-  <li><strong>No ads, no tracking, no analytics</strong> on Sundown Club.</li>
+  <li><strong>Two things are sent:</strong> Parking Precision’s leaderboard scores, with a made-up name (section 5), and anonymous usage counters, such as which game page was opened, with a random number that is not linked to your name (section 6). You can switch both off.</li>
+  <li><strong>No ads, no cookies, no tracking across other sites, and no third-party analytics</strong> on Sundown Club.</li>
   <li><strong>Nothing is loaded from other companies.</strong> Fonts and code are served from this site itself.</li>
   <li><strong>Play money only.</strong> The chips in Blackjack, Hold’em and Video Poker are not real money and never can be.</li>
 </ul>
@@ -40,6 +40,8 @@
   <tbody>
     <tr><td><code>club.v1.chips</code></td><td>Your club chips, shared by Blackjack, Hold’em and Video Poker: how many you have, the most you have ever had, and how many times the club refilled them.</td></tr>
     <tr><td><code>hub.v1.profile</code></td><td>What the homepage shows about you: a random identifier and a name for you, both made the first time you open the homepage (the name is picked at random until you change it under “Your evening”), when you last played each game, a one-line summary of each (for example your chip count), how long you have played each game while it was on screen, how many days in a row you have played, and your club level. The identifier and the name never leave your browser, so another browser or device gets its own. The name is not your Parking Precision leaderboard name.</td></tr>
+    <tr><td><code>hub.v1.settings</code></td><td>Your choices about the club, for now whether you allow the anonymous usage counters in section 6.</td></tr>
+    <tr><td><code>hub.v1.tele</code></td><td>The day you first opened the club on this browser, so the usage counters can say “day 5”. Never sent as a date, only as a number of days.</td></tr>
     <tr><td><code>tut.v1.…</code></td><td>Whether you have already been offered each game’s tutorial, so it doesn’t ask again.</td></tr>
     <tr><td><code>bj.v1.main</code></td><td>Blackjack: your highest chip count, hands played and blackjacks.</td></tr>
     <tr><td><code>holdem.v1</code></td><td>Hold’em: hands played, hands won and the biggest pot you have won.</td></tr>
@@ -53,7 +55,7 @@
 
 <h2>3. Hosting</h2>
 <p>The site is hosted by <a href="https://vercel.com" rel="noopener">Vercel</a>. Like every web host, Vercel’s servers see standard connection details in order to send you the pages, such as your IP address, browser type and the time of each request. We don’t look at, collect or use those logs ourselves. They are covered by <a href="https://vercel.com/legal/privacy-policy" rel="noopener">Vercel’s privacy policy</a>.</p>
-<p><strong>Analytics:</strong> none. Vercel Web Analytics is not switched on for Sundown Club, and no page here loads an analytics or measurement script. If that ever changes, this page will be updated first.</p>
+<p><strong>Analytics:</strong> Vercel Web Analytics is not switched on for Sundown Club, and no page here loads a third-party analytics or measurement script. The only counting is the club’s own, described in section 6.</p>
 <p>Parking Precision used to live at its own address, <code>parking-precision.vercel.app</code>, which still works. That older site has Vercel Web Analytics switched on (counts of visits only, no cookies) and has <a href="https://parking-precision.vercel.app/privacy.html" rel="noopener">its own privacy policy</a>. Playing it here, inside Sundown Club, does not use that analytics.</p>
 
 <h2>4. Nothing from other companies</h2>
@@ -75,13 +77,27 @@
 <h3>Removing your score</h3>
 <p>Email <strong>daksh.anajwala@gmail.com</strong> with the name shown on the board and the level, and the entry will be deleted. Because there are no accounts, that name is the only way to find it.</p>
 
-<h2>6. Play money</h2>
+<h2>6. Anonymous usage counters</h2>
+<p>So the club can tell whether anyone comes back and which games get played, each page sends a few small messages to the club’s own server (<code>sundown-club.vercel.app/api/club/event</code>). It is on by default and you can turn it off at any time (see below).</p>
+<h3>What is sent</h3>
+<ul>
+  <li>The random identifier from <code>hub.v1.profile</code> (made in your browser, never tied to your name, and never your homepage name).</li>
+  <li>Short event names such as “opened Hold’em”, “finished a round”, “left the page”, and a few tags: which game, how long the page was on screen, how many days since you first came, and a rough source for the visit (<em>direct, from this site, search, social or other</em>; the address you came from is not sent).</li>
+  <li>Nothing you typed, no name, no email, no chip counts or scores, and no details about your device.</li>
+</ul>
+<h3>What is kept</h3>
+<p>Counters, and per-day lists of random identifiers (to count how many different browsers came on a day and came back later). No single event is stored on its own, and the lists contain no name. Everything is deleted automatically after 180 days. The server briefly notes the IP address of a request to stop floods; that count is scrambled with the date, expires within two minutes and is never stored with the counters.</p>
+<h3>Turning it off</h3>
+<p>It stays off if your browser sends “Do Not Track” or Global Privacy Control. It can also be turned off with the “Anonymous usage counters” switch at the bottom of the homepage, which saves <code>telemetry: false</code> in <code>hub.v1.settings</code>. When off, nothing is queued or sent. Clearing this site’s data gives you a new random identifier, so the old one can never be linked to you again.</p>
+<p>The numbers are read only by the owner, behind a password, as totals and percentages.</p>
+
+<h2>7. Play money</h2>
 <p>The chips in Blackjack, Hold’em and Video Poker are play chips. They cannot be bought, sold, cashed out or swapped for anything, and nothing you win has any value outside the game. No payment details are ever asked for.</p>
 
-<h2>7. Children</h2>
+<h2>8. Children</h2>
 <p>We don’t knowingly collect personal information from anyone, including children. There is no account and no place to type a message. The homepage lets you change the name it calls you, but that name stays in your browser and is never sent or shown to anyone else. The only public thing, the Parking Precision leaderboard, uses its own made-up names. If you think something identifying has ended up on the board, email us and it will be removed.</p>
 
-<h2>8. Changes</h2>
+<h2>9. Changes</h2>
 <p>If the way Sundown Club handles data ever changes (for example analytics, ads or accounts), this page will be updated before the change goes live, and the date at the top will change. Where the law requires it, you will be asked before anything new happens.</p>
 </main>
 <footer><span>© 2026 Daksh Anajwala · Sundown Club</span><a href="/">Back to the games</a></footer>

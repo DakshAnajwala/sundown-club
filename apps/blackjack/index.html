@@ -236,6 +236,8 @@ import * as THREE from '/vendor/three/three.module.js';
 // Shared Sundown Club code, copied to /shared/ by tools/build-site.mjs.
 import { createLeaveGuard } from '/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '/shared/profile.js';
+import { initTelemetry } from '/shared/telemetry.js';
+initTelemetry({ game: 'blackjack' });
 import { getChips, setBankroll } from '/shared/chips.js';
 import { createCoach, markTutorialSeen } from '/shared/coach.js';
 

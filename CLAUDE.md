@@ -26,6 +26,8 @@ Licence: all rights reserved.
 | `packages/shared/` | Code every app shares: the 3D lounge kit, deck + hand ranking, club bankroll, profile/XP, leave guard | `/shared/` + bundled into apps | `packages/shared/CLAUDE.md` |
 | `tools/build-site.mjs` | Assembles `dist/` from the apps | | |
 | `docs/deploy.md` | How the site deploys, what is live | | before any deploy |
+| `docs/retention/` | Retention programme (`GOAL.md` at the repo root): specs for telemetry, daily loop, onboarding, social, content | | before any retention work |
+| `api/` | Vercel functions owned by this project: `api/club/event` (anonymous counters), `api/club/metrics` (owner-only). Everything else under `/api/*` still rewrites to the old Parking project | | before changing `vercel.json` rewrites |
 | `docs/seo.md` | Search engines: robots, sitemap, page tags, Search Console steps | | before changing a page `<head>` or adding a page |
 
 npm workspaces: each app and package has its own `package.json` (names

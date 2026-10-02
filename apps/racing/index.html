@@ -67,6 +67,10 @@
          same page the cars are tuned in. -->
     <h1 class="sr-only">Night Drive test drive</h1>
     <div id="app"></div>
+    <script type="module">
+      import { initTelemetry } from '@sundown/shared/telemetry';
+      initTelemetry({ game: 'racing' });
+    </script>
     <script type="module" src="./design/handling/handling.js"></script>
   </body>
 </html>

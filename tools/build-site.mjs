@@ -38,9 +38,14 @@ writeFileSync(`${out}/robots.txt`, `User-agent: *
 Allow: /
 Disallow: /parking/design/
 Disallow: /api/
+Disallow: /admin/
 
 Sitemap: ${SITE}/sitemap.xml
 `);
+
+// Owner-only pages (noindex, password in the API): metrics.
+mkdirSync(`${out}/admin/metrics`, { recursive: true });
+cpSync('apps/hub/admin/metrics.html', `${out}/admin/metrics/index.html`);
 
 // Static game pages: index.html plus any sibling .js modules (engine, bots).
 for (const app of ['blackjack', 'holdem', 'videopoker']) {

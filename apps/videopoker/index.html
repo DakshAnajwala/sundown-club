@@ -135,6 +135,8 @@ import { fmt, easeInOut } from '@sundown/shared/lounge/util.js';
 import { getChips, setBankroll, refill, canRefill } from '@sundown/shared/chips.js';
 import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
+import { initTelemetry } from '@sundown/shared/telemetry.js';
+initTelemetry({ game: 'videopoker' });
 import { createMachine, PAYTABLE } from './engine.js';
 import { createCoach, markTutorialSeen } from '@sundown/shared/coach.js';
 import { deck as freshDeck } from '@sundown/shared/cards.js';

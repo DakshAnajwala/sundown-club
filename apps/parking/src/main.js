@@ -3,6 +3,9 @@
  */
 import { createGame } from './core/Game.js';
 import { DEBUG_HOOKS } from './core/debugHooks.js';
+import { initTelemetry } from '@sundown/shared/telemetry';
+
+initTelemetry({ game: 'parking' });
 
 const container = document.getElementById('app');
 const game = createGame({ container });

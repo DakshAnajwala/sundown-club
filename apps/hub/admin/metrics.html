@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Club metrics · Sundown Club</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23f0a868'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/vendor/fonts.css">
+<style>
+:root { --bg: #14121a; --panel: #1d1a25; --ink: #f1ebe0; --soft: #a39cab; --line: rgba(241,235,224,.12); --accent: #f0a868; --good: #8fe3cf; --bad: #d98a93;
+  --ui: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif; --num: "IBM Plex Mono", ui-monospace, Menlo, monospace; --serif: "Young Serif", Georgia, serif; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--ui); }
+main { max-width: 980px; margin: 0 auto; padding: 32px 16px 80px; }
+h1 { font: 400 clamp(28px, 5vw, 40px)/1.1 var(--serif); margin: 0 0 4px; }
+h2 { font: 600 13px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: var(--soft); margin: 0 0 12px; }
+.sub { color: var(--soft); margin: 0 0 28px; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.stat b { display: block; font: 500 28px/1.1 var(--num); }
+.stat span { color: var(--soft); font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font: 14px var(--num); }
+th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--soft); font-weight: 500; font-family: var(--ui); font-size: 12px; }
+.bar { display: grid; grid-template-columns: 110px 1fr 56px; gap: 10px; align-items: center; margin: 6px 0; font-size: 14px; }
+.bar i { display: block; height: 14px; background: var(--accent); border-radius: 3px; min-width: 2px; }
+.bar em { font: normal 14px var(--num); text-align: right; }
+svg { width: 100%; height: auto; display: block; }
+form { display: flex; gap: 8px; margin: 40px 0; flex-wrap: wrap; }
+input, button { font: inherit; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+button { background: var(--accent); color: #2c1c0c; border: 0; font-weight: 600; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--good); outline-offset: 2px; }
+.err { color: var(--bad); }
+[hidden] { display: none; }
+.note { color: var(--soft); font-size: 13px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Club metrics</h1>
+  <p class="sub">Anonymous counters from the club's own pages. Days are UTC. <a href="/" style="color:var(--accent)">Back to the club</a></p>
+  <form id="login" aria-label="Password">
+    <label class="sub" for="pw" style="margin:0;align-self:center">Password</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button type="submit">Show</button>
+    <span id="err" class="err" role="alert"></span>
+  </form>
+  <div id="out" hidden>
+    <section><h2>Today</h2><div class="stats" id="stats"></div></section>
+    <section><h2>Daily active players, last 30 days</h2><div id="dau"></div></section>
+    <section><h2>Return rate by first day (cohorts)</h2><div style="overflow-x:auto"><table id="cohorts"></table></div><p class="note">D1 / D7 / D30 = share of that day's new players who came back exactly 1, 7 or 30 days later. A dash means that day has not happened yet.</p></section>
+    <div class="grid">
+      <section><h2>Funnel, last 7 days (player-days)</h2><div id="funnel"></div></section>
+      <section><h2>Session length, last 7 days</h2><div id="sessions"></div></section>
+    </div>
+    <section><h2>Players per game, last 7 days</h2><div style="overflow-x:auto"><table id="games"></table></div></section>
+    <section><h2>Event totals, last 7 days</h2><div style="overflow-x:auto"><table id="events"></table></div></section>
+  </div>
+</main>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const KEY = 'club.metrics.pw';
+  const pct = (n, d) => (d ? Math.round((n / d) * 100) + '%' : '–');
+  function el(tag, text, attrs) { const e = document.createElement(tag); if (text != null) e.textContent = text; for (const k in attrs || {}) e.setAttribute(k, attrs[k]); return e; }
+  function rows(table, head, body) {
+    table.replaceChildren();
+    const thead = el('thead'); const hr = el('tr'); head.forEach((h) => hr.append(el('th', h))); thead.append(hr);
+    const tb = el('tbody'); body.forEach((r) => { const tr = el('tr'); r.forEach((c) => tr.append(el('td', c))); tb.append(tr); });
+    table.append(thead, tb);
+  }
+  function bars(host, items) {
+    host.replaceChildren();
+    const max = Math.max(1, ...items.map((i) => i[1]));
+    items.forEach(([label, n]) => {
+      const row = el('div', null, { class: 'bar' });
+      const i = el('i'); i.style.width = (n / max) * 100 + '%';
+      row.append(el('span', label), (() => { const w = el('div'); w.append(i); return w; })(), el('em', String(n)));
+      host.append(row);
+    });
+  }
+  function dauChart(host, dau) {
+    host.replaceChildren();
+    const W = 900, H = 160, max = Math.max(1, ...dau.map((d) => d.n)), bw = W / dau.length;
+    const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H + 22}`); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Daily active players, last 30 days');
+    dau.forEach((d, i) => {
+      const h = (d.n / max) * H;
+      const r = document.createElementNS(NS, 'rect');
+      r.setAttribute('x', i * bw + 2); r.setAttribute('y', H - h); r.setAttribute('width', bw - 4); r.setAttribute('height', Math.max(h, 1)); r.setAttribute('rx', 3);
+      r.setAttribute('fill', i === dau.length - 1 ? '#8fe3cf' : '#f0a868');
+      const t = document.createElementNS(NS, 'title'); t.textContent = d.day + ': ' + d.n; r.append(t); svg.append(r);
+      if (i % 5 === 0 || i === dau.length - 1) { const x = document.createElementNS(NS, 'text'); x.setAttribute('x', i * bw + bw / 2); x.setAttribute('y', H + 16); x.setAttribute('text-anchor', 'middle'); x.setAttribute('fill', '#a39cab'); x.setAttribute('font-size', '11'); x.textContent = d.day.slice(5); svg.append(x); }
+    });
+    host.append(svg);
+  }
+  function show(m) {
+    const st = $('stats'); st.replaceChildren();
+    [['DAU', m.dau[29].n], ['WAU', m.wau], ['MAU', m.mau], ['DAU / MAU', m.stickiness + '%']].forEach(([k, v]) => { const d = el('div', null, { class: 'stat' }); d.append(el('b', String(v)), el('span', k)); st.append(d); });
+    dauChart($('dau'), m.dau);
+    rows($('cohorts'), ['First day', 'New', 'D1', 'D7', 'D30'], m.cohorts.map((c) => [c.day, c.size, ...['d1', 'd7', 'd30'].map((k) => (c[k] == null ? '–' : c[k] + ' · ' + pct(c[k], c.size)))]));
+    const f = m.funnel; bars($('funnel'), [['Opened site', f.landing], ['Opened a game', f.game_open], ['Finished a round', f.round_end], ['Played 2+ games', f.second_game]]);
+    bars($('sessions'), Object.entries(m.sessions).map(([k, v]) => [k + ' min', v]));
+    rows($('games'), ['Game', ...m.perGame[0].days.map((_, i) => 'D-' + (6 - i))], m.perGame.map((g) => [g.game, ...g.days]));
+    rows($('events'), ['Event', 'Count'], Object.entries(m.events).sort((a, b) => b[1] - a[1]).map(([k, v]) => [k.replace('|', ' · '), v]));
+    $('out').hidden = false; $('login').hidden = true;
+  }
+  async function load(pw) {
+    $('err').textContent = '';
+    try {
+      const r = await fetch('/api/club/metrics', { headers: { authorization: 'Bearer ' + pw }, cache: 'no-store' });
+      if (r.status === 401) throw new Error('Wrong password.');
+      if (r.status === 503) throw new Error('Metrics are not set up yet (the server has no password or store).');
+      if (!r.ok) throw new Error('Could not load (' + r.status + ').');
+      show(await r.json());
+      try { sessionStorage.setItem(KEY, pw); } catch (e) {}
+    } catch (e) { $('err').textContent = e.message; try { sessionStorage.removeItem(KEY); } catch (x) {} }
+  }
+  $('login').addEventListener('submit', (e) => { e.preventDefault(); load($('pw').value); });
+  let saved = null; try { saved = sessionStorage.getItem(KEY); } catch (e) {}
+  if (saved) load(saved);
+})();
+</script>
+</body>
+</html>
