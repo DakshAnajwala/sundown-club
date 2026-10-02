@@ -52,7 +52,7 @@ export const WHEEL_HALF_TURNS_RAD = Math.PI * 2;
 // D is torque-limited (constant force) up to DRIVE_CORNER_MS, then
 // power-limited (force = POWER / v) beyond it — the shape of a real engine's
 // curve, not an arcade constant-then-cliff taper. User-requested change from
-// the old 3-speed/40 km/h cap; see CLAUDE.md §6 (updated) for the measured
+// the old 3-speed/40 km/h cap; see the project notes for the measured
 // numbers this produces. City-car power on purpose: DRIVE_POWER_W is ~54 hp,
 // not a hot hatch — 0-30 km/h in ~1.5 s (same launch feel as before this
 // change), 0-100 km/h in ~9.5 s, tapering visibly past 30 km/h rather than

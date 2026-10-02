@@ -4,7 +4,7 @@
  *
  * This is the SAME `checkLayout()` design/level13/build-layout.mjs runs — no
  * separate rule set to drift out of sync. It exists as its own tool because
- * §5's "does anything else still pass" checklist and CLAUDE.md §8's
+ * §5's "does anything else still pass" checklist and the project notes'
  * regression list both name `tools/city-lint.mjs` specifically, and because
  * `build-layout.mjs` also has the side effect of rewriting layout.json, which
  * a plain lint run shouldn't need to do.

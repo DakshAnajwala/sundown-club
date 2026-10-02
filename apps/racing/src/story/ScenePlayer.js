@@ -5,7 +5,7 @@
  * where, the cars, the props, a list of camera shots, and timed cues (lines,
  * poses, walks, drives, lights, a fade, a choice). The player builds it into
  * the ONE scene it is given, writes the ONE camera it is given (the render
- * passes captured both: CLAUDE.md), and runs it on a timeline.
+ * passes captured both), and runs it on a timeline.
  *
  * Everything that moves is a function of scene time, or is stepped with a
  * fixed dt from 0, so `seek(t)` gives the same picture every time (probes
