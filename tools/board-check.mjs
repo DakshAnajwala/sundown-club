@@ -126,4 +126,82 @@ await ok(async () => { // rate limits
   for (let i = 0; i < 90; i++) assert.ok(await B.limit(s, '3.3.3.3', 'beat', T0)); assert.equal(await B.limit(s, '3.3.3.3', 'beat', T0), false);
 });
 
+await ok(async () => { // presence: hidden below three players
+  const s = memoryStore();
+  await play(s, id(1), 'blackjack', T0, 5); await play(s, id(2), 'blackjack', T0, 5);
+  assert.equal(await B.onlineCount(s, T0 + 5 * MIN + 1000), null, 'two players: not shown');
+  await play(s, id(3), 'holdem', T0, 5);
+  assert.equal(await B.onlineCount(s, T0 + 5 * MIN + 1000), 3);
+  assert.equal(await B.onlineCount(s, T0 + 5 * MIN + 3 * MIN), null, 'two minutes after the last beat they are gone');
+  assert.equal((await B.readBoard(s, { tab: 'time', win: 'week' }, T0 + 5 * MIN + 1000)).online, 3);
+});
+await ok(async () => { // friends board by code
+  const s = memoryStore();
+  for (let i = 1; i <= 4; i++) await play(s, id(i), 'blackjack', T0, i * 3);
+  const c = await B.clubCreate(s, id(1)); assert.ok(c.ok && B.validClubCode(c.code), c.code);
+  assert.equal((await B.clubCreate(s, id(1))).code, c.code, 'one club per player');
+  assert.deepEqual(await B.clubJoin(s, id(2), 'zzzzzz'), { ok: false, error: 'unknown' });
+  assert.deepEqual(await B.clubJoin(s, id(2), 'a1'), { ok: false, error: 'code' });
+  assert.ok((await B.clubJoin(s, id(2), c.code.toLowerCase() + ' ')).ok, 'case and spaces are forgiven');
+  assert.ok((await B.clubJoin(s, id(4), c.code)).ok);
+  const b = await B.readClub(s, id(2), 'week', T0 + 30 * MIN);
+  assert.equal(b.code, c.code); assert.equal(b.total, 3); assert.deepEqual(b.rows.map((r) => r.value), [720, 360, 180]);
+  assert.ok(b.you && b.you.you && b.you.rank === 2); assert.ok(b.rows.every((r) => !('id' in r)));
+  assert.equal((await B.readClub(s, id(3), 'week', T0)).code, null, 'not in a club: nothing about anyone else');
+  const other = await B.clubCreate(s, id(3)); assert.ok((await B.clubJoin(s, id(2), other.code)).ok, 'joining another club leaves the first');
+  assert.equal((await B.readClub(s, id(1), 'week', T0 + 30 * MIN)).total, 2);
+  await B.clubLeave(s, id(2)); assert.equal((await B.readClub(s, id(2), 'week', T0)).code, null);
+  const full = await B.clubCreate(s, id(10));
+  for (let i = 11; i < 11 + B.CLUB_MAX; i++) await B.clubJoin(s, id(i), full.code);
+  assert.deepEqual(await B.clubJoin(s, id(500), full.code), { ok: false, error: 'full' });
+});
+await ok(async () => { // invites: once per friend, five a month, never the id
+  const s = memoryStore();
+  const code = await B.inviteCode(s, id(1)); assert.match(code, /^[a-z2-9]{8}$/); assert.equal(await B.inviteCode(s, id(1)), code);
+  assert.ok(!code.includes('0000'), 'not the player id');
+  assert.deepEqual(await B.inviteClaim(s, id(2), 'bad!', T0), { ok: false, error: 'code' });
+  assert.deepEqual(await B.inviteClaim(s, id(2), 'abcdefgh', T0), { ok: false, error: 'unknown' });
+  assert.deepEqual(await B.inviteClaim(s, id(1), code, T0), { ok: false, error: 'unknown' }, 'cannot invite yourself');
+  assert.deepEqual(await B.inviteClaim(s, id(2), code, T0), { ok: true, tokens: 1, inviterRewarded: true });
+  assert.deepEqual(await B.inviteClaim(s, id(2), code, T0), { ok: false, error: 'already' }, 'once per friend');
+  for (let i = 3; i <= 6; i++) assert.equal((await B.inviteClaim(s, id(i), code, T0)).inviterRewarded, true);
+  assert.deepEqual(await B.inviteClaim(s, id(7), code, T0), { ok: true, tokens: 1, inviterRewarded: false }, 'sixth this month: the friend still gets theirs');
+  assert.deepEqual(await B.inviteStatus(s, id(1)), { pending: 5 }); assert.deepEqual(await B.inviteStatus(s, id(1)), { pending: 0 }, 'cleared once read');
+  assert.equal((await B.inviteClaim(s, id(8), code, T0 + 32 * DAY)).inviterRewarded, true, 'a new month');
+});
+await ok(async () => { // signed challenges
+  const C = await import('../api/_lib/challenge.js');
+  const { code } = C.signChallenge({ g: 'videopoker', s: 123456, v: 10, l: 'Two pair' }, 'Amber Heron 42', T0);
+  assert.match(code, /^C1\.[A-Za-z0-9_-]+\.[0-9a-f]{16}$/);
+  const v = C.verifyChallenge(code); assert.ok(v.ok); assert.deepEqual([v.data.g, v.data.s, v.data.v, v.data.l, v.data.n], ['videopoker', 123456, 10, 'Two pair', 'Amber Heron 42']);
+  const [m, body, sig] = code.split('.');
+  const forged = Buffer.from(JSON.stringify({ g: 'videopoker', s: 123456, v: 4000, l: 'Royal flush', n: 'Amber Heron 42', t: 1 })).toString('base64url');
+  assert.equal(C.verifyChallenge(`${m}.${forged}.${sig}`).ok, false, 'edited numbers fail');
+  assert.equal(C.verifyChallenge(`${m}.${body}.${'0'.repeat(16)}`).ok, false); assert.equal(C.verifyChallenge(code + '.x').ok, false);
+  for (const bad of [null, '', 'x', 5, 'C1..']) assert.equal(C.verifyChallenge(bad).ok, false);
+  for (const bad of [{ g: 'chess', s: 1, v: 1, l: 'x' }, { g: 'videopoker', s: -1, v: 1, l: 'x' }, { g: 'videopoker', s: 1.5, v: 1, l: 'x' }, { g: 'videopoker', s: 1, v: 1e9, l: 'x' }, { g: 'videopoker', s: 1, v: 1, l: '<script>' }, null]) assert.ok(C.signChallenge(bad, 'n', T0).error);
+  process.env.NODE_ENV = 'production'; delete process.env.CLUB_SECRET;
+  assert.equal(C.signChallenge({ g: 'videopoker', s: 1, v: 1, l: 'x' }, 'n', T0).error, 'not configured', 'production without a secret signs nothing');
+  assert.equal(C.verifyChallenge(code).ok, false);
+  process.env.CLUB_SECRET = 'real'; const real = C.signChallenge({ g: 'videopoker', s: 1, v: 1, l: 'x' }, 'n', T0).code; assert.ok(C.verifyChallenge(real).ok);
+  process.env.CLUB_SECRET = 'other'; assert.equal(C.verifyChallenge(real).ok, false, 'another secret rejects it');
+  delete process.env.CLUB_SECRET; process.env.NODE_ENV = 'test';
+});
+
+await ok(async () => { // shared ghosts
+  const G = await import('../api/_lib/ghost.js');
+  const trace = (n, f) => { const a = new Int16Array(n * 4); for (let i = 0; i < n; i++) { a[i * 4] = f(i, 0); a[i * 4 + 1] = f(i, 1); a[i * 4 + 2] = 0; a[i * 4 + 3] = (i * 7) % 1800; } return Buffer.from(a.buffer).toString('base64'); };
+  const good = trace(200, (i, k) => (k ? i * 3 : -i * 5));
+  const s = memoryStore();
+  const put = await G.putGhost(s, id(1), 'Amber Heron 42', { level: 7, hz: 20, d: good }, T0);
+  assert.ok(put.ok && /^[A-Za-z0-9]{8}$/.test(put.id));
+  const got = await G.getGhost(s, put.id); assert.deepEqual([got.level, got.hz, got.d, got.name], [7, 20, good, 'Amber Heron 42']);
+  assert.equal(await G.getGhost(s, 'nope'), null); assert.equal(await G.getGhost(s, 'abcdefgh'), null); assert.equal(await G.getGhost(s, 12), null);
+  for (const bad of [{ level: 0, hz: 20, d: good }, { level: 7, hz: 7, d: good }, { level: 7, hz: 20, d: 'AAAA' }, { level: 7, hz: 20, d: 'not base64 !!'.repeat(5) }, { level: 7, hz: 20, d: trace(200, () => 30000) }, { level: 7, hz: 20, d: trace(4, () => 1) }, { level: 7, hz: 20, d: 'A'.repeat(40000) }, {}])
+    assert.equal((await G.putGhost(s, id(2), 'n', bad, T0)).ok, false);
+  for (let i = 0; i < 9; i++) assert.ok((await G.putGhost(s, id(1), 'n', { level: 7, hz: 20, d: good }, T0)).ok);
+  assert.equal((await G.putGhost(s, id(1), 'n', { level: 7, hz: 20, d: good }, T0)).error, 'too many', 'ten a day');
+  assert.ok((await G.putGhost(s, id(1), 'n', { level: 7, hz: 20, d: good }, T0 + 2 * DAY)).ok, 'a new day');
+});
+
 console.log(`board-check: ${n} groups passed`);

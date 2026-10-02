@@ -11,12 +11,13 @@
  * server, nothing typed is ever sent. "Show me on the boards" off (settings.board
  * === false) means nothing here sends a request at all. Never throws.
  */
-import { ensureIdentity, readProfile } from './profile.js';
+import { ensureIdentity, readProfile, addTokens } from './profile.js';
 
 const PLAY = '/api/club/play';
 const BOARD = '/api/club/board';
 const SETTINGS_KEY = 'hub.v1.settings';
 const STATE_KEY = 'hub.v1.board';
+const INVITE_KEY = 'hub.v1.invite';
 const BEAT_MS = 60000;
 const ACTIVE_MS = 120000;
 
@@ -41,6 +42,7 @@ function beacon(body) {
 
 export async function startBoardSession(game) {
   try {
+    captureInvite();
     if (wired || !boardEnabled() || typeof document === 'undefined') return;
     wired = true;
     const player = ensureIdentity().id;
@@ -105,4 +107,63 @@ export async function submitFromProfile() {
     if (Number.isInteger(stars) && stars > 0 && code > (sent.pk || 0) && (await post({ a: 'submit', player, board: 'pk', data: { stars, best: Math.min(100, Math.max(0, Math.round(best))) } }))) sent.pk = code;
     localStorage.setItem(STATE_KEY, JSON.stringify(sent));
   } catch { /* silent */ }
+}
+
+// ------------------------------------------------------------------ friends, invites, challenges
+/** Make a friends club (or get yours) and give back its six-character code. */
+export async function clubCreate() { return boardEnabled() ? post({ a: 'club_create', player: ensureIdentity().id }) : null; }
+export async function clubJoin(code) { return boardEnabled() ? post({ a: 'club_join', player: ensureIdentity().id, code }) : null; }
+export async function clubLeave() { return boardEnabled() ? post({ a: 'club_leave', player: ensureIdentity().id }) : null; }
+
+/** The link to hand a friend: the site with ?i=<short code> (never your id). */
+export async function inviteLink() {
+  if (!boardEnabled()) return null;
+  const r = await post({ a: 'invite_code', player: ensureIdentity().id });
+  return r?.code ? `${location.origin}/?i=${r.code}` : null;
+}
+
+/** Remember an invite code from the address (?i=...) until this player finishes a first round. */
+export function captureInvite() {
+  try {
+    const c = new URLSearchParams(location.search).get('i');
+    if (c && /^[a-z2-9]{8}$/.test(c) && !localStorage.getItem(INVITE_KEY)) localStorage.setItem(INVITE_KEY, c);
+  } catch { /* storage blocked */ }
+}
+
+/** After a first round: tell the server a friend arrived from a link. Both sides get a token (the inviter's is collected on their next visit). */
+export async function claimInviteIfAny() {
+  try {
+    const c = localStorage.getItem(INVITE_KEY);
+    if (!c || !boardEnabled()) return false;
+    localStorage.removeItem(INVITE_KEY);
+    const r = await post({ a: 'invite_claim', player: ensureIdentity().id, code: c });
+    if (r?.ok) { addTokens(r.tokens || 1); return true; }
+  } catch { /* silent */ }
+  return false;
+}
+
+/** Tokens friends earned you since the last visit. Adds them and returns how many. */
+export async function collectInviteTokens() {
+  try {
+    if (!boardEnabled()) return 0;
+    const r = await post({ a: 'invite_status', player: ensureIdentity().id });
+    const n = Math.min(5, Number(r?.pending) || 0);
+    if (n > 0) addTokens(n);
+    return n;
+  } catch { return 0; }
+}
+
+/** Upload one Parking ghost ({ level, hz, d }) and get a link a friend can race. Null when the boards are off or the server is unavailable. */
+export async function shareGhost(ghost) {
+  const r = boardEnabled() ? await post({ a: 'ghost_put', player: ensureIdentity().id, ghost }) : null;
+  return r?.ok && r.id ? `${location.origin}/parking/play/?g=${r.id}` : null;
+}
+
+/** A signed challenge code for a seeded deal: data { g, s, v, l }. */
+export async function makeChallenge(data) {
+  return boardEnabled() ? post({ a: 'challenge', player: ensureIdentity().id, data }) : { error: 'boards off' };
+}
+/** Check a code from a link. Needs no identity. */
+export async function checkChallenge(code) {
+  return post({ a: 'challenge_check', code });
 }

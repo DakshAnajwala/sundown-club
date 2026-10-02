@@ -1111,6 +1111,8 @@ export function createGame({ container }) {
     },
 
     debugGhost: () => ghost.debug(),
+    /** A friend's ghost from a shared link (main.js reads ?g=<id>). */
+    rival: { set: (levelId, hz, d, name) => ghost.setRival(levelId, hz, d, name), levelName: (id) => LEVELS.find((l) => l.id === id)?.name ?? null },
 
     setMirrorMode: (m) => mirrors.setMode(m),
 

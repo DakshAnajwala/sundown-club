@@ -39,6 +39,7 @@ Allow: /
 Disallow: /parking/design/
 Disallow: /api/
 Disallow: /admin/
+Disallow: /c/
 
 Sitemap: ${SITE}/sitemap.xml
 `);
@@ -46,6 +47,10 @@ Sitemap: ${SITE}/sitemap.xml
 // Owner-only pages (noindex, password in the API): metrics.
 mkdirSync(`${out}/admin/metrics`, { recursive: true });
 cpSync('apps/hub/admin/metrics.html', `${out}/admin/metrics/index.html`);
+
+// Challenge links /c/<code> (rewritten to this page by vercel.json).
+mkdirSync(`${out}/c`, { recursive: true });
+cpSync('apps/hub/challenge.html', `${out}/c/index.html`);
 
 // Static game pages: index.html plus any sibling .js modules (engine, bots).
 for (const app of ['blackjack', 'holdem', 'videopoker']) {

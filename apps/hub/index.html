@@ -371,6 +371,9 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .dseed h3 { font-size: clamp(20px, 2.2vw, 26px); }
 .dsrows { display: grid; gap: 10px; margin-top: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .dsrow { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: var(--ink); transition: border-color .2s, background .2s; }
+.dghost { margin-top: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
+.dghost select { font: 500 14px var(--sans); color: var(--ink); background: rgba(16, 12, 16, .82); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.dghost .btn { padding: 8px 14px; font-size: 14px; }
 .dsrow:hover { border-color: var(--ink-3); background: rgba(243,231,216,.04); }
 .dsrow b { font: 600 15px var(--sans); display: flex; justify-content: space-between; gap: 10px; }
 .dsrow b em { font: 500 12px var(--mono); font-style: normal; color: var(--ink-2); }
@@ -634,7 +637,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
         <div class="dstreak" id="dstreak"></div>
       </div>
     </div>
-    <div class="dseed" id="dseed" aria-labelledby="dseed-h"><div class="dhead"><h3 id="dseed-h"></h3><span class="dmeta" id="dseedMeta"></span></div><div class="dsrows" id="dsrows"></div></div>
+    <div class="dseed" id="dseed" aria-labelledby="dseed-h"><div class="dhead"><h3 id="dseed-h"></h3><span class="dmeta" id="dseedMeta"></span></div><div class="dsrows" id="dsrows"></div><div class="dghost" id="dghost" hidden></div></div>
     <p class="dnote" id="dnote" role="status"></p>
   </div>
   <div class="eve">
@@ -673,6 +676,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
         <button class="btn" type="button" id="bReroll">New name</button>
         <div class="toggle"><span id="bOptLabel">Show me on the boards</span><button class="sw" role="switch" aria-checked="true" id="bOpt" aria-labelledby="bOptLabel"></button></div>
       </div>
+      <div class="bcard"><div class="lab">Bring a friend</div><p id="bInviteNote" style="margin-top:8px">Send a link. When your friend finishes their first round you both get a token (five a month).</p><button class="btn" type="button" id="bInvite">Share invite link</button></div>
       <div class="bcard" id="bYou"><div class="lab">Your place</div><div class="bigname" id="bYouBig">–</div><p id="bYouNote"></p></div>
     </aside>
   </div>
@@ -745,7 +749,8 @@ import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, choose
 import { dayNumber, msToNextSeed } from '/shared/seed.js';
 import { onboarding, setPick, markStep, completeWelcome } from '/shared/retention.js';
 import { STARTER_BADGES, itemName } from '/shared/catalog.js';
-import { fetchBoard, boardEnabled, setBoardEnabled, myBoardName, rerollBoardName, submitFromProfile } from '/shared/leaderboard.js';
+import { fetchBoard, boardEnabled, setBoardEnabled, myBoardName, rerollBoardName, submitFromProfile, clubCreate, clubJoin, clubLeave, inviteLink, collectInviteTokens, shareGhost } from '/shared/leaderboard.js';
+import { renderShareCard, shareResult } from '/shared/sharecard.js';
 import { getChips } from '/shared/chips.js';
 import { initTelemetry, telemetryEnabled, setTelemetry } from '/shared/telemetry.js';
 initTelemetry({ game: 'hub' });
@@ -968,6 +973,7 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
       el('div', null, st.earnedToday ? 'Today counts.' : `Counts when you play 5 minutes (${mins}/5) or finish a quest.`),
       el('div', null, `Freezes ${pips} · one earned every 7 days, used on a missed day. Best run ${st.best}.${st.weeks ? ` ${st.weeks} week${st.weeks === 1 ? '' : 's'} with 4+ days.` : ''}`),
       el('label', null, 'Rest day: ', sel),
+      el('div', null, `Evening tokens: ${v.tokens ?? 0} (earned by clearing the table and by bringing friends; one restores a lost run)`),
     ];
     if (st.restore?.ok) { const b = el('button', 'btn', `Restore my ${st.broke.days}-day run (1 token)`); b.type = 'button'; b.addEventListener('click', () => { const r = restoreRun(); render(r.view); note(r.ok ? 'Your run is back.' : 'Could not restore it.'); paintLevel(); }); kids.push(b); }
     $('#dstreak').replaceChildren(...kids);
@@ -987,13 +993,44 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     $('#dseed-h').textContent = `Sundown Daily #${dayNumber()}`;
     $('#dseedMeta').textContent = `same for everyone · new in ${Math.floor(ms / 3600000)}h ${String(Math.floor(ms / 60000) % 60).padStart(2, '0')}m (UTC midnight)`;
     const vp = res.videopoker, pk = res.parking;
-    const row = (href, name, status, blurb, done) => { const a = el('a', `dsrow${done ? ' done' : ''}`, el('b', null, name, el('em', null, status)), el('span', null, blurb)); a.href = href; return a; };
+    const share = async (game, line, sub, accent) => {
+      const p = readProfile(), l = levelFor(p.xp), eyebrow = `Sundown Daily #${dayNumber()}`;
+      const png = await renderShareCard({ eyebrow, title: line, sub, game, accent, foot: `Level ${l.level} · ${titleFor(l.level)}${p.streak?.days > 1 ? ` · ${p.streak.days}-day streak` : ''}` });
+      const how = await shareResult({ title: eyebrow, text: `${eyebrow} · ${game}: ${line}${sub ? ` (${sub})` : ''}`, url: location.origin + '/', png });
+      note(how === 'copied' ? 'Result and link copied.' : how === 'downloaded' ? 'Picture saved.' : how === 'shared' ? 'Shared.' : 'Could not share that.');
+    };
+    const row = (href, name, status, blurb, done, onShare) => {
+      if (done) {
+        const b = el('button', 'linkbtn', 'Share'); b.type = 'button'; b.addEventListener('click', onShare);
+        return el('div', 'dsrow done', el('b', null, name, el('em', null, status)), el('span', null, blurb), b);
+      }
+      const a = el('a', 'dsrow', el('b', null, name, el('em', null, status)), el('span', null, blurb)); a.href = href; return a;
+    };
     $('#dsrows').replaceChildren(
-      row('/videopoker/?daily=1', 'Video Poker', vp ? `${vp.name}${vp.coins ? ` · ${vp.coins} coins` : ''}` : 'Play', "Today's hand: the same five cards and the same draw for everyone. One go, free play, +50 XP.", !!vp),
-      row('/parking/play/', 'Parking Precision', pk ? `${pk.score} pts · ${pk.stars} star${pk.stars === 1 ? '' : 's'}` : 'Play', "Today's lot, a fresh variant of a car park. It is in the menu as Today's daily. +50 XP the first time.", !!pk),
+      row('/videopoker/?daily=1', 'Video Poker', vp ? `${vp.name}${vp.coins ? ` · ${vp.coins} coins` : ''}` : 'Play', "Today's hand: the same five cards and the same draw for everyone. One go, free play, +50 XP.", !!vp, () => share('Video Poker', vp.name, vp.coins ? `${vp.coins} coins` : '', '#e8b860')),
+      row('/parking/play/', 'Parking Precision', pk ? `${pk.score} pts · ${pk.stars} star${pk.stars === 1 ? '' : 's'}` : 'Play', "Today's lot, a fresh variant of a car park. It is in the menu as Today's daily. +50 XP the first time.", !!pk, () => share('Parking Precision', `${pk.score} points`, `${pk.stars} star${pk.stars === 1 ? '' : 's'}`, '#8fe3cf')),
     );
   }
   renderSeed();
+  // Parking ghosts: send a friend your best run on a level (they race it as a gold car).
+  {
+    let ghosts = [];
+    try { ghosts = (JSON.parse(localStorage.getItem('parking-precision:ghost:v1') || '{}').ghosts || []).filter((g) => Number.isInteger(g?.id) && typeof g.d === 'string'); } catch { /* none */ }
+    if (ghosts.length) {
+      const sel = el('select'); sel.setAttribute('aria-label', 'Parking level');
+      sel.append(...ghosts.sort((a, b) => a.id - b.id).map((g) => new Option(`Level ${g.id}`, String(g.id))));
+      const btn = el('button', 'btn', 'Get a ghost link'); btn.type = 'button';
+      btn.addEventListener('click', async () => {
+        const g = ghosts.find((x) => String(x.id) === sel.value); btn.disabled = true;
+        const url = g ? await shareGhost({ level: g.id, hz: g.hz, d: g.d }) : null;
+        if (!url) note(boardEnabled() ? 'Ghost links are not ready yet. Try again later.' : 'Turn on the boards to make a ghost link.');
+        else { const how = await shareResult({ title: 'Race my ghost', text: `Race my Parking Precision ghost on level ${g.id}.`, url }); note(how === 'copied' ? 'Ghost link copied. It works for 30 days.' : how === 'shared' ? 'Shared.' : 'Could not share that. The link: ' + url); }
+        btn.disabled = false;
+      });
+      const box = $('#dghost'); box.hidden = false; box.replaceChildren('Parking ghost: ', sel, btn);
+    }
+  }
+  document.addEventListener('club-tokens', () => render({ ...dayView, tokens: readProfile().tokens }));
   render(dayView);
   for (const n of dayView.notices || []) {
     if (n.t === 'saved') note(`A streak freeze covered ${new Date(n.day + 'T12:00').toLocaleDateString('en-GB', { weekday: 'long' })}. Your run is safe.`);
@@ -1043,6 +1080,7 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     time: { label: 'Play time', accent: '#f0a868', eyebrow: 'The board · resets Mondays', title: "Who's been here longest.", sub: 'Minutes actually played across every game, counted by the server. Idle tabs do not count.', win: true, fmt: (r) => hm(r.value), empty: 'Nobody yet this week. Play for a few minutes to be first.' },
     bj: { label: 'Blackjack', accent: '#f0a868', eyebrow: 'Blackjack · peak chips · unverified', title: 'Best night at the table.', sub: 'The most chips you have held in Blackjack. Reported by your browser, so treat it as friendly.', fmt: (r) => r.value.toLocaleString('en-US'), empty: 'No one has reported a peak yet.' },
     pk: { label: 'Parking', accent: '#8fe3cf', eyebrow: 'Parking Precision · stars · unverified', title: 'Tidiest drivers.', sub: 'Stars across all 17 levels (51 is perfect). Ties go to the better best park.', fmt: (r) => `${r.value} / 51`, empty: 'No one has reported stars yet.' },
+    friends: { label: 'Friends', accent: '#d98a93', eyebrow: 'Friends · play time · private', title: 'Just us.', sub: 'A private board for people with the same six-character code. Same rules as the club board: names are made up, minutes are counted by the server.', win: true, fmt: (r) => hm(r.value), empty: 'Nobody in your club has played this week yet.' },
     streak: { label: 'Streak', accent: '#f0a868', eyebrow: 'Streak · days in a row', title: 'Regulars.', sub: 'Most UTC days in a row with at least five minutes of play, counted by the server.', fmt: (r) => `${r.value} day${r.value === 1 ? '' : 's'}`, empty: 'Nobody has a run yet.' },
   };
   let tab = 'time', win = 'week', loaded = false, token = 0;
@@ -1063,6 +1101,7 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     const data = await fetchBoard({ tab: k, win });
     if (my !== token) return;
     const box = $('#bRows');
+    if (k === 'friends' && data && !data.code) { box.replaceChildren(friendsGate()); return; }
     if (!data) { box.replaceChildren(el('div', 'bempty', 'The board is resting. It will be back; the games do not need it.')); return; }
     if (!data.rows.length) box.replaceChildren(el('div', 'bempty', b.empty));
     else {
@@ -1070,6 +1109,7 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
       if (data.you && !data.rows.some((r) => r.you)) kids.push(el('div', 'bgap', '· · ·'), row(data.you, kids.length, b, false));
       box.replaceChildren(...kids);
     }
+    if (k === 'friends' && data?.code) box.append(friendsFoot(data.code));
     if (k === 'time' && win === 'week') {
       const y = data.you;
       $('#bYouBig').textContent = y ? `#${y.rank} · ${hm(y.value)}` : '–';
@@ -1090,6 +1130,39 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     $('#bNameNote').textContent = r.ok ? `New name. ${r.left} more today.` : 'That is three new names today. Try again tomorrow.';
     show(tab);
   });
+  const copyText = async (t) => { try { await navigator.clipboard.writeText(t); return true; } catch { return false; } };
+  function friendsGate() {
+    const msg = el('div', 'bempty'); const out = el('p', null); out.id = 'fMsg';
+    const input = el('input'); input.id = 'fCode'; input.maxLength = 6; input.autocomplete = 'off'; input.spellcheck = false; input.placeholder = 'CODE'; input.setAttribute('aria-label', 'Friends code'); input.style.cssText = 'font:600 18px var(--mono);letter-spacing:.2em;text-transform:uppercase;width:9em;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:rgba(16,12,16,.82);color:var(--ink)';
+    const join = el('button', 'btn', 'Join'); join.type = 'button';
+    const make = el('button', 'btn fill', 'Make a club'); make.type = 'button';
+    const go = async (fn) => { const r = await fn(); if (!r?.ok) { out.textContent = { unknown: 'No club has that code.', code: 'A code is six letters and numbers.', full: 'That club is full.' }[r?.error] || (boardEnabled() ? 'The boards are resting. Try again later.' : 'Turn on the boards (the switch on the right) to use friends.'); return; } show('friends'); };
+    join.addEventListener('click', () => go(() => clubJoin(input.value)));
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') join.click(); });
+    make.addEventListener('click', () => go(() => clubCreate()));
+    msg.append(el('p', null, 'Race your friends. Make a club and send them the six-character code, or type the code you were given.'), el('div', 'drow', input, join, make), out);
+    msg.style.display = 'grid'; msg.style.gap = '14px';
+    return msg;
+  }
+  function friendsFoot(code) {
+    const copy = el('button', 'btn', 'Copy code'); copy.type = 'button'; copy.addEventListener('click', async () => { copy.textContent = (await copyText(code)) ? 'Copied' : code; });
+    const leave = el('button', 'btn', 'Leave club'); leave.type = 'button'; leave.addEventListener('click', async () => { await clubLeave(); show('friends'); });
+    return el('div', 'bempty', `Your club code: `, el('b', null, code), ' ', copy, ' ', leave);
+  }
+  async function paintInvite() {
+    const btn = $('#bInvite');
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      const url = await inviteLink();
+      if (!url) { $('#bInviteNote').textContent = boardEnabled() ? 'Links are not ready yet. Try again later.' : 'Turn on the boards to make an invite link.'; btn.disabled = false; return; }
+      const how = await shareResult({ title: 'Sundown Club', text: 'Come and play at Sundown Club: cards, parking, night driving.', url });
+      $('#bInviteNote').textContent = how === 'copied' ? 'Link copied. When your friend finishes their first round you both get a token.' : how === 'shared' ? 'Shared. When your friend finishes their first round you both get a token.' : 'Could not share that. Here is the link: ' + url;
+      btn.disabled = false;
+    });
+    const n = await collectInviteTokens();
+    if (n) { $('#dnote').textContent = `${n} friend${n === 1 ? '' : 's'} joined from your link: +${n} token${n === 1 ? '' : 's'}.`; document.dispatchEvent(new Event('club-tokens')); }
+  }
+  paintInvite();
   const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting) && !loaded) { loaded = true; io.disconnect(); submitFromProfile().finally(() => { paintOpt(); show(tab); }); } }, { rootMargin: '200px' });
   io.observe(document.getElementById('board'));
   { const b = BOARDS.time; $('#bEyebrow').textContent = b.eyebrow; $('#board-h').textContent = b.title; $('#bSub').textContent = b.sub; tabs.firstChild.setAttribute('aria-selected', 'true'); }

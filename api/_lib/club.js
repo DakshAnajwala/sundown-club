@@ -206,6 +206,7 @@ export function memoryStore() {
     SADD: (k, ...m) => { const s = set(k); let n = 0; for (const x of m) if (!s.has(String(x))) { s.add(String(x)); n++; } return n; },
     SREM: (k, ...m) => { const s = set(k); let n = 0; for (const x of m) n += s.delete(String(x)) ? 1 : 0; return n; },
     SCARD: (k) => (data.get(k)?.size ?? 0),
+    SMEMBERS: (k) => [...(data.get(k) ?? [])],
     SUNIONSTORE: (dst, ...ks) => { const u = new Set(); for (const k of ks) for (const x of data.get(k) ?? []) u.add(x); data.set(dst, u); return u.size; },
     SINTERCARD: (n, ...ks) => { const [a, ...r] = ks.slice(0, Number(n)).map((k) => data.get(k) ?? new Set()); let c = 0; for (const x of a) if (r.every((s) => s.has(x))) c++; return c; },
     HSETNX: (k, f, v) => { const h = hash(k); if (h.has(f)) return 0; h.set(f, String(v)); return 1; },

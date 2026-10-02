@@ -28,7 +28,11 @@ export const STREAK_DAY_S = 300;
 export const BJ_MAX = 10_000_000;
 export const STARS_MAX = 51;
 export const ROLLS_PER_DAY = 3;
-export const LIMITS = { submit: [12, 600], beat: [90, 600], session: [30, 600], name: [10, 600], read: [240, 60] };
+export const LIMITS = { submit: [12, 600], beat: [90, 600], session: [30, 600], name: [10, 600], read: [240, 60], club: [20, 600], invite: [20, 600] };
+export const CLUB_MAX = 50;
+export const INVITES_PER_MONTH = 5;
+export const ONLINE_MS = 120000;
+export const ONLINE_SHOW_MIN = 3;
 const DAY_MS = 86400000;
 const WEEK_TTL = 60 * 86400;
 
@@ -115,6 +119,7 @@ export async function beat(store, token, now = Date.now()) {
     ['HINCRBY', `b:s:${token}`, 'total', credit],
     ['ZINCRBY', wk, credit, player], ['EXPIRE', wk, WEEK_TTL], ['ZINCRBY', 'b:time:all', credit, player],
     ['HINCRBY', `b:pg:${player}`, game, credit],
+    ['ZADD', 'b:now', now, player], ['EXPIRE', 'b:now', 86400],
   ]);
   if (Number(dayTotal) >= STREAK_DAY_S && Number(dayTotal) - credit < STREAK_DAY_S) await bumpStreak(store, player, now);
   return { credited: credit };
@@ -188,7 +193,7 @@ export async function readBoard(store, { tab, win = 'week', player = null }, now
   const strip = (r) => { const { id, ...rest } = r; return rest; };
   const topRows = rows.slice(0, top.length).map(strip);
   const you = mine && myScore != null ? strip(rows.find((r) => r.id === mine)) : null;
-  return { tab, win, total: Number(total), rows: topRows, you };
+  return { tab, win, total: Number(total), rows: topRows, you, online: await onlineCount(store, now) };
 }
 
 /** "Show me on the boards" off: take the player off every board and free the name. */
@@ -197,7 +202,110 @@ export async function leave(store, player, now = Date.now()) {
   const cmds = [['ZREM', 'b:time:all', player], ['ZREM', 'b:bj', player], ['ZREM', 'b:pk', player], ['ZREM', 'b:streak', player]];
   for (let w = 0; w < 9; w++) cmds.push(['ZREM', `b:time:w:${weekKey(now - w * 7 * DAY_MS)}`, player]);
   if (name) cmds.push(['HDEL', 'b:names', name]);
-  cmds.push(['DEL', `b:p:${player}`], ['DEL', `b:pg:${player}`]);
+  const club = await clubOf(store, player);
+  if (club) cmds.push(['SREM', `b:club:${club}`, player]);
+  cmds.push(['ZREM', 'b:now', player], ['DEL', `b:p:${player}`], ['DEL', `b:pg:${player}`]);
   await store.run(cmds);
   return { ok: true };
+}
+
+// ------------------------------------------------------------------ who is here now
+/** Players with a counted heartbeat in the last two minutes, or null below ONLINE_SHOW_MIN (an empty room does not advertise itself). */
+export async function onlineCount(store, now = Date.now()) {
+  const [n] = await store.run([['ZCOUNT', 'b:now', now - ONLINE_MS, '+inf']]);
+  return Number(n) >= ONLINE_SHOW_MIN ? Number(n) : null;
+}
+
+// ------------------------------------------------------------------ friends: a private board by code
+const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';   // no 0/O/1/I/L
+const randomCode = (len, alphabet) => { const b = randomBytes(len); return [...b].map((x) => alphabet[x % alphabet.length]).join(''); };
+export const validClubCode = (c) => typeof c === 'string' && /^[2-9A-HJKMNP-Z]{6}$/.test(c);
+
+export async function clubOf(store, player) {
+  const [code] = await store.run([['HGET', `b:p:${player}`, 'club']]);
+  return code || null;
+}
+/** Make a club (or return the one the player is in). The code is six characters to share. */
+export async function clubCreate(store, player) {
+  const have = await clubOf(store, player);
+  if (have) return { ok: true, code: have };
+  await nameOf(store, player);
+  for (let i = 0; i < 20; i++) {
+    const code = randomCode(6, CODE_ALPHABET);
+    const [got] = await store.run([['HSETNX', 'b:clubs', code, player]]);
+    if (Number(got) === 1) { await store.run([['SADD', `b:club:${code}`, player], ['HSET', `b:p:${player}`, 'club', code]]); return { ok: true, code }; }
+  }
+  return { ok: false, error: 'busy' };
+}
+export async function clubJoin(store, player, code) {
+  code = String(code || '').toUpperCase().replace(/\s+/g, '');
+  if (!validClubCode(code)) return { ok: false, error: 'code' };
+  const [exists, size] = await store.run([['HGET', 'b:clubs', code], ['SCARD', `b:club:${code}`]]);
+  if (!exists) return { ok: false, error: 'unknown' };
+  const have = await clubOf(store, player);
+  if (have === code) return { ok: true, code };
+  if (Number(size) >= CLUB_MAX) return { ok: false, error: 'full' };
+  await nameOf(store, player);
+  if (have) await store.run([['SREM', `b:club:${have}`, player]]);
+  await store.run([['SADD', `b:club:${code}`, player], ['HSET', `b:p:${player}`, 'club', code]]);
+  return { ok: true, code };
+}
+export async function clubLeave(store, player) {
+  const have = await clubOf(store, player);
+  if (have) await store.run([['SREM', `b:club:${have}`, player], ['HDEL', `b:p:${player}`, 'club']]);
+  return { ok: true };
+}
+/** The friends board: same shape as readBoard (play time), among club members only. */
+export async function readClub(store, player, win = 'week', now = Date.now()) {
+  const code = player && validPlayer(player) ? await clubOf(store, player.toLowerCase()) : null;
+  if (!code) return { tab: 'friends', win, code: null, rows: [], you: null, total: 0, online: await onlineCount(store, now) };
+  const me = player.toLowerCase();
+  const [members] = await store.run([['SMEMBERS', `b:club:${code}`]]);
+  const key = boardKey('time', win, now);
+  const res = members.length ? await store.run(members.flatMap((id) => [['ZSCORE', key, id], ['HGET', `b:p:${id}`, 'name'], ['HGETALL', `b:pg:${id}`]])) : [];
+  const list = members.map((id, i) => {
+    const pg = res[i * 3 + 2], games = [];
+    if (Array.isArray(pg)) for (let k = 0; k < pg.length; k += 2) if (Number(pg[k + 1]) > 0 && GAMES.includes(pg[k])) games.push(pg[k]);
+    return { id, value: Number(res[i * 3]) || 0, name: res[i * 3 + 1] || 'Someone', games, you: id === me };
+  }).sort((a, b) => b.value - a.value || (a.name < b.name ? -1 : 1));
+  let rank = 0, prev = null;
+  list.forEach((r, i) => { if (r.value !== prev) { rank = i + 1; prev = r.value; } r.rank = rank; });
+  const strip = ({ id, ...rest }) => rest;
+  const rows = list.map(strip);
+  return { tab: 'friends', win, code, rows, you: rows.find((r) => r.you) || null, total: rows.length, online: await onlineCount(store, now) };
+}
+
+// ------------------------------------------------------------------ invites
+/** A short code that stands for the player (the player id itself is never put in a link). */
+export async function inviteCode(store, player) {
+  const [have] = await store.run([['HGET', `b:p:${player}`, 'invite']]);
+  if (have) return have;
+  await nameOf(store, player);
+  for (let i = 0; i < 20; i++) {
+    const code = randomCode(8, 'abcdefghjkmnpqrstuvwxyz23456789');
+    const [got] = await store.run([['HSETNX', 'b:inv', code, player]]);
+    if (Number(got) === 1) { await store.run([['HSET', `b:p:${player}`, 'invite', code]]); return code; }
+  }
+  return null;
+}
+/** A friend finished their first round from an invite link: both sides get a token (once per friend, five a month for the inviter). */
+export async function inviteClaim(store, friend, code, now = Date.now()) {
+  if (typeof code !== 'string' || !/^[a-z2-9]{8}$/.test(code)) return { ok: false, error: 'code' };
+  const [inviter] = await store.run([['HGET', 'b:inv', code]]);
+  if (!inviter || inviter === friend) return { ok: false, error: 'unknown' };
+  const [first] = await store.run([['HSETNX', 'b:invited', friend, inviter]]);
+  if (Number(first) !== 1) return { ok: false, error: 'already' };
+  const month = new Date(now).toISOString().slice(0, 7);
+  const k = `b:invm:${month}:${inviter}`;
+  const [n] = await store.run([['INCR', k], ['EXPIRE', k, 40 * 86400]]);
+  if (Number(n) > INVITES_PER_MONTH) return { ok: true, tokens: 1, inviterRewarded: false };   // the friend still gets theirs
+  await store.run([['HINCRBY', `b:p:${inviter}`, 'pending', 1]]);
+  return { ok: true, tokens: 1, inviterRewarded: true };
+}
+/** Tokens waiting for the inviter (and clears them). */
+export async function inviteStatus(store, player) {
+  const [n] = await store.run([['HGET', `b:p:${player}`, 'pending']]);
+  const pending = Math.max(0, Math.floor(Number(n) || 0));
+  if (pending) await store.run([['HINCRBY', `b:p:${player}`, 'pending', -pending]]);
+  return { pending };
 }

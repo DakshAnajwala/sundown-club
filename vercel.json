@@ -28,6 +28,10 @@
   ],
   "rewrites": [
     {
+      "source": "/c/:code",
+      "destination": "/c/index.html"
+    },
+    {
       "source": "/api/:path((?!club/).*)",
       "destination": "https://parking-precision.vercel.app/api/:path"
     }

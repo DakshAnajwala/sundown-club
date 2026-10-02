@@ -17,6 +17,7 @@ import { rollStreak, earnDay, canRestore, restoreStreak, setRestDay, runLength, 
 import { give } from './chips.js';
 import { track } from './telemetry.js';
 import { dayNumber } from './seed.js';
+import { claimInviteIfAny } from './leaderboard.js';
 
 export const SEED_XP = 50;
 export const FIRST_WIN_XP = 150;   // with the round's XP and the daily reward this reaches level 2 in the first sitting
@@ -128,6 +129,7 @@ export function reportRound(game, kind, data = {}) {
       const v = view(p, t);
       return { ...r, firstWin, firstWinXp: firstWin ? FIRST_WIN_XP : 0, firstRound: onb.round > 0 && Date.now() - onb.round < 5000, level: { ...v.level, from: before.level, leveled: after.level > before.level }, quests: v.quests.map((q) => ({ ...q, justDone: r.justDone.includes(q.id) })), streak: v.streak, streakEvents: events, tokens: p.tokens, xpTotal: p.xp };
     });
+    if (out.firstRound) claimInviteIfAny();   // a friend's first round: both of you get a token
     track('round_end', { game, result: String(data.result ?? (data.won === true ? 'win' : data.won === false ? 'lose' : data.win === true ? 'win' : data.stars != null ? `stars${data.stars}` : 'done')).slice(0, 16) });
     for (const id of out.justDone) track('quest_completed', { id: id.slice(0, 24) });
     if (out.level.leveled) track('level_up', { level: out.level.level });

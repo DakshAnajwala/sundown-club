@@ -28,6 +28,8 @@ import { CHASSIS_SIZE, RIDE_HEIGHT } from '../vehicle/Dimensions.js';
 import { GHOST } from './Retention.js';
 
 const STORAGE_KEY = 'parking-precision:ghost:v1';
+/** A friend's ghost for one level, from a shared link (api/club/play ghost_get). One at a time, kept until replaced or reset. */
+const RIVAL_KEY = 'parking-precision:rival:v1';
 const FIELDS = 4; // x, z (cm, relative to target), y (cm), heading (0.1 deg)
 const I16 = 32767;
 
@@ -75,6 +77,16 @@ function writeStore(ghosts) {
   }
 }
 
+function readRival() {
+  try {
+    const r = JSON.parse(localStorage.getItem(RIVAL_KEY) ?? 'null');
+    if (r && Number.isInteger(r.id) && (r.hz === GHOST.hz || r.hz === GHOST.hz / 2) && typeof r.d === 'string' && typeof r.name === 'string') return r;
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export function createGhost({ scene }) {
   // --- look -------------------------------------------------------------------
   const material = new THREE.MeshBasicMaterial({
@@ -103,12 +115,29 @@ export function createGhost({ scene }) {
   group.add(body, cabin);
   group.visible = false;
   scene.add(group);
+  // The rival: the same silhouette in the accent colour, so it never reads as "you".
+  const rivalMaterial = material.clone();
+  rivalMaterial.color.set('#f0a868');
+  rivalMaterial.userData = { disposable: true };
+  const rivalGroup = new THREE.Group();
+  rivalGroup.name = 'rival-ghost';
+  for (const [geo, y, z] of [[bodyGeo, 0.52 - RIDE_HEIGHT, 0], [cabinGeo, 1.08 - RIDE_HEIGHT, 0.12]]) {
+    const m = new THREE.Mesh(geo, rivalMaterial);
+    m.position.set(0, y, z);
+    m.castShadow = false;
+    m.receiveShadow = false;
+    m.renderOrder = 5;
+    rivalGroup.add(m);
+  }
+  rivalGroup.visible = false;
+  scene.add(rivalGroup);
 
   // --- state ------------------------------------------------------------------
   let target = null; // [x, z] of the level's target
   let recording = null; // number[] while a run is being sampled
   let sinceSample = 0;
   let playback = null; // { samples: Int16Array, hz }
+  let rivalPlayback = null; // same shape, a friend's run on this level
   let lastOpacity = 0;
 
   /**
@@ -120,7 +149,16 @@ export function createGhost({ scene }) {
     recording = enabled && levelId != null ? [] : null;
     sinceSample = 1 / GHOST.hz; // sample the start pose immediately
     playback = null;
+    rivalPlayback = null;
     group.visible = false;
+    rivalGroup.visible = false;
+    if (enabled && levelId != null) {
+      const r = readRival();
+      if (r && r.id === levelId) {
+        const samples = fromBase64(r.d);
+        if (samples.length >= FIELDS) rivalPlayback = { samples, hz: r.hz };
+      }
+    }
     if (!recording) return;
     const found = readStore().find((g) => g.id === levelId);
     if (found) {
@@ -146,15 +184,11 @@ export function createGhost({ scene }) {
     void runTimeSec;
   }
 
-  /** Place the ghost for this moment of the run (render side). */
-  function update(runTimeSec, carPos, driving) {
-    if (!playback || !driving) {
-      group.visible = false;
-      return;
-    }
-    const s = playback.samples;
+  /** Move one ghost group to this moment of its run. Returns the opacity used. */
+  function place(grp, mat, pb, runTimeSec, carPos) {
+    const s = pb.samples;
     const n = s.length / FIELDS;
-    const f = Math.min(n - 1, Math.max(0, runTimeSec * playback.hz));
+    const f = Math.min(n - 1, Math.max(0, runTimeSec * pb.hz));
     const i = Math.floor(f);
     const j = Math.min(n - 1, i + 1);
     const t = f - i;
@@ -167,13 +201,43 @@ export function createGhost({ scene }) {
     if (h1 - h0 > 180) h1 -= 360;
     else if (h0 - h1 > 180) h1 += 360;
     const h = (THREE.MathUtils.lerp(h0, h1, t) * Math.PI) / 180;
-    group.position.set(x, y, z);
-    group.rotation.set(0, h, 0);
+    grp.position.set(x, y, z);
+    grp.rotation.set(0, h, 0);
     const d = Math.hypot(x - carPos.x, z - carPos.z);
     const [near, far] = GHOST.fadeNearM;
-    lastOpacity = GHOST.opacity * THREE.MathUtils.clamp((d - near) / (far - near), 0, 1);
-    material.opacity = lastOpacity;
-    group.visible = lastOpacity > 0.01;
+    const o = GHOST.opacity * THREE.MathUtils.clamp((d - near) / (far - near), 0, 1);
+    mat.opacity = o;
+    grp.visible = o > 0.01;
+    return o;
+  }
+
+  /** Place the ghosts for this moment of the run (render side). */
+  function update(runTimeSec, carPos, driving) {
+    if (!driving) {
+      group.visible = false;
+      rivalGroup.visible = false;
+      return;
+    }
+    if (playback) lastOpacity = place(group, material, playback, runTimeSec, carPos);
+    else group.visible = false;
+    if (rivalPlayback) place(rivalGroup, rivalMaterial, rivalPlayback, runTimeSec, carPos);
+    else rivalGroup.visible = false;
+  }
+
+  /** The stored personal-best ghost for a level, ready to share: { level, hz, d } or null. */
+  function exportBest(levelId) {
+    const g = readStore().find((x) => x.id === levelId);
+    return g ? { level: g.id, hz: g.hz, d: g.d } : null;
+  }
+
+  /** Keep a friend's ghost for this level (replaces any earlier rival). */
+  function setRival(levelId, hz, d, name) {
+    try {
+      localStorage.setItem(RIVAL_KEY, JSON.stringify({ id: levelId, hz, d, name: String(name).slice(0, 40) }));
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -204,11 +268,13 @@ export function createGhost({ scene }) {
   function stop() {
     recording = null;
     group.visible = false;
+    rivalGroup.visible = false;
   }
 
   function clearAll() {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(RIVAL_KEY);
     } catch {
       // nothing to clear
     }
@@ -219,6 +285,9 @@ export function createGhost({ scene }) {
     sample,
     update,
     saveBest,
+    exportBest,
+    setRival,
+    getRival: readRival,
     stop,
     clearAll,
     debug() {
@@ -227,6 +296,8 @@ export function createGhost({ scene }) {
         recording: Boolean(recording),
         samples: recording ? recording.length / FIELDS : 0,
         playback: playback ? playback.samples.length / FIELDS : 0,
+        rival: rivalPlayback ? rivalPlayback.samples.length / FIELDS : 0,
+        rivalVisible: rivalGroup.visible,
         visible: group.visible,
         opacity: +lastOpacity.toFixed(3),
         stored: ghosts.map((g) => ({ id: g.id, hz: g.hz, bytes: g.d.length })),

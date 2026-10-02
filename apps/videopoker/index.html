@@ -109,6 +109,7 @@ button { font: inherit; color: inherit; }
   <div class="row"><span class="lbl">Last win</span><span id="lastWin" class="num small">—</span></div>
   <button class="learn" id="bLearn" type="button">Learn to play <kbd>T</kbd></button>
   <button class="learn" id="bDaily" type="button">Today's hand <kbd>D</kbd></button>
+  <button class="learn" id="bShare" type="button" hidden>Share this hand <kbd>S</kbd></button>
 </header>
 <aside class="tr panel">
   <div><b>Keys</b></div>
@@ -138,6 +139,10 @@ import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
 import { initTelemetry } from '@sundown/shared/telemetry.js';
 import { reportRound, reportSeed, seedResults } from '@sundown/shared/retention.js';
+import { makeChallenge, checkChallenge } from '@sundown/shared/leaderboard.js';
+import { renderShareCard, shareResult } from '@sundown/shared/sharecard.js';
+import { levelFor, titleFor, readProfile } from '@sundown/shared/profile.js';
+import { track } from '@sundown/shared/telemetry.js';
 import { seededShuffle, seedFor, dayNumber } from '@sundown/shared/seed.js';
 import { showRoundPanel } from '@sundown/shared/roundpanel.js';
 initTelemetry({ game: 'videopoker' });
@@ -223,7 +228,8 @@ const stats = (() => { try { return JSON.parse(localStorage.getItem('vp.v1')) ||
 stats.hands ||= 0; stats.best ||= null; stats.bestCoins ||= 0; stats.won ||= 0;
 
 // Today's hand: the same five cards (and draws) for everyone today, one go, free play (chips do not move).
-const D = { on: false, prevCoins: 5 };
+const D = { on: false, prevCoins: 5, kind: 'daily', seed: 0, from: null };   // kind: 'daily' | 'challenge'; from: a friend's { n, v, l }
+let lastSeeded = null;   // the last seeded hand finished here, for the share button
 function save() {
   if (T.on || D.on) return;   // tutorial chips are pretend; today's hand is free play
   setBankroll(bank);
@@ -296,7 +302,7 @@ function deal() {
   if (!D.on) bank -= coins * COIN;
   save(); sfx.chip(); press(dealBtn);
   winLine = null; lastWin = 0;
-  const { hand } = machine.deal(coins, T.on ? { deck: lessonDeck() } : D.on ? { deck: seededShuffle(freshDeck(), seedFor('videopoker')) } : undefined);
+  const { hand } = machine.deal(coins, T.on ? { deck: lessonDeck() } : D.on ? { deck: seededShuffle(freshDeck(), D.seed) } : undefined);
   for (let i = 0; i < 5; i++) { flip[i] = 0; flipCard(i, 0, 0); }
   setTimeout(() => { hand.forEach((c, i) => { shownCards[i] = c; flipCard(i, 1, i * 90); }); }, 160);
   message = 'Hold with 1–5, then draw';
@@ -335,20 +341,60 @@ function payOut(result) {
 }
 function finishDaily(result) {
   const name = result ? result.name : 'No win', won = result ? result.coins : 0;
-  D.on = false; coins = D.prevCoins;
-  const r = reportSeed('videopoker', { name, coins: won });
-  const shown = r.result || { name, coins: won };
+  const held = machine.held.slice();
+  const kind = D.kind, from = D.from, seed = D.seed;
+  D.on = false; coins = D.prevCoins; D.from = null;
+  let tail = '';
+  if (kind === 'daily') {
+    const r = reportSeed('videopoker', { name, coins: won });
+    const shown = r.result || { name, coins: won };
+    lastSeeded = { kind, seed, name: shown.name, coins: shown.coins, held, day: dayNumber() };
+    tail = ` · ${shown.name}${shown.coins ? ` · ${shown.coins} coins` : ''}${r.first ? ` · +${r.xp} XP` : ''}`;
+  } else {
+    lastSeeded = { kind, seed, name, coins: won, held, from };
+    if (from) tail = won > from.v ? ` · you beat ${from.n} (${from.v})` : won === from.v ? ` · level with ${from.n} (${from.v})` : ` · ${from.n} had ${from.v}`;
+    track('challenge_accepted');
+  }
   winLine = result ? result.name : null; lastWin = 0;
-  message = `Today's hand: ${shown.name}${shown.coins ? ` · ${shown.coins} coins` : ''}${r.first ? ` · +${r.xp} XP` : ''}`;
+  message = kind === 'daily' ? `Today's hand${tail}` : `Challenge: ${name}${won ? ` · ${won} coins` : ''}${tail}`;
   if (result) sfx.sting(result.coins >= 25 ? 'big' : 'win');
   showRoundPanel(reportRound('videopoker', 'hand', { hand: name, rank: result ? RANK[result.name] : 0, win: !!result, won: 0, bet: 5 }), { corner: 'bl' });
+  $('#bShare').hidden = false;
   hud(); dailyBtn();
+}
+async function shareHand() {
+  if (!lastSeeded) return;
+  const L = lastSeeded, btn = $('#bShare');
+  btn.disabled = true;
+  try {
+    const p = readProfile(), lvl = levelFor(p.xp);
+    const grid = L.held.map((h) => (h ? '🟩' : '⬛')).join('');
+    const label = L.name === 'No win' ? 'No win' : L.name;
+    const c = await makeChallenge({ g: 'videopoker', s: L.seed, v: L.coins, l: label.slice(0, 24) });
+    const url = c?.code ? `${location.origin}/c/${c.code}` : null;
+    const eyebrow = L.kind === 'daily' ? `Sundown Daily #${L.day}` : 'Challenge hand';
+    const png = await renderShareCard({ eyebrow, title: label, sub: L.coins ? `${L.coins} coins` : 'Better luck next hand', game: 'Video Poker · Jacks or Better', accent: '#e8b860', foot: `Level ${lvl.level} · ${titleFor(lvl.level)}${p.streak?.days > 1 ? ` · ${p.streak.days}-day streak` : ''}`, grid });
+    const text = `${eyebrow} · Video Poker\n${label}${L.coins ? ` (${L.coins} coins)` : ''}\n${grid}${url ? '\nCan you beat it?' : ''}`;
+    const how = await shareResult({ title: eyebrow, text, url, png });
+    track('share_click', { kind: how });
+    if (c?.code && L.kind === 'daily') track('challenge_sent');
+    toast(how === 'copied' ? (url ? 'Link and result copied.' : 'Result copied.') : how === 'downloaded' ? 'Picture saved.' : how === 'shared' ? 'Shared.' : 'Could not share that.');
+    if (!url) toast(c?.error === 'boards off' ? 'Turn on the club boards to make a challenge link.' : 'Result copied. Challenge links are not set up yet.');
+  } finally { btn.disabled = false; }
+}
+async function startChallenge(code) {
+  if (T.on || D.on || settling || machine.phase === 'dealt' || performance.now() < animUntil) return;
+  const r = await checkChallenge(code);
+  if (!r?.ok || r.data.g !== 'videopoker') { toast('That challenge link is not valid.'); return; }
+  D.on = true; D.kind = 'challenge'; D.seed = r.data.s; D.from = { n: r.data.n || 'A friend', v: r.data.v, l: r.data.l }; D.prevCoins = coins; coins = 5;
+  $('#bShare').hidden = true; hud(); deal();
+  message = `${D.from.n} got ${r.data.l}${r.data.v ? ` (${r.data.v} coins)` : ''}. Hold with 1–5, then draw`;
 }
 function startDaily() {
   if (T.on || D.on || settling || machine.phase === 'dealt' || performance.now() < animUntil) return;
   const done = seedResults().videopoker;
   if (done) { toast(`Today's hand: ${done.name}${done.coins ? ` · ${done.coins} coins` : ''}. A new hand comes at midnight UTC.`); return; }
-  D.on = true; D.prevCoins = coins; coins = 5; hud(); deal();
+  D.on = true; D.kind = 'daily'; D.seed = seedFor('videopoker'); D.from = null; D.prevCoins = coins; coins = 5; $('#bShare').hidden = true; hud(); deal();
   message = "Today's hand · hold with 1–5, then draw";
 }
 function dailyBtn() {
@@ -374,9 +420,11 @@ addEventListener('keydown', (e) => {
   else if (k === 'm') maxBet();
   else if (k === 't' && !T.on && !D.on) startTutorial();
   else if (k === 'd') startDaily();
+  else if (k === 's' && lastSeeded && !D.on) shareHand();
 });
 $('#bLearn').addEventListener('click', () => (T.on || D.on ? null : startTutorial()));
 $('#bDaily').addEventListener('click', startDaily);
+$('#bShare').addEventListener('click', shareHand);
 $('#bDeal').addEventListener('click', () => (machine.phase === 'dealt' ? draw() : deal()));
 $('#bBet').addEventListener('click', betOne);
 $('#bMax').addEventListener('click', maxBet);
@@ -469,9 +517,11 @@ async function boot() {
   hud(); dailyBtn(); frame();
   $('#loading').classList.add('gone');
   const wantDaily = /[?&]daily\b/.test(location.search);   // the hub's "Play today's hand" link
-  if (wantDaily) setTimeout(startDaily, 600);
+  const challenge = new URLSearchParams(location.search).get('c');   // /c/<code> sends people here with ?c=<code>
+  if (challenge) setTimeout(() => startChallenge(challenge), 600);
+  else if (wantDaily) setTimeout(startDaily, 600);
   else if (!stats.hands) coach.offerOnce('videopoker', { title: 'New to video poker?', body: ['A one-minute tutorial plays a practice hand with you and explains each step in plain words.'], onYes: () => startTutorial() });
-  window.__vp = { T, D, startDaily, startTutorial, machine, deal, draw, toggle, get bank() { return bank; } };
+  window.__vp = { T, D, startDaily, startChallenge, shareHand, startTutorial, machine, deal, draw, toggle, get bank() { return bank; } };
 }
 boot();
 </script>

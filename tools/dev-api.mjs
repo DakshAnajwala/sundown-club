@@ -37,7 +37,8 @@ http.createServer(async (req, res) => {
     try { req.body = JSON.parse(raw); } catch { req.body = raw; }
   }
   if (fn) { try { await fn(req, shim(res)); } catch (e) { res.statusCode = 500; res.end(String(e)); } return; }
-  let path = normalize(join('dist', decodeURIComponent(url.pathname)));
+  const pathname = /^\/c\/[^/]+$/.test(url.pathname) ? '/c/index.html' : url.pathname;   // same rewrite as vercel.json
+  let path = normalize(join('dist', decodeURIComponent(pathname)));
   if (!path.startsWith('dist')) { res.statusCode = 403; res.end(); return; }
   try {
     if ((await stat(path)).isDirectory()) path = join(path, 'index.html');

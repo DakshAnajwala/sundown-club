@@ -30,6 +30,24 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) { .sc-rp, .sc-rp.in { animation: none; transition: none; } }
 `;
 
+/** A plain one-paragraph note in the same card style (links, ghosts). Same rules: it never blocks, it fades. */
+export function showNote(text, opts = {}) {
+  try {
+    if (typeof document === 'undefined') return;
+    if (!document.getElementById(STYLE_ID)) { const s = el('style'); s.id = STYLE_ID; s.textContent = CSS; document.head.append(s); }
+    if (current) { clearTimeout(timer); current.remove(); current = null; }
+    const root = el('div', `sc-rp in ${opts.corner || 'bl'}`);
+    if (opts.style) Object.assign(root.style, opts.style);
+    root.setAttribute('role', 'status'); root.setAttribute('aria-live', 'polite');
+    root.append(el('div', 'f', text));
+    root.querySelector('.f').style.marginTop = '0';
+    root.querySelector('.f').style.color = '#f1ebe0';
+    document.body.append(root);
+    current = root;
+    timer = setTimeout(hideRoundPanel, opts.ttl || 8000);
+  } catch { /* a missing note must never break a game */ }
+}
+
 let current = null;
 let timer = null;
 
