@@ -27,6 +27,7 @@ drive only; its story previews are dev-server only).
 
 ## Deploy log
 
+- 2 Oct 2026, commit 9c52a12: `fix/live-bugs` fast-forwarded into `main` and deployed from a clean clone of `main` (with `.vercel/` copied in). Six fixes: Enter/Space press the focused button; Blackjack room switch no longer adds chips; Hold'em showdown numbers; Video Poker keeps a hand's result; every visitor gets their own hub profile (random id and name); Blackjack's Design review panel only with `?dev`. First CLI attempt answered "Not authorized" again; the immediate retry worked. Deployment `sundown-club-n71upia2c`. The live check after deploying was stopped by the owner, so it is not done yet.
 - 1 Oct 2026, commit 4062e5d: club privacy policy, terms and notices at the site root; `/parking/{privacy,terms,notices}.html` redirect there; fonts, three.js and GSAP self-hosted under `/vendor/`. Every page checked live: no request to any other host.
 - 1 Oct 2026, commit e851fc4: hub, Blackjack, Hold'em, Video Poker, Parking, Esc-to-leave, tutorials. All routes 200, every page loaded headless with no errors. First CLI attempt answered "Not authorized"; an immediate retry worked (same as before).
   That deploy also carried Night Drive (052279e): `/racing/` test drive and the
