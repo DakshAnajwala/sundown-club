@@ -204,4 +204,34 @@ await ok(async () => { // shared ghosts
   assert.ok((await G.putGhost(s, id(1), 'n', { level: 7, hz: 20, d: good }, T0 + 2 * DAY)).ok, 'a new day');
 });
 
+await ok(async () => { // web push: signing, endpoints, one a day, dead subscriptions dropped
+  const { generateKeyPairSync, createPublicKey, createVerify } = await import('node:crypto');
+  const Pu = await import('../api/_lib/push.js');
+  const { publicKey, privateKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  const jwk = privateKey.export({ format: 'jwk' }), pubJwk = publicKey.export({ format: 'jwk' });
+  const pub = Buffer.concat([Buffer.from([4]), Buffer.from(pubJwk.x, 'base64url'), Buffer.from(pubJwk.y, 'base64url')]).toString('base64url');
+  const env = { VAPID_PUBLIC_KEY: pub, VAPID_PRIVATE_KEY: jwk.d, VAPID_SUBJECT: 'mailto:owner@example.com' };
+  assert.ok(Pu.pushConfigured(env)); assert.ok(!Pu.pushConfigured({})); assert.ok(!Pu.pushConfigured({ VAPID_PUBLIC_KEY: 'x' }));
+  const jwt = Pu.vapidJwt('https://push.example.com', env.VAPID_SUBJECT, { pub, priv: jwk.d }, T0);
+  const [h, b, sig] = jwt.split('.');
+  assert.deepEqual(JSON.parse(Buffer.from(h, 'base64url')), { typ: 'JWT', alg: 'ES256' });
+  const claims = JSON.parse(Buffer.from(b, 'base64url')); assert.equal(claims.aud, 'https://push.example.com'); assert.equal(claims.sub, env.VAPID_SUBJECT); assert.equal(claims.exp, Math.floor(T0 / 1000) + 43200);
+  assert.ok(createVerify('SHA256').update(`${h}.${b}`).verify({ key: createPublicKey({ key: pubJwk, format: 'jwk' }), dsaEncoding: 'ieee-p1363' }, Buffer.from(sig, 'base64url')), 'a push service can verify the signature');
+  assert.ok(Pu.validEndpoint('https://fcm.googleapis.com/fcm/send/abc')); for (const bad of ['http://x.com/a', 'javascript:alert(1)', 'nope', '', 'https://' + 'a'.repeat(700)]) assert.ok(!Pu.validEndpoint(bad));
+  const s = memoryStore();
+  assert.deepEqual(await Pu.subscribe(s, id(1), 'http://insecure.example/x'), { ok: false });
+  for (const e of ['https://push.example.com/a', 'https://push.example.com/b', 'https://push.example.com/c']) assert.ok((await Pu.subscribe(s, id(1), e)).ok);
+  const sent = [];
+  const fake = async (url, init) => { sent.push([url, init.headers.Authorization.slice(0, 11), init.headers['Content-Length']]); return { ok: !url.endsWith('/b') && !url.endsWith('/c'), status: url.endsWith('/c') ? 410 : url.endsWith('/b') ? 500 : 201 }; };
+  let r = await Pu.runPush(s, env, fake, T0);
+  assert.deepEqual(r, { sent: 1, gone: 1, failed: 1, skipped: 0 }); assert.equal(sent.length, 3); assert.ok(sent.every((x) => x[1] === 'vapid t=eyJ' && x[2] === '0'), 'empty push with a VAPID header');
+  r = await Pu.runPush(s, env, fake, T0 + 3600000);
+  assert.deepEqual(r, { sent: 0, gone: 0, failed: 1, skipped: 1 }, 'the one that was sent today is not sent again; the failed one is retried; the gone one is dropped');
+  r = await Pu.runPush(s, env, async () => ({ ok: true, status: 201 }), T0 + DAY);
+  assert.equal(r.sent, 2); assert.equal((await Pu.runPush(s, env, async () => ({ ok: true, status: 201 }), T0 + DAY + 1000)).sent, 0, 'one a day');
+  await Pu.unsubscribe(s, 'https://push.example.com/a');
+  assert.equal((await Pu.runPush(s, env, async () => ({ ok: true, status: 201 }), T0 + 2 * DAY)).sent, 1);
+  assert.equal(await Pu.sendPush('https://push.example.com/z', env, async () => { throw new Error('offline'); }), 'failed');
+});
+
 console.log(`board-check: ${n} groups passed`);

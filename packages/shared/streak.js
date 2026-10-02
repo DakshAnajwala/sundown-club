@@ -13,6 +13,8 @@ export const MAX_FREEZES = 3;
 export const FREEZE_EVERY = 7;
 export const WEEK_TARGET = 4;
 export const RESTORE_WINDOW_DAYS = 2;
+export const PAUSE_DAYS = 7;          // a streak pause (holiday, exams, a bad week) covers up to this many days
+export const PAUSE_COOLDOWN_DAYS = 28; // one pause every four weeks
 
 const pad = (n) => String(n).padStart(2, '0');
 const parse = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d, 12); };
@@ -35,6 +37,8 @@ export function normalizeStreak(s) {
     best: Math.max(days, Math.floor(Number(o.best) || 0)),
     freezes: Math.min(MAX_FREEZES, Math.max(0, Math.floor(Number(o.freezes) || 0))),
     rest: Number.isInteger(o.rest) && o.rest >= 0 && o.rest <= 6 ? o.rest : null,
+    pauseUntil: ok(o.pauseUntil) ? o.pauseUntil : null,
+    pausedOn: ok(o.pausedOn) ? o.pausedOn : null,
     broke: b,
     restored: typeof o.restored === 'string' && /^\d{4}-\d{2}$/.test(o.restored) ? o.restored : null,
     covered: (Array.isArray(o.covered) ? o.covered : []).filter(ok).slice(-5),
@@ -62,6 +66,7 @@ export function rollStreak(streak, today) {
   for (let i = 1; i <= missed; i++) {
     const day = addDaysStr(s.last, i);
     if (s.rest !== null && weekdayOf(day) === s.rest) continue;
+    if (s.pauseUntil && day <= s.pauseUntil) continue;   // paused: neutral, like a rest day
     if (s.freezes > 0) { s.freezes -= 1; s.covered = [...s.covered, day].slice(-5); events.push({ type: 'saved', day }); continue; }
     s.broke = { days: s.days, on: day };
     events.push({ type: 'broken', days: s.days });
@@ -127,6 +132,24 @@ export function setRestDay(streak, weekday) {
   const s = normalizeStreak(streak);
   s.rest = Number.isInteger(weekday) && weekday >= 0 && weekday <= 6 ? weekday : null;
   return s;
+}
+
+/** Can a pause start today? Returns { ok, reason?, until? } (reasons: active, cooldown, nothing). */
+export function canPause(streak, today) {
+  const s = normalizeStreak(streak);
+  if (s.pauseUntil && s.pauseUntil >= today) return { ok: false, reason: 'active', until: s.pauseUntil };
+  if (!s.days) return { ok: false, reason: 'nothing' };
+  if (s.pausedOn && daysBetween(s.pausedOn, today) < PAUSE_COOLDOWN_DAYS) return { ok: false, reason: 'cooldown', until: addDaysStr(s.pausedOn, PAUSE_COOLDOWN_DAYS) };
+  return { ok: true };
+}
+/** Pause the run for PAUSE_DAYS from today (missed days in that time neither break it nor use a freeze). */
+export function pauseStreak(streak, today) {
+  const s = normalizeStreak(streak);
+  const can = canPause(s, today);
+  if (!can.ok) return { streak: s, ...can };
+  s.pauseUntil = addDaysStr(today, PAUSE_DAYS - 1);
+  s.pausedOn = today;
+  return { streak: s, ok: true, until: s.pauseUntil };
 }
 
 /** Is the run alive today (counted today, or could still be counted without a break)? For the hub display. */

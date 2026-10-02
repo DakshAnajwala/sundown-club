@@ -13,7 +13,7 @@
  */
 import { today, updateProfile, readProfile, levelFor, titleFor, MAX_TOKENS } from './profile.js';
 import { ensureDay, progress, claimDaily, rerollQuest, describe, REWARD, GAME_IDS } from './daily.js';
-import { rollStreak, earnDay, canRestore, restoreStreak, setRestDay, runLength, weeklyCount, MAX_FREEZES } from './streak.js';
+import { rollStreak, earnDay, canRestore, restoreStreak, setRestDay, runLength, weeklyCount, canPause, pauseStreak, MAX_FREEZES } from './streak.js';
 import { give } from './chips.js';
 import { track } from './telemetry.js';
 import { dayNumber } from './seed.js';
@@ -79,7 +79,7 @@ function view(p, t) {
     streak: {
       days: runLength(p.streak, t), best: p.streak.best, freezes: p.streak.freezes, maxFreezes: MAX_FREEZES,
       rest: p.streak.rest, weeks: weeklyCount(p.streak, t), covered: p.streak.covered, broke: p.streak.broke, restore: rest,
-      earnedToday: p.streak.last === t, playMs: p.daily.playMs,
+      earnedToday: p.streak.last === t, playMs: p.daily.playMs, pause: { until: p.streak.pauseUntil && p.streak.pauseUntil >= t ? p.streak.pauseUntil : null, can: canPause(p.streak, t) },
     },
     tokens: p.tokens,
     level: { ...lvl, title: titleFor(lvl.level) },
@@ -253,6 +253,16 @@ export function reportSeed(game, result) {
   } catch {
     return { first: false, xp: 0, result: null };
   }
+}
+
+/** Pause the run for a week (once every four weeks). Missed days inside it never break the run. */
+export function pauseRun() {
+  return updateProfile((p) => {
+    const t = settle(p);
+    const r = pauseStreak(p.streak, t);
+    if (r.ok) p.streak = r.streak;
+    return { ok: r.ok, reason: r.reason, view: view(p, t) };
+  });
 }
 
 /** Pick the weekday (0 Sunday .. 6 Saturday) that never breaks the run, or null for none. */

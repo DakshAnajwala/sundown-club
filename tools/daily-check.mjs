@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as D from '../packages/shared/daily.js';
 import * as S from '../packages/shared/streak.js';
 import * as SD from '../packages/shared/seed.js';
+import { createBreakTimer, BREAK_AFTER_MS, RESET_AFTER_HIDDEN_MS } from '../packages/shared/wellbeing.js';
 import { deck } from '../packages/shared/cards.js';
 
 let n = 0;
@@ -207,6 +208,38 @@ ok(() => { // restore: once a month, with a token, inside two days
   assert.equal(t.days, 1);
   const r2 = S.restoreStreak(t, day(T0, 7), 1);
   assert.equal(r2.streak.days, 6);
+});
+ok(() => { // the break note: 90 minutes on screen, not counting time away, resets after ten minutes hidden
+  const t = createBreakTimer(); let fired = 0, now = 0;
+  const run = (ms, visible, step = 30000) => { for (let i = 0; i < ms / step; i++) { now += step; if (t.tick(now, visible)) fired++; } };
+  t.tick(0, true); run(89 * 60000, true); assert.equal(fired, 0, 'not yet');
+  run(2 * 60000, true); assert.equal(fired, 1, 'at 90 minutes');
+  run(80 * 60000, true); assert.equal(fired, 1); run(11 * 60000, true); assert.equal(fired, 2, 'again after another 90');
+  const u = createBreakTimer(); let f2 = 0, n2 = 0; u.tick(0, true);
+  for (let i = 0; i < 160; i++) { n2 += 30000; if (u.tick(n2, true)) f2++; }          // 80 minutes
+  for (let i = 0; i < 24; i++) { n2 += 30000; if (u.tick(n2, false)) f2++; }          // 12 minutes hidden
+  for (let i = 0; i < 160; i++) { n2 += 30000; if (u.tick(n2, true)) f2++; }          // 80 more minutes
+  assert.equal(f2, 0, 'a long enough break starts the count again');
+  const v = createBreakTimer(); let f3 = 0, n3 = 0; v.tick(0, true);
+  for (let i = 0; i < 160; i++) { n3 += 30000; if (v.tick(n3, true)) f3++; }          // 80 minutes
+  for (let i = 0; i < 4; i++) { n3 += 30000; if (v.tick(n3, false)) f3++; }           // 2 minutes hidden (not enough to reset)
+  for (let i = 0; i < 40; i++) { n3 += 30000; if (v.tick(n3, true)) f3++; }           // 20 more
+  assert.equal(f3, 1, 'a short look away does not reset it; hidden time is not counted');
+  assert.equal(BREAK_AFTER_MS, 5400000); assert.equal(RESET_AFTER_HIDDEN_MS, 600000);
+});
+ok(() => { // pause: a week of days off that neither breaks the run nor uses a freeze, once every four weeks
+  const s = run(5);                                       // Mon-Fri
+  assert.deepEqual(S.canPause(null, T0), { ok: false, reason: 'nothing' });
+  const p = S.pauseStreak(s, day(T0, 5));                 // Saturday: pause for a week
+  assert.ok(p.ok); assert.equal(p.until, day(T0, 11));
+  assert.equal(S.pauseStreak(p.streak, day(T0, 6)).reason, 'active');
+  const back = S.earnDay(p.streak, day(T0, 12));          // back the Monday after the pause ended
+  assert.equal(back.streak.days, 6, 'the run is intact'); assert.equal(back.streak.freezes, 0); assert.equal(back.events.filter((e) => e.type === 'broken').length, 0);
+  const late = S.earnDay(p.streak, day(T0, 13));          // a day late: the pause only covers its own days
+  assert.deepEqual(late.events.map((e) => e.type), ['broken', 'started']);
+  assert.equal(S.canPause(back.streak, day(T0, 12)).reason, 'cooldown');
+  assert.ok(S.canPause(back.streak, day(T0, 5 + 28)).ok);
+  assert.equal(S.normalizeStreak({ pauseUntil: 'x', pausedOn: 5 }).pauseUntil, null);
 });
 ok(() => { // weekly streak: 4 active days a week, consecutive weeks
   let s = null;

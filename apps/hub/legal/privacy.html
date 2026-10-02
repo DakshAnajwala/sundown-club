@@ -42,6 +42,7 @@
     <tr><td><code>hub.v2.profile</code></td><td>What the homepage shows about you: a random identifier and a name for you, both made the first time you open the homepage (the name is picked at random until you change it under “Your evening”), when you last played each game, a one-line summary of each (for example your chip count), how long you have played each game while it was on screen, how many days in a row you have played (and your best run), your club level and experience points, the cosmetic items, badges and tokens you have earned, and tonight’s three challenges with your progress, whether you have claimed today’s reward, your streak details (freezes, rest day), what you picked when asked what brings you in and how far you got through the first visit, and your result in each day’s shared challenge (for example “Two pair”), lifetime counts (such as hands played and best chip win), your mastery progress in each game, which achievements you have unlocked and when, this week’s goal progress, and your season progress. The identifier and the name never leave your browser, so another browser or device gets its own. The name is not your Parking Precision leaderboard name. (<code>hub.v1.profile</code> is the same note from before 2 October 2026; it is copied forward once and then left alone.)</td></tr>
     <tr><td><code>hub.v1.settings</code></td><td>Your choices about the club: whether you allow the anonymous usage counters (section 6) and whether you are shown on the club boards (section 7).</td></tr>
     <tr><td><code>hub.v1.board</code></td><td>The last Blackjack chip peak and Parking star total sent to the club boards (section 7), so the same numbers are not sent twice.</td></tr>
+    <tr><td><code>hub.v1.pwa</code></td><td>How many times you have opened the club on this browser, and whether you said “Not now” to the install and reminder questions (section 8).</td></tr>
     <tr><td><code>hub.v1.invite</code></td><td>An invite code from a link you opened, kept until you finish your first round.</td></tr>
     <tr><td><code>hub.v1.tele</code></td><td>The day you first opened the club on this browser, so the usage counters can say “day 5”. Never sent as a date, only as a number of days.</td></tr>
     <tr><td><code>tut.v1.…</code></td><td>Whether you have already been offered each game’s tutorial, so it doesn’t ask again.</td></tr>
@@ -116,13 +117,21 @@
 <h3>Switching it off</h3>
 <p>The switch takes you off every board at once, frees your name and stops every message. Clearing this site’s data gives you a new identifier and leaves the old rows behind, so email <strong>daksh.anajwala@gmail.com</strong> with the name that was shown and it will be deleted. The identifier is stored in your browser as part of <code>hub.v2.profile</code>; the switch itself is saved as <code>board: false</code> in <code>hub.v1.settings</code>, and <code>hub.v1.board</code> remembers the last numbers sent so they are not sent twice.</p>
 
-<h2>8. Play money</h2>
+<h2 id="offline">8. Offline play, installing and reminders</h2>
+<ul>
+  <li><strong>Offline play:</strong> the club saves copies of its own pages, code and pictures on your device (in your browser’s cache, with a small helper called a service worker) so it opens quickly and works without a connection. Nothing is sent when it does this, and clearing this site’s data removes the copies.</li>
+  <li><strong>Installing:</strong> if your browser offers to install the club like an app, we only ask politely after your second visit. “Not now” is remembered and we do not ask again. Installing is done by your browser.</li>
+  <li><strong>Reminders (off unless you turn them on, and only if the club has them switched on):</strong> after your third visit we may ask whether you want one reminder a day. If you say yes, your browser gives the club a push address (a link at the push service run by your browser’s maker, such as Google, Mozilla or Apple) together with your random identifier. Once a day, at most, the club asks that service to wake your browser, which shows a short generic message that the Daily Seed is up. The message contains nothing about you. The push service sees that a message was delivered to your browser. Turning reminders off in “Save &amp; settings” deletes the address from the club’s server.</li>
+</ul>
+<p>These are saved on your device as <code>hub.v1.pwa</code>: how many times you have opened the club, and whether you said “Not now” to the install or reminder questions.</p>
+
+<h2>9. Play money</h2>
 <p>The chips in Blackjack, Hold’em and Video Poker are play chips. They cannot be bought, sold, cashed out or swapped for anything, and nothing you win has any value outside the game. No payment details are ever asked for.</p>
 
-<h2>9. Children</h2>
+<h2>10. Children</h2>
 <p>We don’t knowingly collect personal information from anyone, including children. There is no account and no place to type a message. The homepage lets you change the name it calls you, but that name stays in your browser and is never sent or shown to anyone else. The only public thing, the Parking Precision leaderboard, uses its own made-up names. If you think something identifying has ended up on the board, email us and it will be removed.</p>
 
-<h2>10. Changes</h2>
+<h2>11. Changes</h2>
 <p>If the way Sundown Club handles data ever changes (for example analytics, ads or accounts), this page will be updated before the change goes live, and the date at the top will change. Where the law requires it, you will be asked before anything new happens.</p>
 </main>
 <footer><span>© 2026 Daksh Anajwala · Sundown Club</span><a href="/">Back to the games</a></footer>

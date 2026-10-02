@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>Sundown Club: free 3D browser games, nothing to install</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#14121a">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="description" content="Free 3D browser games by Daksh Anajwala: Blackjack, Texas Hold'em, Video Poker, Parking Precision and the Night Drive test drive. Play chips only, no account.">
 <link rel="canonical" href="https://sundown-club.vercel.app/">
 <meta property="og:type" content="website">
@@ -323,6 +326,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .rename .msg:empty { display: none; }
 
 
+.offer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 14px; margin: 10px 0; border: 1px solid var(--line); border-radius: 12px; background: rgba(12,12,22,.65); font-size: 14px; color: var(--ink-2); max-width: 640px; }
+.offer .btn { padding: 8px 14px; font-size: 14px; }
 .picker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); }
 .picker button { font: 500 14px var(--sans); color: var(--ink); background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; cursor: pointer; backdrop-filter: blur(10px); transition: border-color .2s, background .2s; }
 .picker button:hover { border-color: var(--ink-3); background: rgba(243,231,216,.1); }
@@ -667,6 +672,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     <div class="rename">
       <button class="linkbtn" id="renameBtn" type="button">Change name</button>
       <button class="linkbtn" id="saveBtn" type="button" style="margin-left:18px">Save &amp; settings</button>
+      <div class="offer" id="offer" hidden><span id="offerText"></span><button class="btn fill" type="button" id="offerYes"></button><button class="btn" type="button" id="offerNo">Not now</button></div>
       <a class="linkbtn" href="#collection" style="margin-left:18px;text-decoration-line:underline">Collection</a>
       <span class="badgeline" id="badgeLine"></span>
       <form id="renameForm" hidden><label for="renameIn">New name</label><input id="renameIn" autocomplete="off" spellcheck="false" aria-describedby="renameMsg"><button class="btn fill" type="submit">Save</button><button class="btn" type="button" id="renameCancel">Cancel</button><span class="msg" id="renameMsg" role="status"></span></form>
@@ -766,7 +772,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <footer class="night pad" id="night">
   <div class="last reveal"><p>The lamp stays on. Pick a game whenever you're ready.</p><a class="btn fill" href="#lobby" id="toTop">Back to the games ↑</a></div>
   <div class="big" id="big" aria-label="sundown club">sundown club</div>
-  <div class="legal"><span>© 2026 Daksh Anajwala · Sundown Club</span><nav aria-label="Legal"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/notices.html">Third-party notices</a><button type="button" id="teleToggle" aria-pressed="true"></button></nav></div>
+  <div class="legal"><span>© 2026 Daksh Anajwala · Sundown Club</span><nav aria-label="Legal"><a href="/guides/">Guides</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/notices.html">Third-party notices</a><button type="button" id="teleToggle" aria-pressed="true"></button></nav></div>
 </footer>
 </main>
 
@@ -795,6 +801,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
   <div class="drow"><input type="file" id="svPick" accept=".sundown,.txt,text/plain" aria-label="Choose a save file"><button class="btn" type="button" id="svLoad">Load this save</button><span class="msg" id="svLoadMsg" role="status"></span></div>
   <h3>Settings</h3>
   <label class="chk"><input type="checkbox" id="svTele"> Send anonymous usage counters <a href="/privacy.html#usage-counters">(what is sent)</a></label>
+  <label class="chk" id="svPushRow" hidden><input type="checkbox" id="svPush"> A daily reminder when the Daily Seed is up (one at most a day)</label>
   <h3>Start over</h3>
   <div class="drow"><button class="btn" type="button" id="svReset">Erase this browser’s club save</button><span class="msg" id="svResetMsg" role="status"></span></div>
 </dialog>
@@ -805,7 +812,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <script type="module">
 import { ensureIdentity, readProfile, levelFor, titleFor, setHandle, suggestHandles, today, HANDLE_MAX } from '/shared/profile.js';
 import { exportSave, parseSave, importSave, resetSave } from '/shared/save.js';
-import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, chooseRestDay, seedResults } from '/shared/retention.js';
+import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, chooseRestDay, pauseRun, seedResults } from '/shared/retention.js';
 import { dayNumber, msToNextSeed } from '/shared/seed.js';
 import { onboarding, setPick, markStep, completeWelcome } from '/shared/retention.js';
 import { STARTER_BADGES, itemName } from '/shared/catalog.js';
@@ -813,6 +820,8 @@ import { fetchBoard, boardEnabled, setBoardEnabled, myBoardName, rerollBoardName
 import { renderShareCard, shareResult } from '/shared/sharecard.js';
 import { frameRing, backdropVars } from '/shared/cosmetics.js';
 import { content, claimTier, buyVault } from '/shared/retention.js';
+import { registerPwa, installOffer, promptInstall, dismissInstall, pushOffer, enablePush, disablePush, dismissPush } from '/shared/pwa.js';
+import { track } from '/shared/telemetry.js';
 import { equip, setBadges } from '/shared/profile.js';
 import { ITEMS, SLOTS } from '/shared/catalog.js';
 import { getChips } from '/shared/chips.js';
@@ -1046,6 +1055,9 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
       el('label', null, 'Rest day: ', sel),
       el('div', null, `Evening tokens: ${v.tokens ?? 0} (earned by clearing the table and by bringing friends; one restores a lost run)`),
     ];
+    if (st.pause?.until) kids.push(el('div', null, `Paused until ${new Date(st.pause.until + 'T12:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}. Days off in that time never break your run.`));
+    else if (st.pause?.can?.ok) { const pb = el('button', 'linkbtn', 'Pause my streak for a week'); pb.type = 'button'; pb.addEventListener('click', () => { const r = pauseRun(); render(r.view); note(r.ok ? 'Paused. Take the time you need; your run will be here.' : ''); }); kids.push(pb); }
+    else if (st.pause?.can?.reason === 'cooldown') kids.push(el('div', null, `You can pause again from ${new Date(st.pause.can.until + 'T12:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}.`));
     if (st.restore?.ok) { const b = el('button', 'btn', `Restore my ${st.broke.days}-day run (1 token)`); b.type = 'button'; b.addEventListener('click', () => { const r = restoreRun(); render(r.view); note(r.ok ? 'Your run is back.' : 'Could not restore it.'); paintLevel(); }); kids.push(b); }
     $('#dstreak').replaceChildren(...kids);
     // lobby strip + header dot
@@ -1313,6 +1325,36 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
   document.addEventListener('club-tokens', render);
   fetch('/api/club/board?tab=unlocks').then((r) => (r.ok ? r.json() : null)).then((u) => { if (u && u.n >= 20) { pct = u.pct; render(); } }).catch(() => {});
   document.addEventListener('club-render-all', render);
+}
+
+
+// Offers, always polite: install after the second visit, a daily reminder after the third (only if the server can send one). "Not now" is final.
+{
+  const box = $('#offer'), txt = $('#offerText'), yes = $('#offerYes'), no = $('#offerNo');
+  let mode = null, key = null, shown = {};
+  const show = (m, text, label) => { mode = m; txt.textContent = text; yes.textContent = label; box.hidden = false; if (!shown[m]) { shown[m] = true; track(m === 'install' ? 'install_prompt_shown' : 'notif_prompt_shown'); } };
+  async function decide() {
+    const i = installOffer();
+    if (i.canInstall && i.sessions >= 2 && !i.dismissed && !i.installed) return show('install', 'Install the club on this device: it opens like an app and works offline.', 'Install');
+    const p = await pushOffer();
+    if (p.available && p.sessions >= 3 && !p.on && !p.dismissed && !p.denied) { key = p.key; return show('push', 'A reminder when the Daily Seed is up? One a day at most, and you can turn it off any time.', 'Remind me'); }
+    box.hidden = true;
+  }
+  yes.addEventListener('click', async () => {
+    if (mode === 'install') { const r = await promptInstall(); if (r === 'accepted') track('install_prompt_accepted'); else dismissInstall(); }
+    else if (mode === 'push') { const r = await enablePush(key); if (r === 'on') track('notif_prompt_accepted'); else if (r === 'denied') dismissPush(); }
+    box.hidden = true; decide();
+  });
+  no.addEventListener('click', () => { if (mode === 'install') dismissInstall(); else dismissPush(); box.hidden = true; decide(); });
+  registerPwa();   // counts this visit now, so the offers below see the right session number (initTelemetry calls it too; it only runs once)
+  document.addEventListener('club-install-ready', decide);
+  decide();
+  // the settings dialog's reminder switch (shown only when the server can send reminders)
+  pushOffer().then((p) => {
+    if (!p.available) return;
+    const row = $('#svPushRow'); row.hidden = false; const cb = $('#svPush'); cb.checked = p.on;
+    cb.addEventListener('change', async () => { if (cb.checked) { const r = await enablePush(p.key); cb.checked = r === 'on'; } else await disablePush(); });
+  });
 }
 
 // Save & settings: copy the whole club save out, load one in, usage counters, start over.

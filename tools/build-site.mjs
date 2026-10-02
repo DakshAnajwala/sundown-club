@@ -14,7 +14,9 @@
  *   dist/privacy.html …   the club's legal pages (apps/hub/legal/)
  *   dist/robots.txt, sitemap.xml, favicon.svg   for search engines (docs/seo.md)
  */
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { GUIDES } from '../apps/hub/guides/guides.js';
+import { renderGuide, renderIndex, guidePaths } from '../apps/hub/guides/render.mjs';
 
 const out = 'dist';
 rmSync(out, { recursive: true, force: true });
@@ -28,7 +30,7 @@ cpSync('apps/hub/favicon.svg', `${out}/favicon.svg`);
 // Parking Precision is left out on purpose: its pages still name parking-precision.vercel.app
 // as canonical, and a sitemap must only list canonical URLs.
 const SITE = 'https://sundown-club.vercel.app';
-const PAGES = ['/', '/blackjack/', '/holdem/', '/videopoker/', '/racing/'];
+const PAGES = ['/', '/blackjack/', '/holdem/', '/videopoker/', '/racing/', ...guidePaths()];
 writeFileSync(`${out}/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${PAGES.map((p) => `  <url><loc>${SITE}${p}</loc></url>`).join('\n')}
@@ -48,9 +50,18 @@ Sitemap: ${SITE}/sitemap.xml
 mkdirSync(`${out}/admin/metrics`, { recursive: true });
 cpSync('apps/hub/admin/metrics.html', `${out}/admin/metrics/index.html`);
 
+// Guides: static how-to pages from apps/hub/guides/guides.js (docs/seo.md).
+mkdirSync(`${out}/guides`, { recursive: true });
+writeFileSync(`${out}/guides/index.html`, renderIndex());
+for (const g of GUIDES) { mkdirSync(`${out}/guides/${g.slug}`, { recursive: true }); writeFileSync(`${out}/guides/${g.slug}/index.html`, renderGuide(g)); }
+
 // Challenge links /c/<code> (rewritten to this page by vercel.json).
 mkdirSync(`${out}/c`, { recursive: true });
 cpSync('apps/hub/challenge.html', `${out}/c/index.html`);
+
+// Installable app: manifest, icons and the service worker (the build id names its caches, so a deploy replaces them).
+cpSync('apps/hub/manifest.webmanifest', `${out}/manifest.webmanifest`);
+cpSync('apps/hub/icons', `${out}/icons`, { recursive: true });
 
 // Static game pages: index.html plus any sibling .js modules (engine, bots).
 for (const app of ['blackjack', 'holdem', 'videopoker']) {
@@ -88,3 +99,14 @@ if (!existsSync('apps/racing/dist/index.html')) throw new Error('apps/racing/dis
 cpSync('apps/racing/dist', `${out}/racing`, { recursive: true });
 
 console.log('Sundown Club site assembled in dist/');
+
+// Service worker last, so the precache list can name real files in dist/.
+{
+  const BUILD = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+  const list = ['/', '/blackjack/', '/holdem/', '/videopoker/', '/parking/play/', '/racing/', '/guides/', '/vendor/fonts.css', '/favicon.svg', '/manifest.webmanifest', '/icons/icon-192.png', '/privacy.html', '/legal.css'];
+  const walk = (dir, base = '') => readdirSync(`${out}/${dir}`, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? walk(`${dir}/${d.name}`, base) : [`/${dir}/${d.name}`]));
+  list.push(...walk('shared').filter((f) => f.endsWith('.js') || f.endsWith('.json')), ...walk('vendor/three'), ...walk('vendor/fonts').filter((f) => f.endsWith('.woff2')), ...walk('vendor/gsap'));
+  for (const app of ['blackjack', 'holdem', 'videopoker']) list.push(...readdirSync(`${out}/${app}`).filter((n) => n.endsWith('.js')).map((n) => `/${app}/${n}`));
+  const tpl = readFileSync('apps/hub/sw.js', 'utf8').replace('__BUILD__', BUILD).replace('__PRECACHE__', JSON.stringify([...new Set(list)], null, 1));
+  writeFileSync(`${out}/sw.js`, tpl);
+}

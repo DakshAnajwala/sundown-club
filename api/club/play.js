@@ -7,8 +7,9 @@ import { getStore, readBody } from '../_lib/club.js';
 import { beat, clubCreate, clubJoin, clubLeave, inviteClaim, inviteCode, inviteStatus, leave, limit, nameOf, reroll, startSession, submit, validPlayer } from '../_lib/board.js';
 import { signChallenge, verifyChallenge } from '../_lib/challenge.js';
 import { getGhost, putGhost } from '../_lib/ghost.js';
+import { pushConfigured, subscribe, unsubscribe } from '../_lib/push.js';
 
-const KIND = { session: 'session', beat: 'beat', submit: 'submit', name: 'name', reroll: 'name', leave: 'name', club_create: 'club', club_join: 'club', club_leave: 'club', invite_code: 'invite', invite_claim: 'invite', invite_status: 'invite', challenge: 'invite', challenge_check: 'invite', ghost_put: 'invite', ghost_get: 'invite' };
+const KIND = { session: 'session', beat: 'beat', submit: 'submit', name: 'name', reroll: 'name', leave: 'name', club_create: 'club', club_join: 'club', club_leave: 'club', invite_code: 'invite', invite_claim: 'invite', invite_status: 'invite', challenge: 'invite', challenge_check: 'invite', ghost_put: 'invite', ghost_get: 'invite', push_key: 'invite', push_on: 'invite', push_off: 'invite' };
 
 export default async function handler(req, res) {
   res.setHeader('cache-control', 'no-store');
@@ -23,6 +24,8 @@ export default async function handler(req, res) {
     const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
     if (!(await limit(store, ip, KIND[a], now))) { res.status(429).json({ error: 'slow down' }); return; }
     if (a === 'beat') { res.status(200).json(await beat(store, body.token, now)); return; }
+    if (a === 'push_key') { res.status(200).json({ key: pushConfigured() ? process.env.VAPID_PUBLIC_KEY : null }); return; }
+    if (a === 'push_off') { res.status(200).json(await unsubscribe(store, body.endpoint)); return; }
     if (a === 'ghost_get') { const g = await getGhost(store, body.id); res.status(g ? 200 : 404).json(g || { error: 'not found' }); return; }
     if (a === 'challenge_check') { res.status(200).json(verifyChallenge(body.code)); return; }
     const player = typeof body.player === 'string' ? body.player.toLowerCase() : '';
@@ -45,6 +48,7 @@ export default async function handler(req, res) {
     if (a === 'invite_code') { res.status(200).json({ code: await inviteCode(store, player) }); return; }
     if (a === 'invite_claim') { res.status(200).json(await inviteClaim(store, player, body.code, now)); return; }
     if (a === 'invite_status') { res.status(200).json(await inviteStatus(store, player)); return; }
+    if (a === 'push_on') { if (!pushConfigured()) { res.status(503).json({ error: 'push not configured' }); return; } res.status(200).json(await subscribe(store, player, body.endpoint)); return; }
     if (a === 'ghost_put') { const r = await putGhost(store, player, await nameOf(store, player), body.ghost || {}, now); res.status(r.ok ? 200 : 422).json(r); return; }
     if (a === 'challenge') { res.status(200).json(signChallenge(body.data, await nameOf(store, player), now)); return; }
   } catch {

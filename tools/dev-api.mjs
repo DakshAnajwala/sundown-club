@@ -10,13 +10,14 @@ import event from '../api/club/event.js';
 import metricsHandler from '../api/club/metrics.js';
 import playHandler from '../api/club/play.js';
 import boardHandler from '../api/club/board.js';
+import pushRun from '../api/club/push-run.js';
 
 process.env.METRICS_PASSWORD ||= 'dev';
 process.env.CLUB_DEV = '1';   // lets probes send x-dev-now to move the clock
 const port = Number(process.argv[2]) || 5181;
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.png': 'image/png', '.woff2': 'font/woff2', '.xml': 'application/xml', '.txt': 'text/plain' };
 const bodies = []; // raw event bodies, for tools/telemetry-probe.mjs (GET /dev/bodies)
-const routes = { '/api/club/event': event, '/api/club/metrics': metricsHandler, '/api/club/play': playHandler, '/api/club/board': boardHandler };
+const routes = { '/api/club/event': event, '/api/club/metrics': metricsHandler, '/api/club/play': playHandler, '/api/club/board': boardHandler, '/api/club/push-run': pushRun };
 
 function shim(res) {
   res.status = (c) => { res.statusCode = c; return res; };
