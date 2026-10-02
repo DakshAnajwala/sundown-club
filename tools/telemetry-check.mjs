@@ -1,6 +1,6 @@
 /** Pure-logic check for the telemetry server core: node tools/telemetry-check.mjs */
 import assert from 'node:assert/strict';
-import { addDays, bucketFor, commandsFor, ingest, memoryStore, metrics, passwordOk, rateLimit, validateBatch, RATE_PER_MIN } from '../api/_lib/club.js';
+import { addDays, bucketFor, commandsFor, ingest, memoryStore, metrics, passwordOk, rateLimit, unlockStats, validateBatch, RATE_PER_MIN } from '../api/_lib/club.js';
 
 const A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
@@ -55,6 +55,17 @@ ok('funnel numbers', () => { assert.equal(m2.funnel.game_open, 1); assert.equal(
 ok('sessions', () => assert.equal(m2.sessions['10-20'], 1));
 ok('per game', () => assert.equal(m2.perGame.find((g) => g.game === 'holdem').days.reduce((a, b) => a + b, 0), 1));
 ok('event totals', () => assert.equal(m2.events['game_open|holdem'], 1));
+
+// achievements: global unlock percentages
+{
+  const us = memoryStore(), day = '2026-10-01';
+  for (let i = 1; i <= 4; i++) {
+    const pid = `${String(i).repeat(8)}-aaaa-4aaa-8aaa-aaaaaaaaaaaa`;
+    await ingest(us, validateBatch({ player: pid, events: [{ name: 'session_start', props: { game: 'hub' } }, ...(i <= 1 ? [{ name: 'unlock', props: { id: 'bj.double' } }] : []), ...(i <= 3 ? [{ name: 'unlock', props: { id: 'club.first' } }] : []), { name: 'unlock', props: { id: 'made.up' } }] }), day);
+  }
+  const u = await unlockStats(us);
+  ok('unlock percentages', () => { assert.equal(u.n, 4); assert.equal(u.pct['bj.double'], 25); assert.equal(u.pct['club.first'], 75); assert.ok(!('made.up' in u.pct) && !('bj.hands.10' in u.pct)); });
+}
 
 // rate limit
 const rl = memoryStore();

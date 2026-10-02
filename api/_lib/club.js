@@ -4,6 +4,7 @@
  * configured, memory otherwise). Spec: docs/retention/SPEC-telemetry.md.
  */
 import { createHash, timingSafeEqual } from 'node:crypto';
+import { ACHIEVEMENTS, ACHIEVEMENT_BY_ID } from '../../packages/shared/data/achievements.js';
 
 export const GAMES = ['hub', 'blackjack', 'holdem', 'videopoker', 'parking', 'racing'];
 export const EVENTS = [
@@ -90,6 +91,7 @@ export function commandsFor({ player, events }, day) {
         c.push(['SADD', `t:games:${day}:${player}`, props.game]); touch(`t:games:${day}:${player}`);
       }
     }
+    if (name === 'unlock' && props.id && ACHIEVEMENT_BY_ID[props.id]) { c.push(['SADD', `t:unl:${props.id}`, player]); touch(`t:unl:${props.id}`); }
     if (name === 'round_end') { c.push(['SADD', `t:fun:${day}:round_end`, player]); touch(`t:fun:${day}:round_end`); }
     if (name === 'session_end' && typeof props.dur === 'number' && props.dur >= 0) {
       c.push(['HINCRBY', `t:sess:${day}`, bucketFor(Math.min(props.dur, 6 * 3600)), 1]); touch(`t:sess:${day}`);
@@ -206,6 +208,7 @@ export function memoryStore() {
     SADD: (k, ...m) => { const s = set(k); let n = 0; for (const x of m) if (!s.has(String(x))) { s.add(String(x)); n++; } return n; },
     SREM: (k, ...m) => { const s = set(k); let n = 0; for (const x of m) n += s.delete(String(x)) ? 1 : 0; return n; },
     SCARD: (k) => (data.get(k)?.size ?? 0),
+    HLEN: (k) => (data.get(k)?.size ?? 0),
     SMEMBERS: (k) => [...(data.get(k) ?? [])],
     SUNIONSTORE: (dst, ...ks) => { const u = new Set(); for (const k of ks) for (const x of data.get(k) ?? []) u.add(x); data.set(dst, u); return u.size; },
     SINTERCARD: (n, ...ks) => { const [a, ...r] = ks.slice(0, Number(n)).map((k) => data.get(k) ?? new Set()); let c = 0; for (const x of a) if (r.every((s) => s.has(x))) c++; return c; },
@@ -302,4 +305,13 @@ export async function readBody(req, max = MAX_BODY) {
   }
   if (raw.length > max) throw new Error('too large');
   return JSON.parse(raw);
+}
+
+/** How many players have each achievement, as a percentage of every player the counters have seen (null per id until someone has it). */
+export async function unlockStats(store) {
+  const ids = ACHIEVEMENTS.map((a) => a.id);
+  const res = await store.run([['HLEN', 't:first'], ...ids.map((id) => ['SCARD', `t:unl:${id}`])]);
+  const total = Number(res[0]) || 0, pct = {};
+  ids.forEach((id, i) => { const n = Number(res[i + 1]) || 0; if (n) pct[id] = Math.round((1000 * n) / Math.max(total, 1)) / 10; });
+  return { n: total, pct };
 }

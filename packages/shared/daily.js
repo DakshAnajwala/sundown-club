@@ -126,7 +126,7 @@ export function applyEvent(quests, evType, d) {
 
 // ------------------------------------------------------------------ the day's state
 export function emptyDaily() {
-  return { day: null, tier: 1, quests: [], rerolled: false, claimed: false, bonus: false, playMs: 0, roundXp: 0, rounds: 0, hist: [] };
+  return { day: null, tier: 1, quests: [], rerolled: false, claimed: false, bonus: false, playMs: 0, roundXp: 0, rounds: 0, games: [], hist: [] };
 }
 
 export function normalizeDaily(d) {
@@ -139,6 +139,7 @@ export function normalizeDaily(d) {
     tier: [1, 2, 3].includes(o.tier) ? o.tier : 1,
     quests,
     rerolled: !!o.rerolled, claimed: !!o.claimed, bonus: !!o.bonus,
+    games: (Array.isArray(o.games) ? o.games : []).filter((g) => GAME_IDS.includes(g)),
     playMs: Math.max(0, Number(o.playMs) || 0), roundXp: Math.max(0, Number(o.roundXp) || 0), rounds: Math.max(0, Number(o.rounds) || 0),
     hist: (Array.isArray(o.hist) ? o.hist : []).filter((h) => h && typeof h.d === 'string').map((h) => ({ d: h.d, n: Number(h.n) || 0 })).slice(-7),
   };
@@ -201,11 +202,12 @@ export function progress(daily, evType, d, today) {
   for (const id of r.justDone) xp += REWARD.quest[QUEST_BY_ID[id].tier] || 0;
   const base = roundXp(game, d);
   const room = Math.max(0, REWARD.roundXpSoftCap - day.roundXp);
-  xp += Math.round(Math.min(base, room) + Math.max(0, base - room) * 0.5);
+  const xpRound = Math.round(Math.min(base, room) + Math.max(0, base - room) * 0.5);
+  xp += xpRound;
   const quests = r.quests;
   const allDone = !day.bonus && quests.length > 0 && quests.every((q) => q.done);
   if (allDone) { xp += REWARD.all.xp; tokens += REWARD.all.tokens; }
-  return { daily: { ...day, quests, bonus: day.bonus || allDone, roundXp: day.roundXp + base, rounds: day.rounds + 1 }, xp, tokens, justDone: r.justDone, allDone };
+  return { daily: { ...day, quests, bonus: day.bonus || allDone, roundXp: day.roundXp + base, rounds: day.rounds + 1, games: day.games.includes(game) ? day.games : [...day.games, game] }, xp, xpRound, tokens, justDone: r.justDone, allDone };
 }
 
 export function canClaim(daily, today) {

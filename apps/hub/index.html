@@ -118,6 +118,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
 /* ------------------------------------------------------------------ sky (fixed, sets with scroll) */
+.skytint { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .6s; mix-blend-mode: hard-light; background: linear-gradient(180deg, var(--t-top, transparent), var(--t-mid, transparent) 55%, var(--t-bot, transparent)); }
+.skytint.on { opacity: .5; }
 .sky { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none;
   --top: #1a1210; --mid: #3a2218; --bot: #7a4424; --hill-far: #2a1b18; --hill-near: #1b1210; --sun-a: #ffd49a; --sun-b: #f0a868;
   background: linear-gradient(180deg, var(--top) 0%, var(--mid) 55%, var(--bot) 100%); }
@@ -381,6 +383,46 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .dsrow span { font-size: 13px; color: var(--ink-2); line-height: 1.4; }
 @media (max-width: 760px) { .dgrid { grid-template-columns: 1fr; } }
 
+/* ------------------------------------------------------------------ your collection */
+.collsec { padding-block: 10vh 6vh; }
+.collsec .sec-head { margin-bottom: 26px; }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.ccard { border: 1px solid var(--line); border-radius: 16px; padding: 20px; background: rgba(12,12,22,.65); display: grid; gap: 10px; align-content: start; }
+.ccard h4 { margin: 0; font: 400 22px/1.1 var(--serif); }
+.ccard .meta { font: 500 12px var(--mono); color: var(--ink-2); letter-spacing: .04em; }
+.cbar { height: 6px; border-radius: 6px; background: rgba(243,231,216,.1); overflow: hidden; } .cbar i { display: block; height: 100%; background: var(--accent); }
+.ctrack { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.ctrack button, .ctrack span { font: 500 12px var(--sans); border-radius: 8px; padding: 6px 9px; border: 1px solid var(--line); background: rgba(243,231,216,.05); color: var(--ink-2); }
+.ctrack .on { color: var(--ink); border-color: var(--ink-3); } .ctrack .done { opacity: .5; }
+.ctrack button { cursor: pointer; color: #1b1209; background: var(--accent); border-color: transparent; font-weight: 600; }
+.ch { margin: 34px 0 12px; font: 600 12px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.chs { font: 400 13px var(--sans); letter-spacing: 0; text-transform: none; color: var(--ink-3); margin-left: 10px; }
+.cmast { display: grid; gap: 10px; }
+.cm { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 14px; align-items: center; font-size: 14px; }
+.cm b { font: 500 14px var(--sans); } .cm .lv { font: 500 13px var(--mono); color: var(--ink-2); }
+.cm .dots { display: flex; gap: 6px; margin-top: 6px; } .cm .dots i { font: 500 11px var(--mono); font-style: normal; color: var(--ink-3); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; } .cm .dots i.on { color: #1b1209; background: var(--accent); border-color: transparent; }
+.cslot { margin-bottom: 18px; } .cslot > b { display: block; font: 500 13px var(--sans); color: var(--ink-2); margin-bottom: 8px; }
+.citems { display: flex; flex-wrap: wrap; gap: 10px; }
+.cit { all: unset; box-sizing: border-box; cursor: pointer; width: 108px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: rgba(12,12,22,.6); display: grid; gap: 8px; justify-items: center; text-align: center; font: 500 12px var(--sans); color: var(--ink); }
+.cit:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cit[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.cit.locked { cursor: default; color: var(--ink-3); opacity: .75; }
+.cit .sw1 { width: 44px; height: 62px; border-radius: 6px; border: 1px solid rgba(255,255,255,.12); display: grid; place-items: center; font: 500 18px var(--mono); }
+.cit .sw1.round { width: 52px; height: 52px; border-radius: 50%; }
+.cit .sw1.wide { width: 84px; height: 52px; }
+.cit .hint { font: 400 11px var(--sans); color: var(--ink-3); line-height: 1.3; }
+.cit .rar { font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.cit .rar.rare { color: #8fb4e8; } .cit .rar.epic { color: #d9a8f0; } .cit .rar.uncommon { color: #8fe3cf; }
+.cach { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.ca { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: rgba(12,12,22,.55); display: grid; gap: 4px; }
+.ca.locked { opacity: .55; }
+.ca b { font: 600 14px var(--sans); display: flex; justify-content: space-between; gap: 8px; }
+.ca b em { font: 500 10px var(--mono); font-style: normal; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.ca b em.rare { color: #8fb4e8; } .ca b em.epic { color: #d9a8f0; } .ca b em.uncommon { color: #8fe3cf; }
+.ca span { font-size: 12.5px; color: var(--ink-2); line-height: 1.35; }
+.ca small { font: 500 11px var(--mono); color: var(--ink-3); }
+@media (max-width: 640px) { .cm { grid-template-columns: 1fr; } }
+
 /* ------------------------------------------------------------------ the board */
 .boardsec { padding-block: 12vh 8vh; }
 .boardsec .bhead { display: flex; justify-content: space-between; align-items: end; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
@@ -491,6 +533,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 </head>
 <body>
 <!-- ============================================================== sky -->
+<div class="skytint" id="skyTint" aria-hidden="true"></div>
 <div class="sky" id="sky" aria-hidden="true">
   <div class="stars" id="stars"></div>
   <div class="moon" id="moon"></div>
@@ -624,6 +667,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     <div class="rename">
       <button class="linkbtn" id="renameBtn" type="button">Change name</button>
       <button class="linkbtn" id="saveBtn" type="button" style="margin-left:18px">Save &amp; settings</button>
+      <a class="linkbtn" href="#collection" style="margin-left:18px;text-decoration-line:underline">Collection</a>
       <span class="badgeline" id="badgeLine"></span>
       <form id="renameForm" hidden><label for="renameIn">New name</label><input id="renameIn" autocomplete="off" spellcheck="false" aria-describedby="renameMsg"><button class="btn fill" type="submit">Save</button><button class="btn" type="button" id="renameCancel">Cancel</button><span class="msg" id="renameMsg" role="status"></span></form>
     </div>
@@ -651,6 +695,22 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     </div>
     <div class="ledger" id="ledger"></div>
   </div>
+</section>
+
+<!-- ============================================================== your collection -->
+<section class="collsec pad" id="collection" aria-labelledby="coll-h">
+  <div class="sec-head"><div class="eyebrow">Your collection</div><h2 id="coll-h">Things you have found.</h2><p id="collSub"></p></div>
+  <div class="cgrid">
+    <div class="ccard" id="cSeason"></div>
+    <div class="ccard" id="cWeekly"></div>
+  </div>
+  <h3 class="ch">Mastery</h3>
+  <div class="cmast" id="cMast"></div>
+  <h3 class="ch">Cosmetics <span class="chs">Tap one you own to use it. Nothing here changes odds, payouts or driving.</span></h3>
+  <div id="cItems"></div>
+  <div id="cVaultBox" hidden><h3 class="ch">The Vault <span class="chs">Limited items from finished seasons, for tokens. Nothing here is ever sold for money.</span></h3><div class="citems" id="cVault"></div></div>
+  <h3 class="ch">Achievements <span class="chs" id="cAchSub"></span></h3>
+  <div class="cach" id="cAch"></div>
 </section>
 
 <!-- ============================================================== the board -->
@@ -751,6 +811,10 @@ import { onboarding, setPick, markStep, completeWelcome } from '/shared/retentio
 import { STARTER_BADGES, itemName } from '/shared/catalog.js';
 import { fetchBoard, boardEnabled, setBoardEnabled, myBoardName, rerollBoardName, submitFromProfile, clubCreate, clubJoin, clubLeave, inviteLink, collectInviteTokens, shareGhost } from '/shared/leaderboard.js';
 import { renderShareCard, shareResult } from '/shared/sharecard.js';
+import { frameRing, backdropVars } from '/shared/cosmetics.js';
+import { content, claimTier, buyVault } from '/shared/retention.js';
+import { equip, setBadges } from '/shared/profile.js';
+import { ITEMS, SLOTS } from '/shared/catalog.js';
 import { getChips } from '/shared/chips.js';
 import { initTelemetry, telemetryEnabled, setTelemetry } from '/shared/telemetry.js';
 initTelemetry({ game: 'hub' });
@@ -766,6 +830,13 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const el = (tag, cls, ...kids) => { const n = document.createElement(tag); if (cls) n.className = cls; n.append(...kids); return n; };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Equipped cosmetics: the chip ring and the sky colours (cosmetics.js). Called again after the player equips something.
+function paintCosmetics() {
+  const ring = frameRing(); $('#me').style.boxShadow = ring ? `0 0 0 2px ${ring}` : '';
+  const v = backdropVars(), t = document.getElementById('skyTint');
+  if (v) { t.style.setProperty('--t-top', v['--top']); t.style.setProperty('--t-mid', v['--mid']); t.style.setProperty('--t-bot', v['--bot']); t.classList.add('on'); } else t.classList.remove('on');
+}
+paintCosmetics();
 const motion = !reduce && window.gsap && window.ScrollTrigger;
 if (!motion) document.documentElement.classList.add('static');
 
@@ -1034,6 +1105,7 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
   render(dayView);
   for (const n of dayView.notices || []) {
     if (n.t === 'saved') note(`A streak freeze covered ${new Date(n.day + 'T12:00').toLocaleDateString('en-GB', { weekday: 'long' })}. Your run is safe.`);
+    if (n.t === 'season') note(`${n.name} has ended. ${n.n} unclaimed reward${n.n === 1 ? ' was' : 's were'} added to your collection.`);
     if (n.t === 'broken') note(`Your ${n.days}-day run ended. It is on your record (best: ${dayView.streak.best}). A new run starts the next time you play.`);
   }
   setInterval(() => { if (document.visibilityState === 'visible') { render(dayView); renderSeed(); } }, 60000);
@@ -1166,6 +1238,81 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
   const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting) && !loaded) { loaded = true; io.disconnect(); submitFromProfile().finally(() => { paintOpt(); show(tab); }); } }, { rootMargin: '200px' });
   io.observe(document.getElementById('board'));
   { const b = BOARDS.time; $('#bEyebrow').textContent = b.eyebrow; $('#board-h').textContent = b.title; $('#bSub').textContent = b.sub; tabs.firstChild.setAttribute('aria-selected', 'true'); }
+}
+
+
+/* -------------------------------------------------------------- your collection: season, weekly goal, mastery, cosmetics, achievements */
+{
+  const RAR = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', epic: 'Epic' };
+  let pct = null;
+  const days = (ms) => Math.max(0, Math.ceil(ms / 86400000));
+  const rewardText = (r) => [r.item ? (ITEMS[r.item]?.name || r.item) : '', r.tokens ? `${r.tokens} token${r.tokens === 1 ? '' : 's'}` : '', r.xp ? `${r.xp} XP` : ''].filter(Boolean).join(' + ');
+  const preview = (it) => {
+    const d = el('div', 'sw1');
+    if (it.kind === 'cardBack') { const P = ITEMS[it.id].palette; d.style.background = `repeating-linear-gradient(-34deg, ${P.base} 0 8px, ${P.a} 8px 16px, ${P.b} 16px 24px)`; d.style.borderColor = P.line; }
+    else if (it.kind === 'felt') { d.className = 'sw1 wide'; d.style.background = ITEMS[it.id].color || '#4f7f73'; }
+    else if (it.kind === 'frame') { d.className = 'sw1 round'; d.style.boxShadow = ITEMS[it.id].ring ? `0 0 0 3px ${ITEMS[it.id].ring}` : 'none'; d.style.background = 'rgba(243,231,216,.08)'; }
+    else if (it.kind === 'backdrop') { d.className = 'sw1 wide'; const v = ITEMS[it.id].vars; d.style.background = v ? `linear-gradient(180deg, ${v['--top']}, ${v['--mid']}, ${v['--bot']})` : 'linear-gradient(180deg,#1a1210,#3a2218,#7a4424)'; }
+    else { d.className = 'sw1 wide'; d.textContent = '★'; d.style.color = 'var(--accent)'; }
+    return d;
+  };
+  function render() {
+    const c = content();
+    $('#collSub').textContent = `${c.found} of ${c.total} achievements found · ${c.items.filter((i) => i.owned).length} of ${c.items.length} collectables.`;
+    // season
+    const S = c.season, box = $('#cSeason');
+    if (!S) box.replaceChildren(el('h4', null, 'Season track'), el('div', 'meta', c.nextSeason ? `Next season: ${c.nextSeason.name}, starting ${new Date(c.nextSeason.start + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}.` : 'No season is running.'));
+    else {
+      const bar = el('div', 'cbar', el('i')); bar.firstChild.style.width = `${S.tier >= S.tiers ? 100 : (S.into / S.tierXp) * 100}%`;
+      const track = el('div', 'ctrack');
+      S.rewards.forEach((r) => {
+        const label = `Tier ${r.tier}: ${rewardText(r)}`;
+        if (r.unlocked && !r.claimed) { const b = el('button', null, `Claim · ${rewardText(r)}`); b.type = 'button'; b.addEventListener('click', () => { const o = claimTier(r.tier); paintCosmetics(); render(); const m = $('#dnote'); if (m) m.textContent = o.ok ? `Season tier ${r.tier}: ${rewardText(o.reward.item ? { item: o.reward.item, tokens: o.reward.tokens } : o.reward)}.` : ''; }); track.append(b); }
+        else track.append(el('span', r.claimed ? 'done' : r.unlocked ? 'on' : null, label));
+      });
+      box.replaceChildren(el('h4', null, `Season: ${S.name}`), el('div', 'meta', `Tier ${S.tier} of ${S.tiers} · ${S.xp.toLocaleString('en-US')} XP${S.active ? ` · ${days(S.msLeft)} day${days(S.msLeft) === 1 ? '' : 's'} left` : ' · finished'}. Every XP you earn counts. The whole track is free.`), bar, track);
+    }
+    // weekly goal
+    const W = c.weekly, wb = el('div', 'cbar', el('i')); wb.firstChild.style.width = `${Math.min(100, (W.p / W.target) * 100)}%`;
+    $('#cWeekly').replaceChildren(el('h4', null, W.name), el('div', 'meta', `${W.text} · ${W.p} of ${W.target}`), wb, el('div', 'meta', W.done ? `Done. You earned ${W.reward.xp} XP and ${W.reward.tokens} tokens.` : `Reward: ${W.reward.xp} XP and ${W.reward.tokens} tokens. Resets Monday (UTC).`));
+    // mastery
+    $('#cMast').replaceChildren(...c.mastery.map((m) => {
+      const bar = el('div', 'cbar', el('i')); bar.firstChild.style.width = `${m.next ? (m.into / m.next) * 100 : 100}%`;
+      const dots = el('div', 'dots', ...m.milestones.map((x) => el('i', x.reached ? 'on' : null, `${x.level} ${x.name}`)));
+      return el('div', 'cm', el('b', null, m.name), el('div', null, bar, dots), el('span', 'lv', `Level ${m.level}${m.next ? ` · ${m.into}/${m.next}` : ' · top'}`));
+    }));
+    // cosmetics
+    const groups = [...Object.entries(SLOTS), ['badge', 'Badges (up to three)']];
+    $('#cItems').replaceChildren(...groups.map(([slot, label]) => {
+      const row = el('div', 'citems');
+      c.items.filter((i) => i.kind === slot).sort((a, b) => (b.owned - a.owned)).forEach((it) => {
+        const b = el('button', `cit${it.owned ? '' : ' locked'}`, preview(it), el('span', null, it.owned ? it.name : 'Locked'), el('span', `rar ${it.rarity}`, RAR[it.rarity]), ...(it.owned ? [] : [el('span', 'hint', it.hint)]));
+        b.type = 'button'; b.setAttribute('aria-pressed', String(it.equipped)); b.title = it.owned ? it.blurb : `How to get it: ${it.hint}`;
+        if (it.owned) b.addEventListener('click', () => {
+          if (slot === 'badge') { const cur = readProfile().badges; setBadges(it.equipped ? cur.filter((x) => x !== it.id) : [...cur, it.id].slice(-3)); }
+          else equip(slot, it.equipped && !/\.(default|none)$/.test(it.id) ? (slot === 'cardBack' ? 'cardback.default' : slot === 'felt' ? 'felt.default' : slot === 'frame' ? 'frame.none' : 'backdrop.default') : it.id);
+          paintCosmetics(); render();
+          const bl = readProfile().badges[0]; $('#badgeLine').textContent = bl ? `Badge: ${itemName(bl)}` : '';
+        });
+        row.append(b);
+      });
+      return el('div', 'cslot', el('b', null, label), row);
+    }));
+    // vault
+    $('#cVaultBox').hidden = !c.vault.length;
+    $('#cVault').replaceChildren(...c.vault.map((v) => { const it = c.items.find((i) => i.id === v.id); const b = el('button', `cit${v.owned ? '' : ''}`, preview(it), el('span', null, v.name), el('span', 'hint', v.owned ? 'Owned' : `${v.season} · ${v.price} tokens`)); b.type = 'button'; b.disabled = v.owned || !v.canBuy; b.style.opacity = v.owned ? '.6' : '1'; b.addEventListener('click', () => { const o = buyVault(v.id); render(); $('#dnote').textContent = o.ok ? `${v.name} is yours.` : o.reason === 'tokens' ? `The Vault costs ${v.price} tokens.` : ''; }); return b; }));
+    // achievements
+    $('#cAchSub').textContent = pct ? 'Percentages are the share of players who have each one.' : '';
+    const order = { epic: 0, rare: 1, uncommon: 2, common: 3 };
+    $('#cAch').replaceChildren(...[...c.achievements].sort((a, b) => (!!b.have - !!a.have) || (a.have ? b.have - a.have : (order[a.rarity] - order[b.rarity]))).map((a) => {
+      const node = el('div', `ca${a.have ? '' : ' locked'}`, el('b', null, a.name, el('em', a.rarity, RAR[a.rarity])), el('span', null, a.text), ...(a.progress ? [el('small', null, `${a.progress.cur.toLocaleString('en-US')} / ${a.progress.target.toLocaleString('en-US')}`)] : a.have ? [el('small', null, `Found ${new Date(a.have).toLocaleDateString('en-GB')}${pct && pct[a.id] != null ? ` · ${pct[a.id]}% of players` : ''}`)] : []));
+      return node;
+    }));
+  }
+  render();
+  document.addEventListener('club-tokens', render);
+  fetch('/api/club/board?tab=unlocks').then((r) => (r.ok ? r.json() : null)).then((u) => { if (u && u.n >= 20) { pct = u.pct; render(); } }).catch(() => {});
+  document.addEventListener('club-render-all', render);
 }
 
 // Save & settings: copy the whole club save out, load one in, usage counters, start over.

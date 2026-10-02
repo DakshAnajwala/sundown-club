@@ -18,6 +18,7 @@ import { give } from './chips.js';
 import { track } from './telemetry.js';
 import { dayNumber } from './seed.js';
 import { claimInviteIfAny } from './leaderboard.js';
+import { afterRound, afterEvent, claimSeasonTier, buyFromVault, progressView, bumpStat, rollSeason } from './rewards.js';
 
 export const SEED_XP = 50;
 export const FIRST_WIN_XP = 150;   // with the round's XP and the daily reward this reaches level 2 in the first sitting
@@ -37,6 +38,7 @@ function settle(p, now = Date.now()) {
     if (e.type === 'broken') { notes.push({ t: 'broken', days: e.days }); track('streak_broken', { level: e.days }); }
   }
   p.notices = notes.slice(-3);
+  rollSeason(p, now);
   const fresh = p.daily.day !== t;
   p.daily = ensureDay(p.daily, t, ctxOf(p, now));
   if (fresh) for (const q of p.daily.quests) track('quest_seen', { id: q.id.slice(0, 24), tier: describe(q).tier });
@@ -113,6 +115,7 @@ export function reportRound(game, kind, data = {}) {
     const out = updateProfile((p) => {
       const t = settle(p);
       const before = levelFor(p.xp);
+      const xpBefore = p.xp;
       const onb = cleanOnb(p.onb);
       let firstWin = false;
       if (!onb.round) { onb.round = Date.now(); step(onb, 'first_round', { game }); }
@@ -125,14 +128,17 @@ export function reportRound(game, kind, data = {}) {
       if (firstWin) r.xp += FIRST_WIN_XP;
       let events = [];
       if (r.justDone.length) { const e = earnDay(p.streak, t); p.streak = e.streak; events = e.events; }
+      const extra = afterRound(p, { game, kind, data, now: Date.now(), xpBefore, xpRound: r.xpRound, justDone: r.justDone, allDone: r.allDone });
       const after = levelFor(p.xp);
       const v = view(p, t);
-      return { ...r, firstWin, firstWinXp: firstWin ? FIRST_WIN_XP : 0, firstRound: onb.round > 0 && Date.now() - onb.round < 5000, level: { ...v.level, from: before.level, leveled: after.level > before.level }, quests: v.quests.map((q) => ({ ...q, justDone: r.justDone.includes(q.id) })), streak: v.streak, streakEvents: events, tokens: p.tokens, xpTotal: p.xp };
+      return { ...r, firstWin, firstWinXp: firstWin ? FIRST_WIN_XP : 0, firstRound: onb.round > 0 && Date.now() - onb.round < 5000, level: { ...v.level, from: before.level, leveled: after.level > before.level }, quests: v.quests.map((q) => ({ ...q, justDone: r.justDone.includes(q.id) })), streak: v.streak, streakEvents: events, tokens: p.tokens, xpTotal: p.xp, ...extra, xp: r.xp + extra.boost + extra.unlocked.reduce((n, u) => n + u.reward.xp, 0) + extra.mastery.milestones.reduce((n, m) => n + m.given.xp, 0) + (extra.weekly.reward?.xp || 0) };
     });
     if (out.firstRound) claimInviteIfAny();   // a friend's first round: both of you get a token
     track('round_end', { game, result: String(data.result ?? (data.won === true ? 'win' : data.won === false ? 'lose' : data.win === true ? 'win' : data.stars != null ? `stars${data.stars}` : 'done')).slice(0, 16) });
     for (const id of out.justDone) track('quest_completed', { id: id.slice(0, 24) });
     if (out.level.leveled) track('level_up', { level: out.level.level });
+    for (const u of out.unlocked) track('unlock', { id: u.id });
+    if (out.weekly.justDone) track('reward_claimed', { kind: 'weekly' });
     for (const e of out.streakEvents) { if (e.type === 'extended' || e.type === 'started') track('streak_extended', { level: e.days }); }
     return out;
   } catch {
@@ -147,11 +153,13 @@ export function claim() {
     const c = claimDaily(p.daily, t);
     if (!c.reward) return { reward: null, view: view(p, t) };
     p.daily = c.daily;
+    const xpBefore = p.xp;
     p.xp += c.reward.xp;
     p.tokens = Math.min(MAX_TOKENS, p.tokens + c.reward.tokens);
     // Claiming is a day well spent: it never needs a round, so it also counts for the streak.
     p.streak = earnDay(p.streak, t).streak;
-    return { reward: c.reward, view: view(p, t) };
+    const unlocked = afterEvent(p, { stat: 'daily.claims', xpBefore });
+    return { reward: c.reward, unlocked, view: view(p, t) };
   });
   if (out.reward) { give(out.reward.chips); track('daily_claimed'); track('reward_claimed', { kind: 'daily' }); }
   return out;
@@ -207,6 +215,7 @@ export function completeWelcome(badgeId) {
       if (!p.inv.owned.includes(badgeId)) { p.inv.owned.push(badgeId); p.found[badgeId] = Date.now(); }
       p.badges = [badgeId, ...p.badges.filter((b) => b !== badgeId)].slice(0, 3);
     }
+    afterEvent(p, { stat: 'welcomed' });
     return { badges: p.badges };
   });
 }
@@ -233,9 +242,11 @@ export function reportSeed(game, result) {
       const clean = {};
       for (const [k, v] of Object.entries(result || {})) if (typeof v === 'number' && Number.isFinite(v)) clean[k] = v; else if (typeof v === 'string') clean[k] = v.slice(0, 40);
       p.seeds.results[game] = clean;
+      const xpBefore = p.xp;
       p.xp += SEED_XP;
       p.streak = earnDay(p.streak, t).streak;
-      return { first: true, xp: SEED_XP, result: clean };
+      const unlocked = afterEvent(p, { stat: 'seeds.done', xpBefore });
+      return { first: true, xp: SEED_XP, result: clean, unlocked };
     });
     if (out.first) track('reward_claimed', { kind: 'seed', game });
     return out;
@@ -254,3 +265,33 @@ export function chooseRestDay(weekday) {
 }
 
 export { GAME_IDS };
+
+// ------------------------------------------------------------------ the content layer for the hub
+/** Everything the collection, mastery, season and weekly cards draw. Peeks; changes nothing. */
+export function content(now = Date.now()) {
+  const p = readProfile();
+  return progressView(p, now);
+}
+
+/** Count something that is not a round (a share, a joined club, an invite) and unlock what it earns. Returns the unlocked list. */
+export function noteStat(stat, n = 1) {
+  try {
+    const out = updateProfile((p) => { const xpBefore = p.xp; const unlocked = afterEvent(p, { stat, n, xpBefore }); return { unlocked }; });
+    for (const u of out.unlocked) track('unlock', { id: u.id });
+    return out.unlocked;
+  } catch { return []; }
+}
+
+/** Claim a season tier (free). Returns { ok, reward, unlocked }. */
+export function claimTier(tier) {
+  const out = updateProfile((p) => claimSeasonTier(p, Number(tier)));
+  if (out.ok) { track('reward_claimed', { kind: 'season', tier: Number(tier) }); for (const u of out.unlocked || []) track('unlock', { id: u.id }); }
+  return out;
+}
+
+/** Buy a finished season's limited item with tokens. */
+export function buyVault(id) {
+  const out = updateProfile((p) => buyFromVault(p, String(id)));
+  if (out.ok) track('unlock', { id: String(id).slice(0, 32) });
+  return out;
+}

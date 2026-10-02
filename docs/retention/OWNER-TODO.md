@@ -9,3 +9,5 @@ Nothing here blocks the code. Each item turns a built feature on in production.
 - [ ] **Club boards need the same two Upstash variables** as telemetry (`KV_REST_API_URL`, `KV_REST_API_TOKEN`). Without them the boards run in memory on a serverless function, so they reset between requests and look empty. Keys are prefixed `b:` and `t:`, so sharing the Parking database is safe.
 - [ ] **Challenge links need `CLUB_SECRET`.** Set a long random string in the Vercel project. Without it production refuses to sign, so Share still copies the result text but makes no link. (Never reuse the metrics password.)
 - [ ] After the first deploy, open the hub, play a minute, and check the board shows you. If it says "resting", the store variables are missing.
+- [ ] **Night Drive ghosts** are not built: the test drive has no route or timed lap to race, and `apps/racing/design/handling/handling.js` is being edited on another branch. Tell me which run a ghost should follow (quarter mile, a story lap) and it is a small job.
+- [ ] The "who is here now" count is in the board response (hidden below 3 players) but the hub does not show it yet.

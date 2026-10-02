@@ -83,6 +83,13 @@ export function showRoundPanel(r, opts = {}) {
       const bar = el('div', 'bar'); const fill = el('i'); fill.style.width = `${Math.min(100, (q.p / q.target) * 100)}%`; bar.append(fill);
       row.append(line, bar); root.append(row);
     }
+    // Content layer: unlocks, mastery, the weekly goal (three lines at most, newest first)
+    const extras = [];
+    for (const u of r.unlocked || []) extras.push([`Unlocked: ${u.name}`, `+${u.xp}`]);
+    for (const m of r.mastery?.milestones || []) extras.push([`${m.name} (mastery ${m.level})`, m.item ? 'badge' : `+${m.tokens || 0} token`]);
+    if (r.mastery?.leveled && !(r.mastery.milestones || []).length) extras.push([`Mastery level ${r.mastery.level}`, '']);
+    if (r.weekly?.justDone) extras.push(['Weekly goal done', `+${r.weekly.reward?.xp || 0}`]);
+    for (const [t, v] of extras.slice(0, 3)) { const row = el('div', 'q done now'); const line = el('span'); line.append(el('span', null, t), el('b', null, v)); row.append(line); root.append(row); }
     const foot = el('div', 'f');
     if (r.firstWin) foot.textContent = `First win! +${r.firstWinXp} XP. Press Esc twice to open the club and set up your table.`;
     else if (r.allDone) foot.textContent = "Tonight's table is cleared: +60 XP and a token.";

@@ -24,6 +24,7 @@
 import { normalizeStreak, earnDay } from './streak.js';
 import { normalizeDaily, ensureDay } from './daily.js';
 import { NAME_A, NAME_B } from './names.js';
+import { STARTER_ITEMS } from './catalog.js';
 
 export const KEY = 'hub.v2.profile';
 export const OLD_KEY = 'hub.v1.profile';
@@ -35,7 +36,7 @@ export const MAX_BADGES = 3;
 export const MAX_TOKENS = 99;
 
 function empty() {
-  return { v: 2, xp: 0, tokens: 0, badges: [], inv: { owned: [], equipped: {} }, found: {}, streak: normalizeStreak(null), daily: normalizeDaily(null), games: {} };
+  return { v: 2, xp: 0, tokens: 0, badges: [], inv: { owned: [...STARTER_ITEMS], equipped: {} }, found: {}, streak: normalizeStreak(null), daily: normalizeDaily(null), stats: {}, mastery: {}, achv: {}, weekly: null, season: null, games: {} };
 }
 
 const num = (x, d = 0) => (Number.isFinite(x) ? x : d);
@@ -58,10 +59,17 @@ export function normalize(p) {
   out.tokens = Math.min(MAX_TOKENS, Math.max(0, Math.round(num(p.tokens))));
   out.streak = normalizeStreak(p.streak);
   out.daily = normalizeDaily(p.daily);
+  // Content layer (rewards.js): lifetime counters, mastery XP, unlocked achievements, the weekly goal, the season track.
+  const numMap = (m) => { const o = {}; if (m && typeof m === 'object' && !Array.isArray(m)) for (const [k, v] of Object.entries(m)) if (/^[A-Za-z0-9._-]{1,40}$/.test(k) && Number.isFinite(Number(v))) o[k] = Number(v); return o; };
+  out.stats = numMap(p.stats); out.mastery = numMap(p.mastery); out.achv = numMap(p.achv);
+  const w = p.weekly && typeof p.weekly === 'object' ? p.weekly : null;
+  out.weekly = w && /^\d{4}-\d{2}-\d{2}$/.test(String(w.week)) && /^[a-z0-9-]{1,24}$/.test(String(w.id)) ? { week: w.week, id: w.id, p: Math.max(0, Number(w.p) || 0), done: !!w.done } : null;
+  const se = p.season && typeof p.season === 'object' ? p.season : null;
+  out.season = se && /^s\d{1,3}$/.test(String(se.id)) ? { id: se.id, xp: Math.max(0, Number(se.xp) || 0), claimed: (Array.isArray(se.claimed) ? se.claimed : []).map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= 60) } : null;
   out.games = p.games && typeof p.games === 'object' && !Array.isArray(p.games) ? p.games : {};
   out.badges = (Array.isArray(p.badges) ? p.badges : []).map(itemId).filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).slice(0, MAX_BADGES);
   const inv = p.inv && typeof p.inv === 'object' ? p.inv : {};
-  out.inv.owned = (Array.isArray(inv.owned) ? inv.owned : []).map(itemId).filter(Boolean).filter((x, i, a) => a.indexOf(x) === i);
+  out.inv.owned = [...STARTER_ITEMS, ...(Array.isArray(inv.owned) ? inv.owned : [])].map(itemId).filter(Boolean).filter((x, i, a) => a.indexOf(x) === i);
   if (inv.equipped && typeof inv.equipped === 'object') for (const [slot, id] of Object.entries(inv.equipped)) if (slotId(slot) && itemId(id)) out.inv.equipped[slot] = id;
   if (p.found && typeof p.found === 'object') for (const [id, t] of Object.entries(p.found)) if (itemId(id)) out.found[id] = num(t, 0);
   if (typeof p.id === 'string' && ID_RE.test(p.id)) out.id = p.id;

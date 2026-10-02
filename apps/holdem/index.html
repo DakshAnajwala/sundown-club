@@ -176,6 +176,7 @@ import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
 import { initTelemetry } from '@sundown/shared/telemetry.js';
 import { reportRound } from '@sundown/shared/retention.js';
+import { feltColor } from '@sundown/shared/cosmetics.js';
 import { showRoundPanel } from '@sundown/shared/roundpanel.js';
 initTelemetry({ game: 'holdem' });
 import { createHoldem } from './engine.js';
@@ -210,7 +211,7 @@ feltTex.repeat.set(1 / (2 * A), 1 / (2 * B)); feltTex.offset.set(0.5, 0.5);
 function drawFelt() {
   const g = feltCanvas.getContext('2d'), Wf = feltCanvas.width, Hf = feltCanvas.height, px = Wf / (2 * A);
   const X = (x) => (x + A) * px, Z = (z) => (z + B) * px;
-  g.fillStyle = '#4f7f73'; g.fillRect(0, 0, Wf, Hf);
+  g.fillStyle = feltColor('#4f7f73'); g.fillRect(0, 0, Wf, Hf);
   const vg = g.createRadialGradient(Wf / 2, Hf / 2, 80, Wf / 2, Hf / 2, Wf * 0.6); vg.addColorStop(0, 'rgba(255,255,255,.06)'); vg.addColorStop(1, 'rgba(0,0,0,.2)'); g.fillStyle = vg; g.fillRect(0, 0, Wf, Hf);
   const ink = 'rgba(233,225,207,0.78)'; g.strokeStyle = ink; g.fillStyle = ink;
   g.lineWidth = 3; g.beginPath(); g.ellipse(Wf / 2, Hf / 2, (A - 0.2) * px, (B - 0.2) * px, 0, 0, 7); g.stroke();

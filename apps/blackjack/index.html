@@ -238,6 +238,7 @@ import { createLeaveGuard } from '/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '/shared/profile.js';
 import { initTelemetry } from '/shared/telemetry.js';
 import { reportRound } from '/shared/retention.js';
+import { cardBackPalette, feltColor } from '/shared/cosmetics.js';
 import { showRoundPanel } from '/shared/roundpanel.js';
 initTelemetry({ game: 'blackjack' });
 import { getChips, setBankroll } from '/shared/chips.js';
@@ -595,13 +596,14 @@ function drawFace(rank, suit) {
 function drawBack() {
   const Wc = 360, Hc = 500, c = document.createElement('canvas'); c.width = Wc; c.height = Hc;
   const g = c.getContext('2d');
+  const P = cardBackPalette();   // the equipped card back (cosmetics.js)
   g.fillStyle = STOCK; g.fillRect(0, 0, Wc, Hc);
   g.save(); g.beginPath(); g.roundRect(20, 20, Wc - 40, Hc - 40, 16); g.clip();
-  g.fillStyle = '#d6a27c'; g.fillRect(0, 0, Wc, Hc);
+  g.fillStyle = P.base; g.fillRect(0, 0, Wc, Hc);
   g.translate(Wc / 2, Hc / 2); g.rotate(-0.6);
-  for (let i = -20; i < 20; i++) { g.fillStyle = i % 3 === 0 ? '#e6bf98' : i % 3 === 1 ? '#c98d68' : '#d6a27c'; g.fillRect(-500, i * 26, 1000, 26); }
+  for (let i = -20; i < 20; i++) { g.fillStyle = i % 3 === 0 ? P.a : i % 3 === 1 ? P.b : P.base; g.fillRect(-500, i * 26, 1000, 26); }
   g.restore();
-  g.strokeStyle = STOCK; g.lineWidth = 6;
+  g.strokeStyle = P.line; g.lineWidth = 6;
   g.beginPath(); g.moveTo(Wc / 2, Hc / 2 - 60); g.lineTo(Wc / 2 + 40, Hc / 2); g.lineTo(Wc / 2, Hc / 2 + 60); g.lineTo(Wc / 2 - 40, Hc / 2); g.closePath(); g.stroke();
   return c;
 }
@@ -805,7 +807,7 @@ function buildLand(kind) {
 function drawFelt(tier) {
   const g = feltCanvas.getContext('2d'), Wf = feltCanvas.width, Hf = feltCanvas.height;
   const px = 2048 / 2.2, cx = Wf / 2, cy = (EDGE_Z + 0.45) / 1.07 * Hf;
-  g.fillStyle = tier.felt; g.fillRect(0, 0, Wf, Hf);
+  g.fillStyle = feltColor(tier.felt); g.fillRect(0, 0, Wf, Hf);
   const vg = g.createRadialGradient(cx, cy + 250, 100, cx, cy + 250, 1100);
   vg.addColorStop(0, 'rgba(255,255,255,0.05)'); vg.addColorStop(1, 'rgba(0,0,0,0.16)');
   g.fillStyle = vg; g.fillRect(0, 0, Wf, Hf);

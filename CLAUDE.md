@@ -27,6 +27,7 @@ Licence: all rights reserved.
 | `tools/build-site.mjs` | Assembles `dist/` from the apps | | |
 | `docs/deploy.md` | How the site deploys, what is live | | before any deploy |
 | `docs/retention/` | Retention programme (`GOAL.md` at the repo root): specs for telemetry, daily loop, onboarding, social, content | | before any retention work |
+| `packages/shared/data/` | Data files: daily quests, achievements, mastery, seasons, weekly goals. Adding content is adding lines; `tools/content-check.mjs` and `daily-check.mjs` validate them | | before adding content |
 | `api/` | Vercel functions owned by this project: `api/club/event` (anonymous counters), `api/club/metrics` (owner-only). Everything else under `/api/*` still rewrites to the old Parking project | | before changing `vercel.json` rewrites |
 | `docs/seo.md` | Search engines: robots, sitemap, page tags, Search Console steps | | before changing a page `<head>` or adding a page |
 
