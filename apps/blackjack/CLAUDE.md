@@ -9,7 +9,11 @@ verification) and records all 27 interview decisions in §1.
 - `index.html` is the **prototype**, not the finished game: 3D room, day/night,
   cameras, faceless dealer with IK arms, stylised cards/chips, synthesised SFX,
   and a cut-down round (hit, stand, double; S17; 3:2; dealer peek). It loads
-  three.js 0.186 from jsDelivr. It still shows the "Design review" panel.
+  three.js from `/vendor/three/` (self-hosted). The "Design review" panel (time of day,
+  camera, deal speed, room, practice lamp, shadows, sound) shows only with
+  `?dev` in the URL (owner, 2 Oct 2026); players get a small key list in its
+  place. Player settings (sound, deal speed, camera) come with the Phase 5
+  redesign (owner's call).
 - Not built yet (all specced): split, insurance, surrender, Practice mode
   (hint, mistake flag, count trainer), persistent bankroll and refill, rooms
   unlocking, cosmetics, achievements, hub XP, hand history and stats,

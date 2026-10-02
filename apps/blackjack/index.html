@@ -79,6 +79,8 @@ kbd { font-family: var(--num); font-size: 11px; font-weight: 600; min-width: 18p
 #toast { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); padding: 7px 14px; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; }
 #toast.on { opacity: 1; }
 
+.keys-tr { position: fixed; right: 16px; top: calc(16px + env(safe-area-inset-top, 0px)); padding: 10px 14px; font-size: 12px; color: var(--ink-soft); display: grid; gap: 4px; max-width: 280px; }
+.keys-tr b { color: var(--ink); font-weight: 600; }
 #review { position: fixed; right: 16px; top: calc(16px + env(safe-area-inset-top, 0px)); width: min(272px, calc(100vw - 32px)); font-size: 13px; }
 #review summary { padding: 10px 14px; cursor: pointer; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
 #review summary::after { content: "–"; } #review:not([open]) summary::after { content: "+"; }
@@ -133,7 +135,15 @@ select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid 
   </div>
 </div>
 
-<details id="review" class="panel" open>
+<aside id="keys" class="keys-tr panel" aria-label="Keys">
+  <div><b>Keys</b></div>
+  <div><kbd>H</kbd> hit · <kbd>S</kbd> stand · <kbd>D</kbd> double</div>
+  <div><kbd>X</kbd> double last bet and deal</div>
+  <div><kbd>Space</kbd> deal, rebet, skip · <kbd>Esc</kbd> leave</div>
+</aside>
+
+<!-- Design review: a tool for the owner, shown only with ?dev in the URL (owner, 2 Oct 2026). -->
+<details id="review" class="panel" open hidden>
   <summary>Design review</summary>
   <div class="body">
     <a href="/" style="color: #3d5f86; font-weight: 600; text-decoration: none">← Back to Sundown Club</a>
@@ -177,6 +187,8 @@ import { getChips, setBankroll } from '/shared/chips.js';
 import { createCoach, markTutorialSeen } from '/shared/coach.js';
 
 const $ = (s) => document.querySelector(s);
+// The design review panel is for the owner only: ?dev in the URL shows it in place of the key list.
+if (new URLSearchParams(location.search).has('dev')) { $('#review').hidden = false; $('#keys').hidden = true; }
 const V3 = THREE.Vector3;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
