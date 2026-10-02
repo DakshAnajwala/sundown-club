@@ -29,6 +29,8 @@ import { bakeLampMap, lampLightTree, makeGlowTexture, lampUniforms } from '../..
 import { createSkyDome } from '../../src/world/Palette.js';
 import { createLeaveGuard } from '@sundown/shared/leave-guard';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile';
+import { reportRound } from '@sundown/shared/retention';
+import { showRoundPanel } from '@sundown/shared/roundpanel';
 import { createDriverCamera } from '../../src/camera/DriverCamera.js';
 import { createCockpit } from '../../src/vehicle/Cockpit.js';
 import { createDriver } from '../../src/vehicle/Driver.js';
@@ -395,6 +397,28 @@ function updateRuns(dt) {
     runs.comboT = Math.max(0, runs.comboT - dt * 2);
     if (runs.comboT === 0) runs.drift = 0;
   }
+  trackLeg(dt, s, factor > 0 && kmh > 20);
+}
+
+// A "run" for the club's daily quests: from setting off to coming to rest again
+// (moving for 3 s or more, reaching 20 km/h). Reported once, when the car stops
+// or the player leaves.
+const leg = { t: 0, top: 0, drift: 0, hold: 0, still: 0 };
+function trackLeg(dt, s, drifting) {
+  if (s.speedKmh >= 5) {
+    leg.t += dt; leg.still = 0; leg.top = Math.max(leg.top, s.speedKmh);
+    leg.hold = drifting ? leg.hold + dt : 0; leg.drift = Math.max(leg.drift, leg.hold);
+  } else if (leg.t > 0) {
+    leg.still += dt;
+    if (leg.still > 0.8) endLeg(true);
+  }
+}
+function endLeg(show) {
+  if (leg.t >= 3 && leg.top >= 20) {
+    const r = reportRound('racing', 'run', { topKmh: Math.round(leg.top), driftSec: Math.floor(leg.drift) });
+    if (show) showRoundPanel(r, { corner: 'bl' });
+  }
+  leg.t = 0; leg.top = 0; leg.drift = 0; leg.hold = 0; leg.still = 0;
 }
 
 // --- HUD -----------------------------------------------------------------------
@@ -958,6 +982,7 @@ spawnCar(carId);
 // "Your evening" section shows for this game.
 const playtime = trackPlaytime('racing');
 function saveToClub() {
+  endLeg(false);
   playtime.flush();
   updateGame('racing', {
     resume: 'Test drive',

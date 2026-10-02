@@ -55,5 +55,5 @@ end state. Keep that fallback working when adding sections.
 
 ## Open
 
-- XP: no game calls `addXp` yet, so every player stays Level 1. The XP sources are in SPEC §8; wiring them changes saved data, so it needs the owner's yes.
+- XP: every game now reports finished rounds through `packages/shared/retention.js` (owner's goal `GOAL.md`, 2 Oct 2026), which pays XP, runs the Daily Table and the streak. See `docs/retention/SPEC-daily.md`.
 - Leaderboard: designed in `SPEC-leaderboard.md` (mock `design/leaderboard.html`), waiting on the owner's answers (§9).

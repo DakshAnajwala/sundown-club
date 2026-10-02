@@ -169,12 +169,14 @@ import { createChipKit, CHIP_H } from '@sundown/shared/lounge/chips3d.js';
 import { createFigure, SUITS } from '@sundown/shared/lounge/figure.js';
 import { createSfx } from '@sundown/shared/lounge/sfx.js';
 import { createTimeline, easeInOut, easeOut, fmt } from '@sundown/shared/lounge/util.js';
-import { best, describe, value, deck as freshDeck } from '@sundown/shared/cards.js';
+import { best, describe, value, categoryOf, deck as freshDeck } from '@sundown/shared/cards.js';
 import { createCoach, markTutorialSeen } from '@sundown/shared/coach.js';
 import { getChips, setBankroll, refill, START } from '@sundown/shared/chips.js';
 import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
 import { initTelemetry } from '@sundown/shared/telemetry.js';
+import { reportRound } from '@sundown/shared/retention.js';
+import { showRoundPanel } from '@sundown/shared/roundpanel.js';
 initTelemetry({ game: 'holdem' });
 import { createHoldem } from './engine.js';
 import { decide, STYLES } from './bots.js';
@@ -289,7 +291,7 @@ saveGame();   // the buy-in is written straight away, so closing the tab never l
 
 // what the table shows right now (the engine is always ahead of the animation)
 const shown = { stack: P.map((p) => p.stack), bet: P.map(() => 0), pot: 0, say: P.map(() => ''), folded: P.map(() => false), turn: -1, won: P.map(() => false) };
-let holeMeshes = P.map(() => []), boardMeshes = [], myPot = 0;
+let holeMeshes = P.map(() => []), boardMeshes = [], myPot = 0, sawShowdown = false;
 const won = { amount: P.map(() => 0), desc: P.map(() => null) };   // this hand's winnings per seat, all side pots together
 
 // ---------------------------------------------------------------- HUD
@@ -409,6 +411,7 @@ function animate(ev) {
       TL.wait(e.street === 'flop' ? 300 : 500);
     } else if (e.type === 'show') {
       TL.call(() => {
+        sawShowdown = true;
         if (i > 0) for (const m of holeMeshes[i]) { const from = m.userData.flip.rotation.z; TL.add(320, { update(k) { cards.setFlip(m, from * (1 - easeInOut(k))); } }, 0); }
         shown.say[i] = e.desc; refreshHud();
       });
@@ -442,7 +445,7 @@ function nextStep() {
 }
 function newHand(startOpts) {
   for (const m of [...holeMeshes.flat(), ...boardMeshes]) scene.remove(m);
-  holeMeshes = P.map(() => []); boardMeshes = []; myPot = 0;
+  holeMeshes = P.map(() => []); boardMeshes = []; myPot = 0; sawShowdown = false;
   won.amount = P.map(() => 0); won.desc = P.map(() => null);
   P.forEach((p, i) => { if (i > 0 && p.stack <= 0) { p.stack = 500; shown.stack[i] = 500; shown.say[i] = 'Rebuys'; } });
   if (P[0].stack <= 0) return askRebuy();
@@ -474,6 +477,11 @@ function handOver() {
   stats.biggest = Math.max(stats.biggest, myPot);
   shown.stack = P.map((p) => p.stack); refreshHud();
   saveGame();
+  {
+    let cat = 0;
+    try { if (myWin && sawShowdown) cat = categoryOf(best([...P[0].hole, ...table.state.board]).score); } catch { /* keep 0 */ }
+    showRoundPanel(reportRound('holdem', 'hand', { won: !!myWin, pot: myPot, showdown: sawShowdown, cat, folded: !!shown.folded[0] }), { corner: 'bl' });
+  }
   hint(`${handResult(myWin)} Next hand in a moment · <kbd>Space</kbd> deals now`);
   TL.wait(2200);
   TL.call(newHand);

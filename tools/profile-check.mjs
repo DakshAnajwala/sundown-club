@@ -23,7 +23,7 @@ ok(() => { // v1 -> v2 keeps everything and leaves the old key
   localStorage.setItem(P.OLD_KEY, JSON.stringify(v1));
   const p = P.readProfile();
   assert.equal(p.v, 2); assert.equal(p.id, ID); assert.equal(p.handle, 'Warm Tern'); assert.equal(p.xp, 1340);
-  assert.deepEqual(p.streak, { days: 3, last: '2026-09-30', best: 3 });
+  assert.equal(p.streak.days, 3); assert.equal(p.streak.last, '2026-09-30'); assert.equal(p.streak.best, 3); assert.equal(p.streak.freezes, 0);
   assert.deepEqual(p.games, v1.games);
   assert.equal(localStorage.getItem(P.OLD_KEY), JSON.stringify(v1), 'old key untouched');
   assert.ok(localStorage.getItem(P.KEY), 'v2 written');
@@ -41,7 +41,17 @@ ok(() => { // identity survives a game write
   P.updateGame('holdem', { resume: 'r' });
   const p = P.readProfile();
   assert.equal(p.id, a.id); assert.equal(p.handle, a.handle); assert.ok(p.createdAt);
-  assert.equal(p.streak.days, 1); assert.equal(p.streak.best, 1);
+  assert.equal(p.streak.days, 0, 'a game write alone no longer counts the day');
+});
+ok(() => { // five minutes of play earn the day
+  fresh(); P.ensureIdentity();
+  P.updateGame('holdem', { timeMs: 120000 });
+  assert.equal(P.readProfile().streak.days, 0); assert.equal(P.readProfile().daily.playMs, 120000);
+  P.updateGame('holdem', { timeMs: 330000 });
+  const p = P.readProfile();
+  assert.equal(p.streak.days, 1); assert.equal(p.streak.last, P.today()); assert.equal(p.daily.quests.length, 3);
+  P.updateGame('holdem', { timeMs: 900000 });
+  assert.equal(P.readProfile().streak.days, 1, 'counted once a day');
 });
 ok(() => { // level curve
   assert.deepEqual(P.levelFor(0), { level: 1, into: 0, next: 250 });
@@ -74,9 +84,9 @@ ok(() => { // xp, tokens, items
 });
 ok(() => { // unknown keys from newer code survive a game write
   fresh(); P.ensureIdentity();
-  const raw = JSON.parse(localStorage.getItem(P.KEY)); raw.daily = { claimed: '2026-10-02' }; localStorage.setItem(P.KEY, JSON.stringify(raw));
+  const raw = JSON.parse(localStorage.getItem(P.KEY)); raw.future = { claimed: '2026-10-02' }; localStorage.setItem(P.KEY, JSON.stringify(raw));
   P.updateGame('videopoker', {});
-  assert.deepEqual(P.readProfile().daily, { claimed: '2026-10-02' });
+  assert.deepEqual(P.readProfile().future, { claimed: '2026-10-02' });
 });
 
 // ------------------------------------------------------------ save codes

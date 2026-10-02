@@ -136,6 +136,8 @@ import { getChips, setBankroll, refill, canRefill } from '@sundown/shared/chips.
 import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
 import { initTelemetry } from '@sundown/shared/telemetry.js';
+import { reportRound } from '@sundown/shared/retention.js';
+import { showRoundPanel } from '@sundown/shared/roundpanel.js';
 initTelemetry({ game: 'videopoker' });
 import { createMachine, PAYTABLE } from './engine.js';
 import { createCoach, markTutorialSeen } from '@sundown/shared/coach.js';
@@ -312,6 +314,7 @@ function draw() {
 function payOut(result) {
   if (!settling) return;
   settling = false; pending = null;
+  const real = !T.on;
   stats.hands += 1;
   if (result) {
     const won = result.coins * COIN; bank += won; lastWin = won; winLine = result.name; stats.won += won;
@@ -322,7 +325,9 @@ function payOut(result) {
   } else { message = 'No win this time'; lastWin = 0; }
   save(); hud();
   tutEmit('result');
+  if (real) showRoundPanel(reportRound('videopoker', 'hand', { hand: result ? result.name : 'none', rank: result ? RANK[result.name] : 0, win: !!result, won: result ? result.coins * COIN : 0, bet: coins }), { corner: 'bl' });
 }
+const RANK = { 'Jacks or better': 1, 'Two pair': 2, 'Three of a kind': 3, 'Straight': 4, 'Flush': 5, 'Full house': 6, 'Four of a kind': 7, 'Straight flush': 8, 'Royal flush': 9 };
 function toggle(i) { if (machine.phase !== 'dealt' || performance.now() < animUntil) return; if (!tutAllows(`hold${i}`)) return; machine.toggle(i); press(holdBtns[i]); hud(); if (T.on && machine.held[1] && machine.held[3]) tutEmit('held'); }
 function betOne() { if (machine.phase === 'dealt' || !tutAllows('bet')) return; coins = coins % 5 + 1; press(betBtn); sfx.chip(); hud(); message = `Bet ${coins} · Space to deal`; }
 function maxBet() { if (machine.phase === 'dealt' || !tutAllows('deal')) return; coins = 5; hud(); deal(); }

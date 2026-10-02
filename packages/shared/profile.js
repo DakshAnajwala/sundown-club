@@ -21,6 +21,9 @@
  * JSON all fall back to an empty profile, and a failed write is ignored.
  */
 
+import { normalizeStreak, earnDay } from './streak.js';
+import { normalizeDaily, ensureDay } from './daily.js';
+
 export const KEY = 'hub.v2.profile';
 export const OLD_KEY = 'hub.v1.profile';
 const ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -31,7 +34,7 @@ export const MAX_BADGES = 3;
 export const MAX_TOKENS = 99;
 
 function empty() {
-  return { v: 2, xp: 0, tokens: 0, badges: [], inv: { owned: [], equipped: {} }, found: {}, streak: { days: 0, last: null, best: 0 }, games: {} };
+  return { v: 2, xp: 0, tokens: 0, badges: [], inv: { owned: [], equipped: {} }, found: {}, streak: normalizeStreak(null), daily: normalizeDaily(null), games: {} };
 }
 
 const num = (x, d = 0) => (Number.isFinite(x) ? x : d);
@@ -52,9 +55,8 @@ export function normalize(p) {
   for (const k of Object.keys(p)) if (!(k in out) && k !== 'id' && k !== 'handle' && k !== 'title' && k !== 'createdAt') out[k] = p[k];
   out.xp = Math.max(0, num(p.xp));
   out.tokens = Math.min(MAX_TOKENS, Math.max(0, Math.round(num(p.tokens))));
-  const st = p.streak && typeof p.streak === 'object' ? p.streak : {};
-  const days = Math.max(0, num(Number(st.days)));
-  out.streak = { days, last: typeof st.last === 'string' ? st.last : null, best: Math.max(days, num(Number(st.best))) };
+  out.streak = normalizeStreak(p.streak);
+  out.daily = normalizeDaily(p.daily);
   out.games = p.games && typeof p.games === 'object' && !Array.isArray(p.games) ? p.games : {};
   out.badges = (Array.isArray(p.badges) ? p.badges : []).map(itemId).filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).slice(0, MAX_BADGES);
   const inv = p.inv && typeof p.inv === 'object' ? p.inv : {};
@@ -155,19 +157,38 @@ export function today(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/** Merge `patch` into games[id], stamp lastPlayed, and count the day towards the streak. */
+/** Five minutes of play in a day earns the day for the streak. */
+export const EARN_MS = 5 * 60 * 1000;
+
+/**
+ * Merge `patch` into games[id] and stamp lastPlayed. When `patch.timeMs` grows,
+ * the extra time counts towards today's five minutes; reaching them earns the
+ * day for the streak (rules in streak.js).
+ */
 export function updateGame(id, patch = {}) {
   const p = readProfile();
   const now = new Date();
+  const prevMs = Number(p.games[id]?.timeMs) || 0;
   p.games[id] = { ...(p.games[id] || {}), ...patch, lastPlayed: now.getTime() };
-  const t = today(now);
-  if (p.streak.last !== t) {
-    const y = new Date(now); y.setDate(y.getDate() - 1);
-    const days = p.streak.last === today(y) ? p.streak.days + 1 : 1;
-    p.streak = { days, last: t, best: Math.max(p.streak.best || 0, days) };
+  const delta = Number.isFinite(patch.timeMs) ? Math.max(0, patch.timeMs - prevMs) : 0;
+  if (delta > 0) {
+    const t = today(now);
+    const lastPlayed = Object.fromEntries(Object.entries(p.games).map(([g, s]) => [g, Number(s?.lastPlayed) || 0]));
+    p.daily = ensureDay(p.daily, t, { player: p.id, lastPlayed, now: now.getTime() });
+    const was = p.daily.playMs;
+    p.daily = { ...p.daily, playMs: was + Math.min(delta, 6 * 3600 * 1000) };
+    if (was < EARN_MS && p.daily.playMs >= EARN_MS) p.streak = earnDay(p.streak, t).streak;
   }
   write(p);
   return p;
+}
+
+/** Read-modify-write the profile in one go: `fn(p)` edits it in place; returns what fn returns. For retention.js. */
+export function updateProfile(fn) {
+  const p = readProfile();
+  const r = fn(p);
+  write(p);
+  return r === undefined ? p : r;
 }
 
 export function addXp(amount) {

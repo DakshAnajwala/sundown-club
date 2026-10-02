@@ -320,6 +320,38 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .rename .msg { flex-basis: 100%; font-size: 14px; color: #f5c3ad; }
 .rename .msg:empty { display: none; }
 
+
+/* ------------------------------------------------------------------ tonight (lobby strip + daily table) */
+.tonight { display: inline-flex; align-items: center; gap: 10px; width: fit-content; font: 500 13px var(--mono); color: var(--ink-2); text-decoration: none; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--glass); backdrop-filter: blur(10px); transition: color .2s, border-color .2s; }
+.tonight:hover { color: var(--ink); border-color: var(--ink-3); }
+.tonight i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); flex: none; }
+.tonight.new i { background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
+.me .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-left: -4px; align-self: flex-start; flex: none; }
+.daily { margin: 4vh 0 6vh; border: 1px solid var(--line); border-radius: 16px; background: rgba(16, 12, 16, .82); padding: clamp(18px, 3vw, 30px); }
+.dhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.dhead h3 { margin: 0; font: 400 clamp(26px, 3vw, 36px)/1.1 var(--serif); }
+.dmeta { font: 500 12px var(--mono); color: var(--ink-2); letter-spacing: .06em; }
+.dgrid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 48px); margin-top: 18px; align-items: start; }
+.dq { display: grid; gap: 14px; }
+.dq .q { display: grid; gap: 6px; }
+.dq .qt { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; font-size: 16px; }
+.dq .qt b { font: 500 13px var(--mono); color: var(--ink-2); white-space: nowrap; }
+.dq .q.done .qt b { color: #8fe3cf; }
+.dq .qb { height: 5px; border-radius: 5px; background: rgba(243,231,216,.1); overflow: hidden; }
+.dq .qb i { display: block; height: 100%; background: var(--accent); }
+.dq .q.done .qb i { background: #8fe3cf; }
+.dq .qm { display: flex; justify-content: space-between; font: 500 11px var(--mono); color: var(--ink-3); letter-spacing: .06em; }
+.dq .qm button { all: unset; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; color: var(--ink-2); }
+.dq .qm button:focus-visible, .dstreak select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dside { display: grid; gap: 16px; }
+.dside .btn { justify-content: center; white-space: normal; text-align: center; }
+.dstreak { display: grid; gap: 8px; font-size: 14px; color: var(--ink-2); }
+.dstreak .bigdays { font: 500 34px/1 var(--mono); color: var(--ink); }
+.dstreak .bigdays small { font: 500 13px var(--mono); color: var(--ink-2); margin-left: 8px; }
+.dstreak select { font: 500 14px var(--sans); color: var(--ink); background: rgba(16, 12, 16, .82); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.dnote { margin: 14px 0 0; font-size: 14px; color: var(--ink-2); min-height: 1.4em; }
+@media (max-width: 760px) { .dgrid { grid-template-columns: 1fr; } }
+
 /* ------------------------------------------------------------------ the house */
 .house { padding-block: 16vh 10vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(28px, 6vw, 96px); }
 .house h2 { margin: 12px 0 0; font: 400 clamp(38px, 4.6vw, 64px)/1.02 var(--serif); }
@@ -404,7 +436,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     sundown club
   </a>
   <nav aria-label="Sections"><a href="#lobby" data-sec="lobby" class="on">Games</a><a href="#blackjack" data-sec="blackjack">Blackjack</a><a href="#cardroom" data-sec="cardroom">Card room</a><a href="#parking" data-sec="parking">Parking</a><a href="#workshop" data-sec="workshop">Workshop</a><a href="#house" data-sec="house">About</a></nav>
-  <a class="me" href="#evening" id="me"><span class="av" id="meAv" aria-hidden="true"></span><div><div class="lv"><span class="nm" id="meName"></span><span class="sep"> · </span>Lv <span id="meLvl"></span></div><div class="xp"><b id="meXp"></b></div></div></a>
+  <a class="me" href="#evening" id="me"><span class="av" id="meAv" aria-hidden="true"></span><span class="dot" id="meDot" hidden aria-hidden="true"></span><div><div class="lv"><span class="nm" id="meName"></span><span class="sep"> · </span>Lv <span id="meLvl"></span></div><div class="xp"><b id="meXp"></b></div></div></a>
 </header>
 
 <main>
@@ -418,6 +450,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     <p class="blurb" id="blurb"></p>
     <div class="ctas"><button class="btn fill" id="play">Play <kbd>Enter</kbd></button><button class="btn" id="resume"></button></div>
     <div class="facts" id="facts"></div>
+    <a class="tonight" id="tonight" href="#evening"><i></i><span id="tonightTxt"></span></a>
   </div>
   <div class="railwrap pad" id="railwrap">
     <div class="railhead"><span>Games</span><div class="keys"><span><kbd>←</kbd><kbd>→</kbd>choose</span><span><kbd>Enter</kbd>play</span><span><kbd>C</kbd>continue</span></div></div>
@@ -521,6 +554,17 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
       <form id="renameForm" hidden><label for="renameIn">New name</label><input id="renameIn" autocomplete="off" spellcheck="false" aria-describedby="renameMsg"><button class="btn fill" type="submit">Save</button><button class="btn" type="button" id="renameCancel">Cancel</button><span class="msg" id="renameMsg" role="status"></span></form>
     </div>
   </div>
+  <div class="daily" id="daily" aria-labelledby="daily-h">
+    <div class="dhead"><h3 id="daily-h">Tonight's table</h3><span class="dmeta" id="dmeta"></span></div>
+    <div class="dgrid">
+      <div class="dq" id="dq"></div>
+      <div class="dside">
+        <button class="btn fill" id="claim" type="button"></button>
+        <div class="dstreak" id="dstreak"></div>
+      </div>
+    </div>
+    <p class="dnote" id="dnote" role="status"></p>
+  </div>
   <div class="eve">
     <div class="who">
       <div class="lvlring">
@@ -583,6 +627,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <script type="module">
 import { ensureIdentity, readProfile, levelFor, titleFor, setHandle, today, HANDLE_MAX } from '/shared/profile.js';
 import { exportSave, parseSave, importSave, resetSave } from '/shared/save.js';
+import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, chooseRestDay } from '/shared/retention.js';
 import { getChips } from '/shared/chips.js';
 import { initTelemetry, telemetryEnabled, setTelemetry } from '/shared/telemetry.js';
 initTelemetry({ game: 'hub' });
@@ -603,6 +648,7 @@ if (!motion) document.documentElement.classList.add('static');
 
 /* -------------------------------------------------------------- this visitor: hub.v2.profile + club.v1.chips, this browser only */
 const me = ensureIdentity();
+let dayView = openDay();   // rolls the streak over missed days and draws today's quests
 const profile = readProfile();
 const played = profile.games;
 const lvl = levelFor(profile.xp);
@@ -714,9 +760,8 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
 // Streak: the last seven days, lit for each day of the current run.
 {
   const now = new Date(), yest = new Date(now); yest.setDate(now.getDate() - 1);
-  const { days, last } = profile.streak;
-  const endsBack = last === today(now) ? 0 : last === today(yest) ? 1 : -1;   // -1: no run going
-  const run = endsBack < 0 ? 0 : days;
+  const run = dayView.streak.days;
+  const endsBack = run ? (dayView.streak.earnedToday ? 0 : 1) : -1;   // -1: no run going
   const box = $('#streak');
   for (let back = 6; back >= 0; back--) {
     const d = new Date(now); d.setDate(now.getDate() - back);
@@ -747,6 +792,67 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
   }));
 }
 
+
+
+/* -------------------------------------------------------------- tonight: the Daily Table, the reward, the streak */
+{
+  const TIERS = ['', 'Easy night', 'Steady night', 'Hard night'];
+  const WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const note = (t) => { $('#dnote').textContent = t; };
+  const left = () => { const n = new Date(); const m = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1) - n; return `${Math.floor(m / 3600000)}h ${String(Math.floor(m / 60000) % 60).padStart(2, '0')}m`; };
+  function paintLevel() {
+    const p = readProfile(), l = levelFor(p.xp), share = l.next ? l.into / l.next : 1;
+    $('#meLvl').textContent = l.level; $('#meXp').style.width = `${share * 100}%`; $('#xp').style.width = `${share * 100}%`;
+    $('#ring').setAttribute('stroke-dashoffset', 314.16 * (1 - share)); $('#ring').style.display = share ? '' : 'none';
+    $('#lvlNum').textContent = l.level; $('#lvlNum').dataset.count = l.level;
+    $('#xpLine').replaceChildren(count(l.into), l.next ? ` / ${fmt(l.next)} XP` : ' XP');
+    $('#xpNext').textContent = `${titleFor(l.level)} · ` + (l.next ? `${fmt(l.next - l.into)} XP to level ${l.level + 1}` : 'top level');
+  }
+  function render(v) {
+    dayView = { ...dayView, ...v };
+    const done = v.quests.filter((q) => q.done).length;
+    $('#dmeta').textContent = `${TIERS[v.tier] || ''} · resets in ${left()}`;
+    $('#dq').replaceChildren(...v.quests.map((q, i) => {
+      const row = el('div', `q${q.done ? ' done' : ''}`);
+      const bar = el('div', 'qb', el('i')); bar.firstChild.style.width = `${Math.min(100, (q.p / q.target) * 100)}%`;
+      const meta = el('div', 'qm', el('span', null, `+${q.xp} XP`));
+      if (!q.done && !v.rerolled) { const b = el('button', null, 'Swap (free once)'); b.type = 'button'; b.addEventListener('click', () => { const r = rerollQuest(i); render(r.view); note(r.ok ? 'Swapped.' : ''); }); meta.append(b); }
+      row.append(el('div', 'qt', el('span', null, q.text), el('b', null, q.done ? 'Done' : `${q.p} / ${q.target}`)), bar, meta);
+      return row;
+    }));
+    const c = $('#claim');
+    c.disabled = !v.canClaim;
+    c.textContent = v.canClaim ? `Claim daily reward · +${v.reward.xp} XP · +${v.reward.chips} chips · +${v.reward.tokens} token` : `Claimed · ${done} of ${v.quests.length} quests done`;
+    const st = v.streak, mins = Math.min(5, Math.floor(st.playMs / 60000));
+    const pips = '◆'.repeat(st.freezes) + '◇'.repeat(st.maxFreezes - st.freezes);
+    const sel = el('select'); sel.id = 'restSel'; sel.setAttribute('aria-label', 'Rest day');
+    sel.append(new Option('No rest day', ''), ...WD.map((d, n) => new Option(d, String(n))));
+    sel.value = st.rest == null ? '' : String(st.rest);
+    sel.addEventListener('change', () => { render(chooseRestDay(sel.value === '' ? null : Number(sel.value))); note(sel.value === '' ? 'No rest day.' : `${WD[sel.value]} will never break your run.`); });
+    const kids = [
+      el('div', 'bigdays', String(st.days), el('small', null, st.days === 1 ? 'day in a row' : 'days in a row')),
+      el('div', null, st.earnedToday ? 'Today counts.' : `Counts when you play 5 minutes (${mins}/5) or finish a quest.`),
+      el('div', null, `Freezes ${pips} · one earned every 7 days, used on a missed day. Best run ${st.best}.${st.weeks ? ` ${st.weeks} week${st.weeks === 1 ? '' : 's'} with 4+ days.` : ''}`),
+      el('label', null, 'Rest day: ', sel),
+    ];
+    if (st.restore?.ok) { const b = el('button', 'btn', `Restore my ${st.broke.days}-day run (1 token)`); b.type = 'button'; b.addEventListener('click', () => { const r = restoreRun(); render(r.view); note(r.ok ? 'Your run is back.' : 'Could not restore it.'); paintLevel(); }); kids.push(b); }
+    $('#dstreak').replaceChildren(...kids);
+    // lobby strip + header dot
+    const strip = $('#tonight'), txt = v.canClaim ? `Tonight: your daily reward is waiting · ${done} of ${v.quests.length} quests` : `Tonight: ${done} of ${v.quests.length} quests${st.days ? ` · ${st.days}-day streak` : ''}`;
+    $('#tonightTxt').textContent = txt; strip.classList.toggle('new', v.canClaim); $('#meDot').hidden = !v.canClaim;
+  }
+  $('#claim').addEventListener('click', () => {
+    const r = claimDaily();
+    render(r.view); paintLevel();
+    if (r.reward) { note(`Claimed: +${r.reward.xp} XP, +${r.reward.chips} chips, +${r.reward.tokens} token.`); document.dispatchEvent(new Event('club-chips')); }
+  });
+  render(dayView);
+  for (const n of dayView.notices || []) {
+    if (n.t === 'saved') note(`A streak freeze covered ${new Date(n.day + 'T12:00').toLocaleDateString('en-GB', { weekday: 'long' })}. Your run is safe.`);
+    if (n.t === 'broken') note(`Your ${n.days}-day run ended. It is on your record (best: ${dayView.streak.best}). A new run starts the next time you play.`);
+  }
+  setInterval(() => { if (document.visibilityState === 'visible') render(dayView); }, 60000);
+}
 
 // Save & settings: copy the whole club save out, load one in, usage counters, start over.
 {

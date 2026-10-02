@@ -237,6 +237,8 @@ import * as THREE from '/vendor/three/three.module.js';
 import { createLeaveGuard } from '/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '/shared/profile.js';
 import { initTelemetry } from '/shared/telemetry.js';
+import { reportRound } from '/shared/retention.js';
+import { showRoundPanel } from '/shared/roundpanel.js';
 initTelemetry({ game: 'blackjack' });
 import { getChips, setBankroll } from '/shared/chips.js';
 import { createCoach, markTutorialSeen } from '/shared/coach.js';
@@ -1196,6 +1198,7 @@ function settle() {
     const back = kind === 'lose' ? 0 : G.bet + win;
     countBank(G.bank + back); G.bank += back;
     if (!TUT.on) { G.hands += 1; if (kind === 'natural') G.naturals += 1; } G.peak = Math.max(G.peak, G.bank); saveGame();
+    if (!TUT.on && !practice) showRoundPanel(reportRound('blackjack', 'hand', { result: kind, total: p, cards: G.player.length, doubled: !!G.doubled, bust: p > 21, net: kind === 'lose' ? -G.bet : win, bet: G.bet }));
     G.betChips = []; G.bet = 0; G.phase = 'bet'; updateHud(); showBars();
     tutEmit('handEnd');
     if (!TUT.on && G.bank < G.tier.min) say(G.bank < 10 ? 'Out of chips. In the build: Refill to 1,000.' : `Below this room's minimum.`);
