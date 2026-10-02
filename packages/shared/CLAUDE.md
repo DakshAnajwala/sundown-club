@@ -20,7 +20,8 @@ import `/shared/<module>.js` (copied into `dist/shared/` by `tools/build-site.mj
 
 | Module | Purpose |
 |---|---|
-| `profile.js` (built) | Read/update `hub.v1.profile`: identity (`ensureIdentity()` makes a random `id` and evening-name `handle` per browser, `setHandle()` renames), XP, level curve (`250 × L` to go from L to L+1), streak, per-game summary (`lastPlayed`, `resume`, `facts`, `ledger`, `timeMs`). `readProfile()` keeps the identity through every game's write |
+| `save.js` (built) | `exportSave`, `parseSave`, `importSave`, `resetSave`: the whole club save as one code or file, club keys only. Hub "Save & settings" uses it |
+| `profile.js` (built) | Read/update `hub.v2.profile` (migrates `hub.v1.profile` once; also level 1-100, titles, tokens, items, badges): identity (`ensureIdentity()` makes a random `id` and evening-name `handle` per browser, `setHandle()` renames), XP, level curve (`250 × L` to go from L to L+1), streak, per-game summary (`lastPlayed`, `resume`, `facts`, `ledger`, `timeMs`). `readProfile()` keeps the identity through every game's write |
 | `leave-guard.js` (built) | `createLeaveGuard()` overlay: Esc once asks, Esc again saves (game callback) and goes to `/`. `leaveToHub()` for games with their own pause menu (Parking). Owner request 30 Sep |
 | `chips.js` (built) | The club bankroll `club.v1.chips` shared by Blackjack, Hold'em and Video Poker: get, set, take, give, refill to 1,000 below 10 |
 | `cards.js` (built) | Deck, crypto shuffle, poker hand ranking (`score5`, `best` of 5–7, `describe`). Checked by `tools/cards-check.mjs` |

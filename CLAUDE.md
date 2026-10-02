@@ -55,7 +55,7 @@ npm workspaces: each app and package has its own `package.json` (names
   `createCardKit`, `createChipKit`, `createFigure`, `createCameraRig`).
   Blackjack's `index.html` predates the kit and still carries its own copy.
 - **Saving is local only.** Club bankroll `club.v1.chips` (`chips.js`), hub
-  profile `hub.v1.profile` (`profile.js`: summary, play time, streak), plus one
+  profile `hub.v2.profile` (`profile.js`: summary, play time, streak, level, items; `save.js` exports and imports the whole save), plus one
   stats key per game. Every game leaves through `leave-guard.js` (Esc asks, Esc
   again saves and goes to `/`).
 

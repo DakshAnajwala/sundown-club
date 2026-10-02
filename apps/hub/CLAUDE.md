@@ -40,7 +40,7 @@ end state. Keep that fallback working when adding sections.
   Video Poker `#e8b860`, Night Drive `#9aa6ff`.
 - Links to games are site paths (`/blackjack/`, `/holdem/`, `/videopoker/`, `/parking/play/`, `/racing/`). Inside a
   sandboxed preview frame they show a toast instead of navigating.
-- Every number about the player is real, read from `hub.v1.profile` and
+- Every number about the player is real, read from `hub.v2.profile` and
   `club.v1.chips` through `packages/shared/profile.js` and `chips.js`. Never
   show sample data. Each browser is its own player: `ensureIdentity()` gives
   it a random id and name on the first visit (SPEC §8). Saved summaries are

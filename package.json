@@ -15,6 +15,6 @@
     "build": "npm run build -w @sundown/parking && npm run build -w @sundown/racing && node tools/build-site.mjs",
     "serve": "npx --yes serve dist -l 5180",
     "serve:api": "node tools/dev-api.mjs 5181",
-    "check": "node tools/cards-check.mjs && node tools/holdem-sim.mjs 1500 && node tools/videopoker-check.mjs && node tools/telemetry-check.mjs"
+    "check": "node tools/cards-check.mjs && node tools/holdem-sim.mjs 1500 && node tools/videopoker-check.mjs && node tools/telemetry-check.mjs && node tools/profile-check.mjs"
   }
 }

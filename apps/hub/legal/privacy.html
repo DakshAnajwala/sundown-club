@@ -39,7 +39,7 @@
   <thead><tr><th>Name in your browser</th><th>What it holds</th></tr></thead>
   <tbody>
     <tr><td><code>club.v1.chips</code></td><td>Your club chips, shared by Blackjack, Hold’em and Video Poker: how many you have, the most you have ever had, and how many times the club refilled them.</td></tr>
-    <tr><td><code>hub.v1.profile</code></td><td>What the homepage shows about you: a random identifier and a name for you, both made the first time you open the homepage (the name is picked at random until you change it under “Your evening”), when you last played each game, a one-line summary of each (for example your chip count), how long you have played each game while it was on screen, how many days in a row you have played, and your club level. The identifier and the name never leave your browser, so another browser or device gets its own. The name is not your Parking Precision leaderboard name.</td></tr>
+    <tr><td><code>hub.v2.profile</code></td><td>What the homepage shows about you: a random identifier and a name for you, both made the first time you open the homepage (the name is picked at random until you change it under “Your evening”), when you last played each game, a one-line summary of each (for example your chip count), how long you have played each game while it was on screen, how many days in a row you have played (and your best run), your club level and experience points, and the cosmetic items, badges and tokens you have earned. The identifier and the name never leave your browser, so another browser or device gets its own. The name is not your Parking Precision leaderboard name. (<code>hub.v1.profile</code> is the same note from before 2 October 2026; it is copied forward once and then left alone.)</td></tr>
     <tr><td><code>hub.v1.settings</code></td><td>Your choices about the club, for now whether you allow the anonymous usage counters in section 6.</td></tr>
     <tr><td><code>hub.v1.tele</code></td><td>The day you first opened the club on this browser, so the usage counters can say “day 5”. Never sent as a date, only as a number of days.</td></tr>
     <tr><td><code>tut.v1.…</code></td><td>Whether you have already been offered each game’s tutorial, so it doesn’t ask again.</td></tr>
@@ -51,7 +51,8 @@
   </tbody>
 </table></div>
 <p>There is no email address, no location and nothing measured about your device, browser or network. The only name you can type is the homepage name above, and it stays in your browser.</p>
-<p><strong>Deleting it:</strong> clear this site’s data in your browser’s settings and all of it is gone. Parking Precision also has <em>Settings → Reset progress</em>. Tutorials use pretend chips and save nothing while they run.</p>
+<p><strong>Taking a copy:</strong> “Save &amp; settings” on the homepage can download or copy everything in the table above as one save file or code, and load it back (on this or another browser). Nothing is uploaded: the file only goes where you put it.</p>
+<p><strong>Deleting it:</strong> “Save &amp; settings” also has an erase button, or clear this site’s data in your browser’s settings and all of it is gone. Parking Precision also has <em>Settings → Reset progress</em>. Tutorials use pretend chips and save nothing while they run.</p>
 
 <h2>3. Hosting</h2>
 <p>The site is hosted by <a href="https://vercel.com" rel="noopener">Vercel</a>. Like every web host, Vercel’s servers see standard connection details in order to send you the pages, such as your IP address, browser type and the time of each request. We don’t look at, collect or use those logs ourselves. They are covered by <a href="https://vercel.com/legal/privacy-policy" rel="noopener">Vercel’s privacy policy</a>.</p>
@@ -77,7 +78,7 @@
 <h3>Removing your score</h3>
 <p>Email <strong>daksh.anajwala@gmail.com</strong> with the name shown on the board and the level, and the entry will be deleted. Because there are no accounts, that name is the only way to find it.</p>
 
-<h2>6. Anonymous usage counters</h2>
+<h2 id="usage-counters">6. Anonymous usage counters</h2>
 <p>So the club can tell whether anyone comes back and which games get played, each page sends a few small messages to the club’s own server (<code>sundown-club.vercel.app/api/club/event</code>). It is on by default and you can turn it off at any time (see below).</p>
 <h3>What is sent</h3>
 <ul>

@@ -187,7 +187,7 @@ Coming-soon tiles stay as teasers (owner, 30 Sep).
 Extends `apps/blackjack/SPEC.md` §13.
 
 ```js
-// localStorage "hub.v1.profile"
+// localStorage "hub.v2.profile" (2 Oct 2026; v1 is copied forward once, see docs/retention/SPEC-profile-v2.md)
 {
   id: "52f37248-f49e-422b-8cd4-ba2618c73d09", // random, made on the first hub visit
   handle: "Warm Tern",        // random evening name until the player changes it
@@ -219,8 +219,9 @@ Extends `apps/blackjack/SPEC.md` §13.
 - Each game writes its own entry when a session ends and on `pagehide`. The
   hub writes only the identity. Reads and writes are wrapped in try/catch;
   bad data = defaults.
-- Level curve: reaching level L+1 from L costs `250 × L` XP (L1→2 = 250,
-  L7→8 = 1,750).
+- Level curve (changed 2 Oct 2026, cap 100): reaching level L+1 from L costs
+  `200 + 50 × L` XP (L1→2 = 250, L7→8 = 550, L99→100 = 5,150). Titles per level
+  band in `docs/retention/SPEC-profile-v2.md` §2.
 - XP sources: Blackjack per its spec §6.1. Parking: finished park 5 XP + 5 per
   star, new personal best +10, first park of the day +10.
 - Streak: a day counts when any game writes `lastPlayed` that local day.
