@@ -28,7 +28,7 @@ Licence: all rights reserved.
 | `docs/deploy.md` | How the site deploys, what is live | | before any deploy |
 | `docs/retention/` | Retention programme (`GOAL.md` at the repo root): specs for telemetry, daily loop, onboarding, social, content | | before any retention work |
 | `packages/shared/data/` | Data files: daily quests, achievements, mastery, seasons, weekly goals. Adding content is adding lines; `tools/content-check.mjs` and `daily-check.mjs` validate them | | before adding content |
-| `api/` | Vercel functions owned by this project: `api/club/event` (anonymous counters), `api/club/metrics` (owner-only). Everything else under `/api/*` still rewrites to the old Parking project | | before changing `vercel.json` rewrites |
+| `api/` | Vercel functions owned by this project: `api/club/{event,metrics,play,board,push-run}` (anonymous counters, owner-only metrics, the boards and sharing, the daily reminder run). Everything else under `/api/*` still rewrites to the old Parking project | | before changing `vercel.json` rewrites |
 | `docs/seo.md` | Search engines: robots, sitemap, page tags, Search Console steps | | before changing a page `<head>` or adding a page |
 
 npm workspaces: each app and package has its own `package.json` (names
@@ -110,7 +110,9 @@ npm run dev:parking                                   # Parking Precision dev se
 npm run dev:racing                                    # Night Drive dev server (labs + test drive), port 5177
 npm run build                                         # all apps -> dist/
 npm run serve                                         # serve dist/ on http://localhost:5180 to check the assembled site
-npm run check                                         # pure-logic checks: hand ranking, Hold'em engine books, video poker pay table
+npm run check                                         # pure-logic checks: hands, Hold'em books, pay table, telemetry, profile, daily/streak/flags, boards, content
+npm run check:site                                    # after a build: the guide pages (tags, links, copy rules)
+npm run perf                                          # hub LCP and game load on throttled 4G (H2=1 node tools/dev-api.mjs 5184 first)
 node tools/holdem-sim.mjs 3000                        # one check on its own (also cards-check.mjs, videopoker-check.mjs)
 ```
 

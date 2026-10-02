@@ -79,14 +79,14 @@ export function rollStreak(streak, today) {
 }
 
 /** Count today. Events: 'started', 'extended', 'freeze_earned', 'week_counted'. No-op when already counted. */
-export function earnDay(streak, today) {
+export function earnDay(streak, today, opts = {}) {
   let { streak: s, events } = rollStreak(streak, today);
   if (s.last === today) return { streak: s, events };
   s.days = s.last === addDaysStr(today, -1) && s.days > 0 ? s.days + 1 : 1;
   s.last = today;
   s.best = Math.max(s.best, s.days);
   events.push({ type: s.days > 1 ? 'extended' : 'started', days: s.days });
-  if (s.days % FREEZE_EVERY === 0 && s.freezes < MAX_FREEZES) { s.freezes += 1; events.push({ type: 'freeze_earned', freezes: s.freezes }); }
+  if (s.days % (opts.freezeEvery || FREEZE_EVERY) === 0 && s.freezes < MAX_FREEZES) { s.freezes += 1; events.push({ type: 'freeze_earned', freezes: s.freezes }); }
   const wk = weekStart(today);
   if (s.weekly.cur !== wk) { s.weekly.cur = wk; s.weekly.n = 0; }
   s.weekly.n += 1;

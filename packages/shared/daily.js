@@ -163,7 +163,7 @@ export function ensureDay(daily, today, ctx = {}) {
   if (d.day === today && d.quests.length) return d;
   const hist = d.day && d.quests.length ? [...d.hist, { d: d.day, n: d.quests.filter((q) => q.done).length }].slice(-7) : d.hist;
   const tier = d.day ? nextTier(d.tier, hist) : 1;
-  const ids = pickQuests({ seed: hash32(`${ctx.player || 'anon'}|${today}`), tier, lastPlayed: ctx.lastPlayed, now: ctx.now });
+  const ids = pickQuests({ seed: hash32(`${ctx.player || 'anon'}|${today}`), tier, lastPlayed: ctx.lastPlayed, now: ctx.now, slots: ctx.slots });
   return { ...emptyDaily(), day: today, tier, quests: ids.map((id) => ({ id, p: 0, done: false, g: [] })), hist };
 }
 

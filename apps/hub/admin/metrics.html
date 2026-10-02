@@ -57,6 +57,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--good); outl
       <section><h2>Session length, last 7 days</h2><div id="sessions"></div></section>
     </div>
     <section><h2>Players per game, last 7 days</h2><div style="overflow-x:auto"><table id="games"></table></div></section>
+    <section><h2>Experiments (players per variant, and how many were active this week)</h2><div style="overflow-x:auto"><table id="exps"></table></div><p class="note" id="expNote"></p></section>
     <section><h2>Event totals, last 7 days</h2><div style="overflow-x:auto"><table id="events"></table></div></section>
   </div>
 </main>
@@ -106,6 +107,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--good); outl
     const f = m.funnel; bars($('funnel'), [['Opened site', f.landing], ['Opened a game', f.game_open], ['Finished a round', f.round_end], ['Played 2+ games', f.second_game]]);
     bars($('sessions'), Object.entries(m.sessions).map(([k, v]) => [k + ' min', v]));
     rows($('games'), ['Game', ...m.perGame[0].days.map((_, i) => 'D-' + (6 - i))], m.perGame.map((g) => [g.game, ...g.days]));
+    rows($('exps'), ['Experiment : variant', 'Players', 'Active this week', 'Share active'], (m.experiments || []).map((x) => [x.tag, x.players, x.activeWeek, pct(x.activeWeek, x.players)]));
+    $('expNote').textContent = (m.experiments || []).length ? 'Compare variants of the same experiment. Judge by the stop rule in docs/retention/experiments.md, not by eye.' : 'No experiment is running (all are off in flags.json).';
     rows($('events'), ['Event', 'Count'], Object.entries(m.events).sort((a, b) => b[1] - a[1]).map(([k, v]) => [k.replace('|', ' · '), v]));
     $('out').hidden = false; $('login').hidden = true;
   }

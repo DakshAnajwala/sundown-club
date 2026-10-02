@@ -11,7 +11,9 @@ shared profile.
 | `index.html` | The whole page: styles, markup and script in one file (static, no build step yet) |
 | `media/` | Backdrop and chapter images (real in-game frames, no HUD) |
 | `SPEC.md` | Hub spec: tokens, first screen, rail, profile/XP storage (`hub.v1.*`), verification |
-| `SPEC-leaderboard.md` | Club leaderboard ("The board") design, not built |
+| `SPEC-leaderboard.md` | Club leaderboard ("The board"): built, section 10 lists what changed while building |
+| `guides/` | Ten how-to pages (`guides.js`, `render.mjs`), built to `/guides/` |
+| `sw.js`, `manifest.webmanifest`, `icons/`, `flags.json`, `challenge.html`, `admin/metrics.html` | Service worker, install manifest, A/B config, the `/c/<code>` challenge page, the owner's metrics page |
 | `design/` | Direction samples, `leaderboard.html` board mock. `d-mix.html` is the approved first screen; A/B/C are rejected, kept for reference |
 
 ## The page, top to bottom
@@ -56,4 +58,5 @@ end state. Keep that fallback working when adding sections.
 ## Open
 
 - XP: every game now reports finished rounds through `packages/shared/retention.js` (owner's goal `GOAL.md`, 2 Oct 2026), which pays XP, runs the Daily Table and the streak. See `docs/retention/SPEC-daily.md`.
-- Leaderboard: designed in `SPEC-leaderboard.md` (mock `design/leaderboard.html`), waiting on the owner's answers (§9).
+- Leaderboard: built (the board section, `api/club/*`), running on the recommended answers to §9; it needs the owner's Upstash variables to be durable (`docs/retention/OWNER-TODO.md`).
+- Retention programme: `GOAL.md` at the repo root, specs and status in `docs/retention/`. Nothing on branch `feat/retention` is deployed.

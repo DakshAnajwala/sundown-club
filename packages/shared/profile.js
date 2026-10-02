@@ -25,6 +25,7 @@ import { normalizeStreak, earnDay } from './streak.js';
 import { normalizeDaily, ensureDay } from './daily.js';
 import { NAME_A, NAME_B } from './names.js';
 import { STARTER_ITEMS } from './catalog.js';
+import { variant } from './flags.js';
 
 export const KEY = 'hub.v2.profile';
 export const OLD_KEY = 'hub.v1.profile';
@@ -189,7 +190,7 @@ export function updateGame(id, patch = {}) {
     p.daily = ensureDay(p.daily, t, { player: p.id, lastPlayed, now: now.getTime() });
     const was = p.daily.playMs;
     p.daily = { ...p.daily, playMs: was + Math.min(delta, 6 * 3600 * 1000) };
-    if (was < EARN_MS && p.daily.playMs >= EARN_MS) p.streak = earnDay(p.streak, t).streak;
+    if (was < EARN_MS && p.daily.playMs >= EARN_MS) p.streak = earnDay(p.streak, t, { freezeEvery: variant('freeze_rate') === '5' ? 5 : 7 }).streak;
   }
   write(p);
   return p;

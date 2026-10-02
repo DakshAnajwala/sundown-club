@@ -16,6 +16,7 @@ import { ensureDay, progress, claimDaily, rerollQuest, describe, REWARD, GAME_ID
 import { rollStreak, earnDay, canRestore, restoreStreak, setRestDay, runLength, weeklyCount, canPause, pauseStreak, MAX_FREEZES } from './streak.js';
 import { give } from './chips.js';
 import { track } from './telemetry.js';
+import { variant } from './flags.js';
 import { dayNumber } from './seed.js';
 import { claimInviteIfAny } from './leaderboard.js';
 import { afterRound, afterEvent, claimSeasonTier, buyFromVault, progressView, bumpStat, rollSeason } from './rewards.js';
@@ -25,7 +26,10 @@ export const FIRST_WIN_XP = 150;   // with the round's XP and the daily reward t
 const PICKS = ['cards', 'cars', 'both'];
 
 const lastPlayedOf = (p) => Object.fromEntries(Object.entries(p.games).map(([g, s]) => [g, Number(s?.lastPlayed) || 0]));
-const ctxOf = (p, now) => ({ player: p.id, lastPlayed: lastPlayedOf(p), now });
+// The quests_count and freeze_rate experiments (flags.json) change these; off, everyone gets the defaults (3 quests, a freeze every 7 days).
+const slotsFor = () => (variant('quests_count') === '4' ? ['cards', 'driving', 'wild', 'wild'] : undefined);
+const freezeOpts = () => ({ freezeEvery: variant('freeze_rate') === '5' ? 5 : 7 });
+const ctxOf = (p, now) => ({ player: p.id, lastPlayed: lastPlayedOf(p), now, slots: slotsFor() });
 
 /** Roll the streak over missed days and make sure today's quests exist. Notes what happened for the hub. */
 function settle(p, now = Date.now()) {
@@ -127,7 +131,7 @@ export function reportRound(game, kind, data = {}) {
       p.tokens = Math.min(MAX_TOKENS, p.tokens + r.tokens);
       if (firstWin) r.xp += FIRST_WIN_XP;
       let events = [];
-      if (r.justDone.length) { const e = earnDay(p.streak, t); p.streak = e.streak; events = e.events; }
+      if (r.justDone.length) { const e = earnDay(p.streak, t, freezeOpts()); p.streak = e.streak; events = e.events; }
       const extra = afterRound(p, { game, kind, data, now: Date.now(), xpBefore, xpRound: r.xpRound, justDone: r.justDone, allDone: r.allDone });
       const after = levelFor(p.xp);
       const v = view(p, t);
@@ -157,7 +161,7 @@ export function claim() {
     p.xp += c.reward.xp;
     p.tokens = Math.min(MAX_TOKENS, p.tokens + c.reward.tokens);
     // Claiming is a day well spent: it never needs a round, so it also counts for the streak.
-    p.streak = earnDay(p.streak, t).streak;
+    p.streak = earnDay(p.streak, t, freezeOpts()).streak;
     const unlocked = afterEvent(p, { stat: 'daily.claims', xpBefore });
     return { reward: c.reward, unlocked, view: view(p, t) };
   });
@@ -244,7 +248,7 @@ export function reportSeed(game, result) {
       p.seeds.results[game] = clean;
       const xpBefore = p.xp;
       p.xp += SEED_XP;
-      p.streak = earnDay(p.streak, t).streak;
+      p.streak = earnDay(p.streak, t, freezeOpts()).streak;
       const unlocked = afterEvent(p, { stat: 'seeds.done', xpBefore });
       return { first: true, xp: SEED_XP, result: clean, unlocked };
     });

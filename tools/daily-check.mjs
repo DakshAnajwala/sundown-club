@@ -1,8 +1,10 @@
 /** Pure-logic check: streak rules, quest pool and picking, progress, rerolls, claims. node tools/daily-check.mjs */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import * as D from '../packages/shared/daily.js';
 import * as S from '../packages/shared/streak.js';
 import * as SD from '../packages/shared/seed.js';
+import * as F from '../packages/shared/flags.js';
 import { createBreakTimer, BREAK_AFTER_MS, RESET_AFTER_HIDDEN_MS } from '../packages/shared/wellbeing.js';
 import { deck } from '../packages/shared/cards.js';
 
@@ -226,6 +228,23 @@ ok(() => { // the break note: 90 minutes on screen, not counting time away, rese
   for (let i = 0; i < 40; i++) { n3 += 30000; if (v.tick(n3, true)) f3++; }           // 20 more
   assert.equal(f3, 1, 'a short look away does not reset it; hidden time is not counted');
   assert.equal(BREAK_AFTER_MS, 5400000); assert.equal(RESET_AFTER_HIDDEN_MS, 600000);
+});
+ok(() => { // A/B flags: off means the default, on means a stable weighted split
+  const cfg = { experiments: { x: { enabled: false, default: 'a', variants: { a: 50, b: 50 } }, y: { enabled: true, default: 'a', variants: { a: 50, b: 30, c: 20 } }, z: { enabled: true, default: 'a', variants: { a: 0, b: 0 } } } };
+  for (let i = 0; i < 50; i++) assert.equal(F.pick('x', `p${i}`, cfg), 'a', 'off = default for everyone');
+  assert.equal(F.pick('nope', 'p', cfg), null); assert.equal(F.pick('x', 'p', null), null); assert.equal(F.pick('x', 'p', {}), null);
+  assert.equal(F.pick('y', 'p1', cfg), F.pick('y', 'p1', cfg), 'stable per player');
+  const n = { a: 0, b: 0, c: 0 }; for (let i = 0; i < 6000; i++) n[F.pick('y', `player-${i}`, cfg)]++;
+  assert.ok(Math.abs(n.a / 6000 - 0.5) < 0.03 && Math.abs(n.b / 6000 - 0.3) < 0.03 && Math.abs(n.c / 6000 - 0.2) < 0.03, JSON.stringify(n));
+  const other = { a: 0, b: 0 }; for (let i = 0; i < 2000; i++) other[F.pick('y', `player-${i}`, cfg) === 'a' ? 'a' : 'b']++;
+  const split2 = { a: 0 }; for (let i = 0; i < 4000; i++) if (F.pick('y', `q${i}`, cfg) === 'a' && F.pick('x2', `q${i}`, { experiments: { x2: { enabled: true, variants: { a: 1, b: 1 } } } }) === 'a') split2.a++;
+  assert.ok(Math.abs(split2.a / 4000 - 0.25) < 0.04, 'two experiments are independent');
+  assert.equal(F.pick('z', 'p', cfg), 'a', 'weights of zero fall back to the default');
+});
+ok(() => { // the real flags.json: every experiment is off, defaults are variants, weights sum sensibly
+  const real = JSON.parse(readFileSync(new URL('../apps/hub/flags.json', import.meta.url), 'utf8'));
+  assert.equal(Object.keys(real.experiments).length, 5);
+  for (const [name, e] of Object.entries(real.experiments)) { assert.equal(e.enabled, false, `${name} must stay off until its stop rule is written and traffic exists`); assert.ok(e.default in e.variants, name); assert.ok(Object.keys(e.variants).length >= 2); }
 });
 ok(() => { // pause: a week of days off that neither breaks the run nor uses a freeze, once every four weeks
   const s = run(5);                                       // Mon-Fri

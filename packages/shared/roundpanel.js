@@ -8,6 +8,7 @@
  * Text only goes in through textContent. Respects prefers-reduced-motion.
  * Spec: docs/retention/SPEC-daily.md §6.
  */
+import { variant } from './flags.js';
 const STYLE_ID = 'sc-rp-style';
 const CSS = `
 .sc-rp { position: fixed; z-index: 40; width: min(280px, calc(100vw - 24px)); padding: 12px 14px 12px; border-radius: 14px; background: rgba(24,20,31,.9); color: #f1ebe0; border: 1px solid rgba(241,235,224,.14); font: 13px/1.35 "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,.35); pointer-events: none; transition: opacity .5s, transform .5s; }
@@ -64,6 +65,7 @@ export function hideRoundPanel() {
 export function showRoundPanel(r, opts = {}) {
   try {
     if (!r || typeof document === 'undefined') return;
+    if (variant('round_panel') === 'off') return;   // experiment (flags.json): the note off for half the players, when switched on
     if (!document.getElementById(STYLE_ID)) { const s = el('style'); s.id = STYLE_ID; s.textContent = CSS; document.head.append(s); }
     if (current) { clearTimeout(timer); current.remove(); current = null; }
     const root = el('div', `sc-rp in ${opts.corner || 'bl'}`);

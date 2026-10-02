@@ -831,6 +831,7 @@ import { exportSave, parseSave, importSave, resetSave } from '/shared/save.js';
 import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, chooseRestDay, pauseRun, seedResults } from '/shared/retention.js';
 import { dayNumber, msToNextSeed } from '/shared/seed.js';
 import { onboarding, setPick, markStep, completeWelcome } from '/shared/retention.js';
+import { variant } from '/shared/flags.js';
 import { STARTER_BADGES, itemName } from '/shared/catalog.js';
 import { fetchBoard, boardEnabled, setBoardEnabled, myBoardName, rerollBoardName, submitFromProfile, clubCreate, clubJoin, clubLeave, inviteLink, collectInviteTokens, shareGhost } from '/shared/leaderboard.js';
 import { renderShareCard, shareResult } from '/shared/sharecard.js';
@@ -961,6 +962,7 @@ select(0);
   const fromUrl = new URLSearchParams(location.search).get('pick');   // share links can say ?pick=cars
   if (firstVisit) {
     markStep('landing');
+    if (variant('onboarding_start') === 'auto' && !onb.pick && !fromUrl && !location.search.includes('home')) { location.replace('/blackjack/'); }   // experiment (flags.json): skip the question and sit down
     if (['cards', 'cars', 'both'].includes(fromUrl) && !onb.pick) { setPick(fromUrl); onb.pick = fromUrl; }
     if (onb.pick) choose(onb.pick);
     else {

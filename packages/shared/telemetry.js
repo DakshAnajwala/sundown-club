@@ -14,6 +14,7 @@
  * is wrapped, so a game never fails because of it.
  */
 import { ensureIdentity, today } from './profile.js';
+import { activeTag, loadFlags } from './flags.js';
 
 const ENDPOINT = '/api/club/event';
 const SETTINGS_KEY = 'hub.v1.settings';
@@ -90,7 +91,8 @@ export function flush() {
 export function track(name, props = {}) {
   try {
     if (!player || !telemetryEnabled()) return;
-    queue.push({ name, props: { game, ...props } });
+    const exp = activeTag(player);
+    queue.push({ name, props: { game, ...props, ...(exp ? { exp } : {}) } });
     if (queue.length >= FLUSH_AT) flush();
     else if (!timer) timer = setTimeout(flush, FLUSH_MS);
   } catch { /* never break a game */ }
@@ -113,6 +115,7 @@ export function initTelemetry(opts = {}) {
     game = opts.game || 'hub';
     // The club boards count play time (their own switch, see leaderboard.js); telemetry being off does not stop them.
     import('./leaderboard.js').then((m) => m.startBoardSession(game)).catch(() => {});
+    loadFlags();
     import('./pwa.js').then((m) => m.registerPwa()).catch(() => {});
     import('./wellbeing.js').then((m) => m.startBreakNudge()).catch(() => {});
     if (!telemetryEnabled()) return;

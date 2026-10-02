@@ -20,9 +20,11 @@ import `/shared/<module>.js` (copied into `dist/shared/` by `tools/build-site.mj
 
 | Module | Purpose |
 |---|---|
+| `pwa.js`, `wellbeing.js`, `sharecard.js`, `roundpanel.js` (built) | Install and offline (service worker `apps/hub/sw.js`), the 90-minute break note, the 1200x630 share card, the after-round note and `showNote`. Spec `docs/retention/SPEC-reach.md` |
 | `catalog.js` (built) | The 34 collectable items (badges, card backs, felts, frames, backdrops): names, rarity, how they look |
 | `cosmetics.js` (built) | What is equipped, for the games to paint: `cardBackPalette()`, `feltColor(fallback)`, `frameRing()`, `backdropVars()` |
 | `progression.js`, `rewards.js` (built) | The content layer: lifetime stats, 149 achievements, mastery, seasons, weekly goal (rules in `progression.js`, profile edits in `rewards.js`; data in `data/*.js`). Spec `docs/retention/SPEC-content.md` |
+| `flags.js` (built) | A/B tests without a service: `variant(name)`, `pick`, `activeTag`, `loadFlags`. Config `apps/hub/flags.json` (all off). Rules `docs/retention/experiments.md` |
 | `seed.js` (built) | Daily Seed: `seedFor(game)` per UTC day, `seededShuffle`, `dayNumber` (matches Parking's daily numbering). Results kept by `retention.js` `reportSeed`/`seedResults` |
 | `retention.js` (built) | `reportRound(game, kind, data)` after every finished round; `openDay()`, `claim()`, `reroll(i)`, `restoreRun()`, `chooseRestDay(d)`, `onboarding()`, `setPick()`, `completeWelcome()` for the hub. Uses `daily.js` (quests), `streak.js` (freezes), `roundpanel.js` (the after-round note). Spec `docs/retention/SPEC-daily.md` |
 | `save.js` (built) | `exportSave`, `parseSave`, `importSave`, `resetSave`: the whole club save as one code or file, club keys only. Hub "Save & settings" uses it |

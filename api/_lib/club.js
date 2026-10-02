@@ -14,7 +14,7 @@ export const EVENTS = [
   'share_click', 'invite_open', 'challenge_sent', 'challenge_accepted', 'board_view',
   'install_prompt_shown', 'install_prompt_accepted', 'notif_prompt_shown', 'notif_prompt_accepted',
 ];
-const PROP_KEYS = ['game', 'ref', 'day_index', 'is_new', 'dur', 'games_played', 'result', 'step', 'id', 'tier', 'level', 'kind'];
+const PROP_KEYS = ['exp', 'game', 'ref', 'day_index', 'is_new', 'dur', 'games_played', 'result', 'step', 'id', 'tier', 'level', 'kind'];
 const REFS = ['direct', 'internal', 'search', 'social', 'other'];
 export const BUCKETS = ['0-1', '1-3', '3-10', '10-20', '20-45', '45+'];
 export const FUNNEL = ['landing', 'game_open', 'round_end', 'second_game'];
@@ -24,7 +24,7 @@ export const MAX_BATCH = 20;
 export const RATE_PER_MIN = 240;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const SHORT = /^[\w .:\-]{0,32}$/;
+const SHORT = /^[\w .:\-,]{0,60}$/;
 
 export const dayOf = (ms = Date.now()) => new Date(ms).toISOString().slice(0, 10);
 export function addDays(day, n) {
@@ -81,6 +81,7 @@ export function commandsFor({ player, events }, day) {
   for (const { name, props } of events) {
     c.push(['HINCRBY', `t:ev:${day}`, name, 1]); touch(`t:ev:${day}`);
     if (props.game) c.push(['HINCRBY', `t:ev:${day}`, `${name}|${props.game}`, 1]);
+    if (props.exp && name === 'session_start') for (const tag of String(props.exp).split(',').slice(0, 5)) { c.push(['SADD', `t:expv:${tag}`, player], ['SADD', 't:exptags', tag]); touch(`t:expv:${tag}`); touch('t:exptags'); }
     if (name === 'session_start') {
       c.push(['SADD', `t:fun:${day}:landing`, player]); touch(`t:fun:${day}:landing`);
     }
@@ -150,6 +151,9 @@ export async function metrics(store, today = dayOf()) {
     return Number(r[1]) || 0;
   };
   const wau = await uniq(days7);
+  const tags = (await store.run([['SMEMBERS', 't:exptags']]))[0] || [];
+  const expRes = tags.length ? await store.run(tags.flatMap((tg) => [['SCARD', `t:expv:${tg}`], ['SINTERCARD', 2, `t:expv:${tg}`, `t:tmp:${days7.length}`]])) : [];
+  const experiments = tags.map((tg, i) => ({ tag: tg, players: Number(expRes[i * 2]) || 0, activeWeek: Number(expRes[i * 2 + 1]) || 0 })).sort((a, b) => (a.tag < b.tag ? -1 : 1));
   const mau = await uniq(days30);
 
   // Cohorts: size, then SINTERCARD with the active set N days later (only when that day has happened).
@@ -185,7 +189,7 @@ export async function metrics(store, today = dayOf()) {
 
   return {
     today, dau, wau, mau, stickiness: mau ? Math.round((dau[29].n / mau) * 1000) / 10 : 0,
-    cohorts, sessions, funnel, perGame, events,
+    cohorts, sessions, funnel, perGame, events, experiments,
   };
 }
 

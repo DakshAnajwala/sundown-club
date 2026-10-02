@@ -67,6 +67,21 @@ ok('event totals', () => assert.equal(m2.events['game_open|holdem'], 1));
   ok('unlock percentages', () => { assert.equal(u.n, 4); assert.equal(u.pct['bj.double'], 25); assert.equal(u.pct['club.first'], 75); assert.ok(!('made.up' in u.pct) && !('bj.hands.10' in u.pct)); });
 }
 
+// experiments: players per variant and who was active this week
+{
+  const es = memoryStore(), d1 = '2026-10-03', d2 = '2026-10-04';
+  const mk = (i) => `${String(i).repeat(8)}-bbbb-4bbb-8bbb-bbbbbbbbbbbb`;
+  for (let i = 1; i <= 6; i++) await ingest(es, validateBatch({ player: mk(i), events: [{ name: 'session_start', props: { game: 'hub', exp: i <= 4 ? 'round_panel:on' : 'round_panel:off,freeze_rate:5' } }] }), d1);
+  await ingest(es, validateBatch({ player: mk(1), events: [{ name: 'session_start', props: { game: 'hub', exp: 'round_panel:on' } }] }), d2);
+  const em = await metrics(es, d2);
+  ok('experiments in metrics', () => {
+    const by = Object.fromEntries(em.experiments.map((x) => [x.tag, x]));
+    assert.deepEqual(Object.keys(by).sort(), ['freeze_rate:5', 'round_panel:off', 'round_panel:on']);
+    assert.deepEqual([by['round_panel:on'].players, by['round_panel:on'].activeWeek], [4, 4]); assert.equal(by['round_panel:off'].players, 2);
+    assert.ok(!('exp' in validateBatch({ player: mk(1), events: [{ name: 'game_open', props: { exp: 'x'.repeat(80) } }] }).events[0].props), 'a long tag is dropped');
+  });
+}
+
 // rate limit
 const rl = memoryStore();
 assert.ok(await rateLimit(rl, '1.2.3.4', RATE_PER_MIN));

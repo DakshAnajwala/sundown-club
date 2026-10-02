@@ -61,6 +61,9 @@ for (const g of GUIDES) { mkdirSync(`${out}/guides/${g.slug}`, { recursive: true
 mkdirSync(`${out}/c`, { recursive: true });
 cpSync('apps/hub/challenge.html', `${out}/c/index.html`);
 
+// A/B test config (packages/shared/flags.js): same origin, so a deploy can switch an experiment on.
+cpSync('apps/hub/flags.json', `${out}/flags.json`);
+
 // Installable app: manifest, icons and the service worker (the build id names its caches, so a deploy replaces them).
 cpSync('apps/hub/manifest.webmanifest', `${out}/manifest.webmanifest`);
 cpSync('apps/hub/icons', `${out}/icons`, { recursive: true });

@@ -122,4 +122,22 @@ ok(() => { // damaged, forged, oversized
 });
 ok(() => { fresh(); localStorage.setItem('club.v1.chips', '1'); localStorage.setItem('keep', '1'); assert.equal(S.resetSave(localStorage), 1); assert.equal(localStorage.getItem('keep'), '1'); });
 
+await (async () => { // experiments reach the behaviour: quests_count, freeze_rate and round_panel follow flags.json when switched on
+  const R = await import('../packages/shared/retention.js');
+  const F = await import('../packages/shared/flags.js');
+  const setFlags = (experiments) => localStorage.setItem('hub.v1.flags', JSON.stringify({ t: Date.now(), config: { v: 1, experiments } }));
+  fresh(); P.ensureIdentity();
+  assert.equal(R.openDay().quests.length, 3, 'no flags: three quests');
+  fresh(); P.ensureIdentity(); setFlags({ quests_count: { enabled: true, default: '3', variants: { 4: 1, 3: 0 } } });
+  const four = R.openDay(); assert.equal(four.quests.length, 4); assert.equal(new Set(four.quests.map((q) => q.id)).size, 4, 'four different quests');
+  fresh(); P.ensureIdentity(); setFlags({ freeze_rate: { enabled: true, default: '7', variants: { 5: 1, 7: 0 } } });
+  const S = await import('../packages/shared/streak.js');
+  let sv = null; for (let i = 0; i < 5; i++) sv = S.earnDay(sv, S.addDaysStr('2026-10-05', i), { freezeEvery: F.variant('freeze_rate') === '5' ? 5 : 7 }).streak;
+  assert.equal(sv.freezes, 1, 'a freeze on day 5 when the variant is 5');
+  fresh(); P.ensureIdentity(); setFlags({ round_panel: { enabled: true, default: 'on', variants: { off: 1, on: 0 } } });
+  assert.equal(F.variant('round_panel'), 'off'); assert.equal(F.activeTag(P.readProfile().id), 'round_panel:off');
+  fresh(); assert.notEqual(F.variant('round_panel'), 'off', 'with nothing cached nobody is in a test group (callers treat anything but the test variant as the default)'); assert.equal(F.activeTag('x'), null);
+  n++;
+})();
+
 console.log(`profile-check: ${n} groups passed`);
