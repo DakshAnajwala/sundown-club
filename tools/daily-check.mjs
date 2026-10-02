@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import * as D from '../packages/shared/daily.js';
 import * as S from '../packages/shared/streak.js';
+import * as SD from '../packages/shared/seed.js';
+import { deck } from '../packages/shared/cards.js';
 
 let n = 0;
 const ok = (fn) => { fn(); n++; };
@@ -223,6 +225,23 @@ ok(() => { // junk streak
     const s = S.normalizeStreak(j);
     assert.ok(s.freezes <= 3 && s.days >= 0 && s.last === null && s.rest === null && s.broke === null);
   }
+});
+
+// ------------------------------------------------------------ the daily seed
+ok(() => {
+  assert.equal(SD.dayNumber(new Date('2026-09-28T00:00:00Z')), 1, 'matches Parking daily numbering');
+  assert.equal(SD.dayNumber(new Date('2026-09-28T23:59:59Z')), 1); assert.equal(SD.dayNumber(new Date('2026-09-29T00:00:00Z')), 2);
+  assert.equal(SD.dayNumber(new Date('2026-10-02T12:00:00Z')), 5);
+  const d = new Date('2026-10-02T08:00:00Z'), d2 = new Date('2026-10-02T23:00:00Z'), d3 = new Date('2026-10-03T00:00:01Z');
+  assert.equal(SD.seedFor('videopoker', d), SD.seedFor('videopoker', d2), 'same UTC day = same seed');
+  assert.notEqual(SD.seedFor('videopoker', d), SD.seedFor('videopoker', d3)); assert.notEqual(SD.seedFor('videopoker', d), SD.seedFor('holdem', d));
+  const a = SD.seededShuffle(deck(), SD.seedFor('videopoker', d)), b = SD.seededShuffle(deck(), SD.seedFor('videopoker', d2));
+  assert.deepEqual(a, b); assert.equal(a.length, 52); assert.equal(new Set(a.map((c) => c.rank + c.suit)).size, 52, 'a permutation');
+  assert.notDeepEqual(a, deck()); assert.notDeepEqual(a, SD.seededShuffle(deck(), SD.seedFor('videopoker', d3)));
+  assert.equal(SD.msToNextSeed(Date.UTC(2026, 9, 2, 23, 0, 0)), 3600000);
+  // fairness smoke test: over 400 days the first card is spread across many ranks and suits
+  const first = new Set(); for (let i = 0; i < 400; i++) { const c = SD.seededShuffle(deck(), SD.seedFor('videopoker', new Date(Date.UTC(2026, 9, 3) + i * 86400000)))[0]; first.add(c.rank + c.suit); }
+  assert.ok(first.size > 35, `${first.size} distinct first cards`);
 });
 
 console.log(`daily-check: ${n} groups passed (${D.QUESTS.length} quest templates)`);

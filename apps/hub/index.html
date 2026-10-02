@@ -350,6 +350,15 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .dstreak .bigdays small { font: 500 13px var(--mono); color: var(--ink-2); margin-left: 8px; }
 .dstreak select { font: 500 14px var(--sans); color: var(--ink); background: rgba(16, 12, 16, .82); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
 .dnote { margin: 14px 0 0; font-size: 14px; color: var(--ink-2); min-height: 1.4em; }
+.dseed { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); }
+.dseed h3 { font-size: clamp(20px, 2.2vw, 26px); }
+.dsrows { display: grid; gap: 10px; margin-top: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.dsrow { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: var(--ink); transition: border-color .2s, background .2s; }
+.dsrow:hover { border-color: var(--ink-3); background: rgba(243,231,216,.04); }
+.dsrow b { font: 600 15px var(--sans); display: flex; justify-content: space-between; gap: 10px; }
+.dsrow b em { font: 500 12px var(--mono); font-style: normal; color: var(--ink-2); }
+.dsrow.done b em { color: #8fe3cf; }
+.dsrow span { font-size: 13px; color: var(--ink-2); line-height: 1.4; }
 @media (max-width: 760px) { .dgrid { grid-template-columns: 1fr; } }
 
 /* ------------------------------------------------------------------ the house */
@@ -563,6 +572,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
         <div class="dstreak" id="dstreak"></div>
       </div>
     </div>
+    <div class="dseed" id="dseed" aria-labelledby="dseed-h"><div class="dhead"><h3 id="dseed-h"></h3><span class="dmeta" id="dseedMeta"></span></div><div class="dsrows" id="dsrows"></div></div>
     <p class="dnote" id="dnote" role="status"></p>
   </div>
   <div class="eve">
@@ -627,7 +637,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <script type="module">
 import { ensureIdentity, readProfile, levelFor, titleFor, setHandle, today, HANDLE_MAX } from '/shared/profile.js';
 import { exportSave, parseSave, importSave, resetSave } from '/shared/save.js';
-import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, chooseRestDay } from '/shared/retention.js';
+import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, chooseRestDay, seedResults } from '/shared/retention.js';
+import { dayNumber, msToNextSeed } from '/shared/seed.js';
 import { getChips } from '/shared/chips.js';
 import { initTelemetry, telemetryEnabled, setTelemetry } from '/shared/telemetry.js';
 initTelemetry({ game: 'hub' });
@@ -846,12 +857,26 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     render(r.view); paintLevel();
     if (r.reward) { note(`Claimed: +${r.reward.xp} XP, +${r.reward.chips} chips, +${r.reward.tokens} token.`); document.dispatchEvent(new Event('club-chips')); }
   });
+
+  // The Daily Seed: the same challenge for everyone today (UTC day), one go per game.
+  function renderSeed() {
+    const res = seedResults(), ms = msToNextSeed();
+    $('#dseed-h').textContent = `Sundown Daily #${dayNumber()}`;
+    $('#dseedMeta').textContent = `same for everyone · new in ${Math.floor(ms / 3600000)}h ${String(Math.floor(ms / 60000) % 60).padStart(2, '0')}m (UTC midnight)`;
+    const vp = res.videopoker, pk = res.parking;
+    const row = (href, name, status, blurb, done) => { const a = el('a', `dsrow${done ? ' done' : ''}`, el('b', null, name, el('em', null, status)), el('span', null, blurb)); a.href = href; return a; };
+    $('#dsrows').replaceChildren(
+      row('/videopoker/?daily=1', 'Video Poker', vp ? `${vp.name}${vp.coins ? ` · ${vp.coins} coins` : ''}` : 'Play', "Today's hand: the same five cards and the same draw for everyone. One go, free play, +50 XP.", !!vp),
+      row('/parking/play/', 'Parking Precision', pk ? `${pk.score} pts · ${pk.stars} star${pk.stars === 1 ? '' : 's'}` : 'Play', "Today's lot, a fresh variant of a car park. It is in the menu as Today's daily. +50 XP the first time.", !!pk),
+    );
+  }
+  renderSeed();
   render(dayView);
   for (const n of dayView.notices || []) {
     if (n.t === 'saved') note(`A streak freeze covered ${new Date(n.day + 'T12:00').toLocaleDateString('en-GB', { weekday: 'long' })}. Your run is safe.`);
     if (n.t === 'broken') note(`Your ${n.days}-day run ended. It is on your record (best: ${dayView.streak.best}). A new run starts the next time you play.`);
   }
-  setInterval(() => { if (document.visibilityState === 'visible') render(dayView); }, 60000);
+  setInterval(() => { if (document.visibilityState === 'visible') { render(dayView); renderSeed(); } }, 60000);
 }
 
 // Save & settings: copy the whole club save out, load one in, usage counters, start over.

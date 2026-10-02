@@ -16,6 +16,9 @@ import { ensureDay, progress, claimDaily, rerollQuest, describe, REWARD, GAME_ID
 import { rollStreak, earnDay, canRestore, restoreStreak, setRestDay, runLength, weeklyCount, MAX_FREEZES } from './streak.js';
 import { give } from './chips.js';
 import { track } from './telemetry.js';
+import { dayNumber } from './seed.js';
+
+export const SEED_XP = 50;
 
 const lastPlayedOf = (p) => Object.fromEntries(Object.entries(p.games).map(([g, s]) => [g, Number(s?.lastPlayed) || 0]));
 const ctxOf = (p, now) => ({ player: p.id, lastPlayed: lastPlayedOf(p), now });
@@ -142,6 +145,39 @@ export function restoreRun() {
     if (r.ok) { p.streak = r.streak; p.tokens -= 1; track('streak_saved', { kind: 'restore' }); }
     return { ok: r.ok, reason: r.reason, view: view(p, t) };
   });
+}
+
+/** Today's seed results as { game: result } (the profile keeps only today's). */
+export function seedResults(now = Date.now()) {
+  const s = readProfile().seeds;
+  return s && s.n === dayNumber(new Date(now)) && s.results && typeof s.results === 'object' ? s.results : {};
+}
+
+/**
+ * A Daily Seed attempt finished. The first result of the day per game is kept
+ * (one attempt), pays SEED_XP and counts the day for the streak. Returns
+ * { first, xp, result } where result is the kept one.
+ */
+export function reportSeed(game, result) {
+  try {
+    const n = dayNumber();
+    const out = updateProfile((p) => {
+      const t = settle(p);
+      if (!p.seeds || p.seeds.n !== n) p.seeds = { n, results: {} };
+      const kept = p.seeds.results[game];
+      if (kept) return { first: false, xp: 0, result: kept };
+      const clean = {};
+      for (const [k, v] of Object.entries(result || {})) if (typeof v === 'number' && Number.isFinite(v)) clean[k] = v; else if (typeof v === 'string') clean[k] = v.slice(0, 40);
+      p.seeds.results[game] = clean;
+      p.xp += SEED_XP;
+      p.streak = earnDay(p.streak, t).streak;
+      return { first: true, xp: SEED_XP, result: clean };
+    });
+    if (out.first) track('reward_claimed', { kind: 'seed', game });
+    return out;
+  } catch {
+    return { first: false, xp: 0, result: null };
+  }
 }
 
 /** Pick the weekday (0 Sunday .. 6 Saturday) that never breaks the run, or null for none. */

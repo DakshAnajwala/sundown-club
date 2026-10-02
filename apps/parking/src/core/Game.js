@@ -61,7 +61,7 @@ import { LEVELS } from '../world/Levels.js';
 import { createProgress } from '../ui/progress.js';
 import { leaveToHub } from '@sundown/shared/leave-guard';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile';
-import { reportRound } from '@sundown/shared/retention';
+import { reportRound, reportSeed } from '@sundown/shared/retention';
 import { showRoundPanel } from '@sundown/shared/roundpanel';
 import { WHEEL_HUB, EYE, RIDE_HEIGHT } from '../vehicle/Dimensions.js';
 import { createSettings } from '../ui/settings.js';
@@ -522,6 +522,7 @@ export function createGame({ container }) {
     }
     ghost.stop();
     // The club's daily loop (quests, XP, streak). The tutorial lot is practice and does not count.
+    if (daily) reportSeed('parking', { score: result.score, stars: result.stars });
     if (level !== TUTORIAL_LEVEL) {
       showRoundPanel(reportRound('parking', 'park', { stars: result.stars, score: result.score, level: level.id, timeSec: result.timeSec, underPar: result.timeSec <= (level.parTime ?? 60), clean: !result.bumps }), { corner: 'tr', style: { top: '72px' } });
     }

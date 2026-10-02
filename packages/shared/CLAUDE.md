@@ -20,6 +20,7 @@ import `/shared/<module>.js` (copied into `dist/shared/` by `tools/build-site.mj
 
 | Module | Purpose |
 |---|---|
+| `seed.js` (built) | Daily Seed: `seedFor(game)` per UTC day, `seededShuffle`, `dayNumber` (matches Parking's daily numbering). Results kept by `retention.js` `reportSeed`/`seedResults` |
 | `retention.js` (built) | `reportRound(game, kind, data)` after every finished round; `openDay()`, `claim()`, `reroll(i)`, `restoreRun()`, `chooseRestDay(d)` for the hub. Uses `daily.js` (quests), `streak.js` (freezes), `roundpanel.js` (the after-round note). Spec `docs/retention/SPEC-daily.md` |
 | `save.js` (built) | `exportSave`, `parseSave`, `importSave`, `resetSave`: the whole club save as one code or file, club keys only. Hub "Save & settings" uses it |
 | `profile.js` (built) | Read/update `hub.v2.profile` (migrates `hub.v1.profile` once; also level 1-100, titles, tokens, items, badges): identity (`ensureIdentity()` makes a random `id` and evening-name `handle` per browser, `setHandle()` renames), XP, level curve (`250 × L` to go from L to L+1), streak, per-game summary (`lastPlayed`, `resume`, `facts`, `ledger`, `timeMs`). `readProfile()` keeps the identity through every game's write |
