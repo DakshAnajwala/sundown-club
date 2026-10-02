@@ -23,6 +23,7 @@ mkdirSync(out, { recursive: true });
 cpSync('apps/hub/index.html', `${out}/index.html`);
 cpSync('apps/hub/media', `${out}/media`, { recursive: true });
 cpSync('apps/hub/favicon.svg', `${out}/favicon.svg`);
+cpSync('apps/hub/apple-touch-icon.png', `${out}/apple-touch-icon.png`);
 
 // Search engines (docs/seo.md): one list of public pages feeds robots.txt and sitemap.xml.
 // Left out on purpose: Parking Precision, whose pages still name parking-precision.vercel.app

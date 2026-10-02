@@ -26,6 +26,7 @@ Licence: all rights reserved.
 | `packages/shared/` | Code every app shares: the 3D lounge kit, deck + hand ranking, club bankroll, profile/XP, leave guard | `/shared/` + bundled into apps | `packages/shared/CLAUDE.md` |
 | `tools/build-site.mjs` | Assembles `dist/` from the apps | | |
 | `docs/deploy.md` | How the site deploys, what is live | | before any deploy |
+| `brand/` | The club's logo (the pendant lamp): master SVGs, LinkedIn logo and cover, lockups; `brand/README.md` | | before using or changing the logo |
 | `docs/seo.md` | Search engines: robots, sitemap, page tags, Search Console steps | | before changing a page `<head>` or adding a page |
 
 npm workspaces: each app and package has its own `package.json` (names
