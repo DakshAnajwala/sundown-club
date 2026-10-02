@@ -64,16 +64,37 @@ export const sky = {
 export const glass = { alpha: 0.8, blur: '14px', saturate: 1.15 };
 
 /**
+ * Paper: the card tables' surface (owner's call, 2 Oct 2026: "keep cream paper
+ * in the games"). The hub and the driving games stay on the dark family; the
+ * card games set data-surface="paper", which swaps the surfaces, the inks and
+ * the result colours under the same token names. So --ink-1 always means "main
+ * text on the surface you are on". Paper dims a little as the sky sets, like
+ * a page under a lamp, so it never glares at night.
+ */
+export const paper = {
+  ink: { primary: '#2c2a30', secondary: '#4f4a54', tertiary: '#57525c' },
+  sky: {
+    golden: { s0: '#f8f3ea', s1: '#f3ece0', s2: '#ebe2d3', s3: '#e1d6c4' },
+    dusk:   { s0: '#f5eee5', s1: '#efe6db', s2: '#e6dccd', s3: '#dbcfbd' },
+    night:  { s0: '#efe7d9', s1: '#e9dfcf', s2: '#dfd4c1', s3: '#d4c7b2' },
+  },
+  glassAlpha: 0.94,   // near-opaque: paper must stay readable over a dark night scene
+  edge: 'inset 0 0 0 1px rgb(44 42 48 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.55)',
+  result: { win: '#285c43', lose: '#83362f', push: '#4f4a54' },
+};
+
+/**
  * One accent per game (owner's binding identity). `accent` fills the primary
- * button, the selection ring, eyebrows and the XP bar; `onAccent` is text
- * placed on it. On dark surfaces an accent may also be used as text.
+ * button, the selection ring and the XP bar; `onAccent` is text placed on it.
+ * On dark surfaces the accent itself may be text; on paper, text in the
+ * game's colour uses `paperInk`, a deeper shade of the same hue.
  */
 export const games = {
-  blackjack:  { name: 'Blackjack',         accent: '#f0a868', onAccent: '#1b1109' }, // Apricot
-  holdem:     { name: "Hold'em",           accent: '#d98a93', onAccent: '#1d0d10' }, // Rose
-  videopoker: { name: 'Video Poker',       accent: '#e8b860', onAccent: '#1b1306' }, // Brass
-  parking:    { name: 'Parking Precision', accent: '#8fe3cf', onAccent: '#08201a' }, // Mint (the one mint: the bay's #76d6a8 stays a scene colour)
-  nightdrive: { name: 'Night Drive',       accent: '#9aa6ff', onAccent: '#0e1030' }, // Periwinkle
+  blackjack:  { name: 'Blackjack',         accent: '#f0a868', onAccent: '#1b1109', paperInk: '#7a4212' }, // Apricot
+  holdem:     { name: "Hold'em",           accent: '#d98a93', onAccent: '#1d0d10', paperInk: '#82323f' }, // Rose
+  videopoker: { name: 'Video Poker',       accent: '#e8b860', onAccent: '#1b1306', paperInk: '#664809' }, // Brass
+  parking:    { name: 'Parking Precision', accent: '#8fe3cf', onAccent: '#08201a', paperInk: '#18584a' }, // Mint (the one mint: the bay's #76d6a8 stays a scene colour)
+  nightdrive: { name: 'Night Drive',       accent: '#9aa6ff', onAccent: '#0e1030', paperInk: '#3a459c' }, // Periwinkle
 };
 
 /**

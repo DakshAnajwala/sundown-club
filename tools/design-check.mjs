@@ -58,5 +58,24 @@ for (const [phase, p] of Object.entries(T.sky)) {
 }
 for (const [id, g] of Object.entries(T.games)) need(4.5, rgb(g.onAccent), rgb(g.accent), `${id} onAccent on accent`);
 
+// Paper (card tables): dark ink on light surfaces, glass over the room.
+for (const [phase, p] of Object.entries(T.paper.sky)) {
+  const solids = { s0: rgb(p.s0), s1: rgb(p.s1), s2: rgb(p.s2), s3: rgb(p.s3) };
+  const glasses = Object.fromEntries(Object.entries(BEHIND_GLASS).map(([k, v]) => [`paper glass over ${k}`, mix(rgb(p.s1), T.paper.glassAlpha, rgb(v))]));
+  for (const [inkName, inkHex] of Object.entries(T.paper.ink)) {
+    for (const [s, bg] of Object.entries(solids)) need(4.5, rgb(inkHex), bg, `paper ${phase} ink.${inkName} on ${s}`);
+    if (inkName !== 'tertiary') for (const [g, bg] of Object.entries(glasses)) need(4.5, rgb(inkHex), bg, `paper ${phase} ink.${inkName} on ${g}`);
+  }
+  for (const [rName, rHex] of Object.entries(T.paper.result)) {
+    for (const s of ['s1', 's2']) need(4.5, rgb(rHex), solids[s], `paper ${phase} result.${rName} on ${s}`);
+    for (const [g, bg] of Object.entries(glasses)) need(4.5, rgb(rHex), bg, `paper ${phase} result.${rName} on ${g}`);
+  }
+  for (const [s, bg] of Object.entries(solids)) need(3, rgb(T.paper.ink.primary), bg, `paper ${phase} focus ring on ${s}`);
+  for (const [id, g] of Object.entries(T.games)) {
+    for (const s of ['s0', 's1', 's2']) need(4.5, rgb(g.paperInk), solids[s], `paper ${phase} ${id} paperInk on ${s}`);
+    need(4.5, rgb(g.paperInk), glasses['paper glass over night sky'], `paper ${phase} ${id} paperInk on glass over night sky`);
+  }
+}
+
 console.log(`${fails ? 'FAIL' : 'PASS'}: ${pairs} contrast pairs, lowest ${worst.r.toFixed(2)}:1 (${worst.label})${fails ? `, ${fails} failing` : ''}`);
 process.exit(fails ? 1 : 0);

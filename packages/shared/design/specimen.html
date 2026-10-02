@@ -77,7 +77,7 @@ code, .tok { font: 500 0.8125rem/1.4 var(--font-mono); color: var(--ink-2); }
 .t-caption { font: var(--text-caption); color: var(--ink-2); }
 .t-label { font: var(--text-label); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink-2); }
 .t-number { font: var(--text-number); font-variant-numeric: tabular-nums; }
-.t-figure { font: var(--text-figure); letter-spacing: var(--tracking-figure); font-variant-numeric: tabular-nums; color: var(--accent); }
+.t-figure { font: var(--text-figure); letter-spacing: var(--tracking-figure); font-variant-numeric: tabular-nums; color: var(--accent-text); }
 
 /* controls */
 .row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
@@ -89,7 +89,7 @@ code, .tok { font: 500 0.8125rem/1.4 var(--font-mono); color: var(--ink-2); }
 .btn.quiet { background: transparent; box-shadow: none; color: var(--ink-2); }
 .btn:focus-visible { box-shadow: var(--focus-ring); }
 .btn:disabled { opacity: .45; cursor: default; transform: none; }
-kbd { display: inline-grid; place-items: center; min-width: 1.5em; padding: 3px 6px; border-radius: var(--r-key); font: var(--text-key); color: inherit; background: rgb(243 231 216 / .1); box-shadow: inset 0 -1px 0 rgb(0 0 0 / .25); }
+kbd { display: inline-grid; place-items: center; min-width: 1.5em; padding: 3px 6px; border-radius: var(--r-key); font: var(--text-key); color: inherit; background: color-mix(in oklab, var(--ink-1) 12%, transparent); box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--ink-1) 22%, transparent); }
 .btn.primary kbd { background: color-mix(in oklab, var(--on-accent) 14%, transparent); }
 .tag { display: inline-flex; align-items: center; gap: var(--space-2); padding: 5px 10px; border-radius: var(--r-pill); font: 600 0.8125rem/1 var(--font-ui); background: var(--accent-soft); color: var(--ink-1); }
 .tag.plain { background: var(--s2); color: var(--ink-2); }
@@ -157,8 +157,9 @@ footer { padding-block: var(--space-20) var(--space-10); color: var(--ink-3); fo
 <main class="wrap">
   <section aria-labelledby="h-surfaces">
     <h2 id="h-surfaces">Surfaces and ink</h2>
-    <p class="why">Four solid steps of one warm dark, tinted by the sky: amber-brown at golden hour, plum at dusk, violet-navy at night. Ink never changes, so its contrast is checked once per surface. Glass is the solid panel at 80% over the 3D, never a decoration.</p>
+    <p class="why">Two families with the same token names. Dark is the club and the driving games: four steps of one warm dark, tinted by the sky (amber-brown at golden hour, plum at dusk, violet-navy at night). Paper is the card tables: cream that dims a little as the sun sets, like a page under a lamp. Glass is the solid panel over the 3D, never a decoration.</p>
     <div class="surfaces" id="surfaces"></div>
+    <div class="surfaces" id="paperSurfaces" data-surface="paper" style="margin-top: var(--space-4)"></div>
     <div class="accents" id="accents"></div>
   </section>
 
@@ -197,7 +198,7 @@ footer { padding-block: var(--space-20) var(--space-10); color: var(--ink-3); fo
 
   <section aria-labelledby="h-game">
     <h2 id="h-game">In a game</h2>
-    <p class="why">Panels are glass over the room, inset 16px, never covering the bottom 112px band the cameras keep clear for your cards. A result gets one moment in the game's colour, then gets out of the way.</p>
+    <p class="why">Panels are glass over the room, inset 16px, never covering the bottom 112px band the cameras keep clear for your cards. At the card tables they are paper; in the driving games, dark. A result gets one moment in the game's colour, then gets out of the way.</p>
     <div class="game" id="game">
       <div class="hud tl"><div class="room" id="room">The Lounge · 10–500</div>
         <div class="kv"><span id="k1">Chips</span><b id="v1">2,450</b></div>
@@ -264,7 +265,7 @@ footer { padding-block: var(--space-20) var(--space-10); color: var(--ink-3); fo
 <footer class="wrap">Specimen of <code>packages/shared/design/tokens.js</code>. Proposal and reasons: <code>docs/design/SYSTEM.md</code>.</footer>
 
 <script type="module">
-import { sky, games, scene, motion, ink } from './tokens.js';
+import { sky, games, scene, motion } from './tokens.js';
 
 const root = document.documentElement;
 const $ = (s) => document.querySelector(s);
@@ -298,6 +299,8 @@ function setGame(id) {
   const [room, what, fig, name] = MOCK[id];
   $('#room').textContent = room; $('#mWhat').textContent = what; $('#mFig').textContent = fig; $('#dlgTitle').textContent = `Leave ${name}?`;
   const driving = id === 'parking' || id === 'nightdrive';
+  const table = id === 'blackjack' || id === 'holdem' || id === 'videopoker';
+  if (table) $('#game').dataset.surface = 'paper'; else delete $('#game').dataset.surface;
   const [k1, v1, k2, v2] = id === 'parking' ? ['Time', '31.4 s', 'Bumps', '0'] : id === 'nightdrive' ? ['Top speed', '198 km/h', 'Best 0–100', '8.62 s'] : ['Chips', '2,450', 'Bet', '50'];
   $('#k1').textContent = k1; $('#v1').textContent = v1; $('#k2').textContent = k2; $('#v2').textContent = v2;
   $('#dlgBody').textContent = driving ? 'Your best runs are saved. You can pick up from here next time.' : 'Your chips are saved. A hand in play is called off and your bet comes back.';
@@ -312,20 +315,24 @@ const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return ((x + 0.05) / (y + 0.05)).toFixed(1); };
 function hexToRgb(h) { return [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); }
 
-function paintSurfaces() {
-  const cs = getComputedStyle(root);
-  const box = $('#surfaces'); box.innerHTML = '';
+function paintFamily(box, family) {
+  const cs = getComputedStyle(box); box.innerHTML = '';
+  const inks = ['--ink-1', '--ink-2', '--ink-3'].map((v) => hexToRgb(cs.getPropertyValue(v).trim()));
   for (const s of ['s0', 's1', 's2', 's3']) {
     const bg = cs.getPropertyValue(`--${s}`).trim();
     const d = document.createElement('div'); d.className = 'sw'; d.style.background = `var(--${s})`;
     const b = hexToRgb(bg);
-    d.innerHTML = `<div><div class="ink1">Ink 1 on ${s}</div><div class="ink2">Ink 2, supporting</div><div class="ink3">Ink 3, captions</div></div>
-      <div class="ratios">${bg} · ${ratio(hexToRgb(ink.primary), b)} / ${ratio(hexToRgb(ink.secondary), b)} / ${ratio(hexToRgb(ink.tertiary), b)} : 1</div>`;
+    d.innerHTML = `<div><div class="ink1">${family}: ink 1 on ${s}</div><div class="ink2">Ink 2, supporting</div><div class="ink3">Ink 3, captions</div></div>
+      <div class="ratios">${bg} · ${inks.map((i) => ratio(i, b)).join(' / ')} : 1</div>`;
     box.append(d);
   }
   const g = document.createElement('div'); g.className = 'sw glass';
-  g.innerHTML = `<div><div class="ink1">Glass over the room</div><div class="ink2">Ink 1 and 2 only</div></div><div class="ratios">s1 at 80% · blur 14px</div>`;
+  g.innerHTML = `<div><div class="ink1">${family} glass</div><div class="ink2">Over the room</div></div><div class="ratios">${family === 'Paper' ? 's1 at 94%' : 's1 at 80%'} · blur 14px</div>`;
   box.append(g);
+}
+function paintSurfaces() {
+  paintFamily($('#surfaces'), 'Dark');
+  paintFamily($('#paperSurfaces'), 'Paper');
 
   const acc = $('#accents'); acc.innerHTML = '';
   const phase = sky[root.dataset.sky];

@@ -24,6 +24,10 @@ function skyVars(p) {
   ];
 }
 
+function paperVars(p) {
+  return [`--s0: ${p.s0};`, `--s1: ${p.s1};`, `--s2: ${p.s2};`, `--s3: ${p.s3};`, `--glass: rgb(${rgb(p.s1).join(' ')} / ${T.paper.glassAlpha});`];
+}
+
 function typeVars() {
   const out = [];
   for (const [role, t] of Object.entries(T.type)) {
@@ -50,6 +54,8 @@ export function renderCss() {
     `--glass-blur: ${T.glass.blur};`, `--glass-saturate: ${T.glass.saturate};`,
     '/* accent: the sun until a game sets data-game */',
     '--accent: var(--sun);', '--on-accent: var(--on-sun);',
+    '--accent-text: var(--accent); /* the game colour as text: deeper on paper */',
+    '--accent-paper-ink: #2c2a30;',
     '--accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);',
     '/* results */',
     `--win: ${T.result.win};`, `--lose: ${T.result.lose};`, `--push: ${T.result.push};`,
@@ -72,14 +78,27 @@ export function renderCss() {
   ]);
 
   for (const phase of ['dusk', 'night']) block(`[data-sky="${phase}"]`, skyVars(T.sky[phase]));
-  for (const [id, g] of Object.entries(T.games)) block(`[data-game="${id}"]`, [`--accent: ${g.accent};`, `--on-accent: ${g.onAccent};`]);
+
+  // Paper (the card tables): same token names, light surface, dark ink.
+  block('[data-surface="paper"]', [
+    'color-scheme: light;',
+    ...paperVars(T.paper.sky.golden),
+    `--ink-1: ${T.paper.ink.primary};`, `--ink-2: ${T.paper.ink.secondary};`, `--ink-3: ${T.paper.ink.tertiary};`,
+    `--win: ${T.paper.result.win};`, `--lose: ${T.paper.result.lose};`, `--push: ${T.paper.result.push};`,
+    `--edge: ${T.paper.edge};`,
+    '--accent-text: var(--accent-paper-ink);',
+  ]);
+  for (const phase of ['dusk', 'night']) block(`[data-surface="paper"][data-sky="${phase}"], [data-sky="${phase}"] [data-surface="paper"]`, paperVars(T.paper.sky[phase]));
+
+  for (const [id, g] of Object.entries(T.games)) block(`[data-game="${id}"]`, [`--accent: ${g.accent};`, `--on-accent: ${g.onAccent};`, `--accent-paper-ink: ${g.paperInk};`]);
 
   L.push('@media (prefers-reduced-motion: reduce) {');
   L.push('  :root { --move: 0; --press-scale: 1; --enter-scale: 1; --stagger: 0ms; --dur-scene: 200ms; --dur-moment: 200ms; }', '}', '');
   L.push('@media (prefers-reduced-transparency: reduce) {');
-  L.push('  :root, [data-sky] { --glass: var(--s1); --glass-blur: 0px; --glass-saturate: 1; }', '}', '');
+  L.push('  :root, [data-sky], [data-surface] { --glass: var(--s1); --glass-blur: 0px; --glass-saturate: 1; }', '}', '');
   L.push('@media (prefers-contrast: more) {');
-  L.push('  :root { --ink-2: var(--ink-1); --ink-3: var(--ink-1); --edge: inset 0 0 0 1px rgb(243 231 216 / 0.55); }', '}');
+  L.push('  :root { --ink-2: var(--ink-1); --ink-3: var(--ink-1); --edge: inset 0 0 0 1px rgb(243 231 216 / 0.55); }',
+    '  [data-surface="paper"] { --ink-2: var(--ink-1); --ink-3: var(--ink-1); --edge: inset 0 0 0 1px rgb(44 42 48 / 0.6); }', '}');
   return L.join('\n') + '\n';
 }
 

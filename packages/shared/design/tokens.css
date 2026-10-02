@@ -43,6 +43,8 @@
   /* accent: the sun until a game sets data-game */
   --accent: var(--sun);
   --on-accent: var(--on-sun);
+  --accent-text: var(--accent); /* the game colour as text: deeper on paper */
+  --accent-paper-ink: #2c2a30;
   --accent-soft: color-mix(in oklab, var(--accent) 16%, transparent);
   /* results */
   --win: #a3d4b0;
@@ -122,29 +124,67 @@
   --on-sun: #11121f;
 }
 
+[data-surface="paper"] {
+  color-scheme: light;
+  --s0: #f8f3ea;
+  --s1: #f3ece0;
+  --s2: #ebe2d3;
+  --s3: #e1d6c4;
+  --glass: rgb(243 236 224 / 0.94);
+  --ink-1: #2c2a30;
+  --ink-2: #4f4a54;
+  --ink-3: #57525c;
+  --win: #285c43;
+  --lose: #83362f;
+  --push: #4f4a54;
+  --edge: inset 0 0 0 1px rgb(44 42 48 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.55);
+  --accent-text: var(--accent-paper-ink);
+}
+
+[data-surface="paper"][data-sky="dusk"], [data-sky="dusk"] [data-surface="paper"] {
+  --s0: #f5eee5;
+  --s1: #efe6db;
+  --s2: #e6dccd;
+  --s3: #dbcfbd;
+  --glass: rgb(239 230 219 / 0.94);
+}
+
+[data-surface="paper"][data-sky="night"], [data-sky="night"] [data-surface="paper"] {
+  --s0: #efe7d9;
+  --s1: #e9dfcf;
+  --s2: #dfd4c1;
+  --s3: #d4c7b2;
+  --glass: rgb(233 223 207 / 0.94);
+}
+
 [data-game="blackjack"] {
   --accent: #f0a868;
   --on-accent: #1b1109;
+  --accent-paper-ink: #7a4212;
 }
 
 [data-game="holdem"] {
   --accent: #d98a93;
   --on-accent: #1d0d10;
+  --accent-paper-ink: #82323f;
 }
 
 [data-game="videopoker"] {
   --accent: #e8b860;
   --on-accent: #1b1306;
+  --accent-paper-ink: #664809;
 }
 
 [data-game="parking"] {
   --accent: #8fe3cf;
   --on-accent: #08201a;
+  --accent-paper-ink: #18584a;
 }
 
 [data-game="nightdrive"] {
   --accent: #9aa6ff;
   --on-accent: #0e1030;
+  --accent-paper-ink: #3a459c;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -152,9 +192,10 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  :root, [data-sky] { --glass: var(--s1); --glass-blur: 0px; --glass-saturate: 1; }
+  :root, [data-sky], [data-surface] { --glass: var(--s1); --glass-blur: 0px; --glass-saturate: 1; }
 }
 
 @media (prefers-contrast: more) {
   :root { --ink-2: var(--ink-1); --ink-3: var(--ink-1); --edge: inset 0 0 0 1px rgb(243 231 216 / 0.55); }
+  [data-surface="paper"] { --ink-2: var(--ink-1); --ink-3: var(--ink-1); --edge: inset 0 0 0 1px rgb(44 42 48 / 0.6); }
 }

@@ -125,14 +125,14 @@ components:
      ships today, drift included; docs/design/AUDIT.md says what fails. The
      replacement system is proposed in docs/design/SYSTEM.md and lives in
      packages/shared/design/. Re-run /impeccable document once it is built.
-     The North Star, surface and component phrases below are proposed, not yet
-     confirmed by the owner. -->
+     North Star confirmed by the owner on 2 Oct 2026; the component phrase is
+     still a proposal. -->
 
 # Design System: Sundown Club
 
 ## Overview
 
-**Creative North Star: "The Last Hour of Daylight"** *(proposed)*
+**Creative North Star: "The Last Hour of Daylight"**
 
 The club is one evening. The hub is a dark espresso page lit from behind by a
 fixed sky that sets as you scroll: golden hour, dusk, then stars and a moon.
