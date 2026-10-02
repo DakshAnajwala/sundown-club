@@ -378,6 +378,49 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 .dsrow span { font-size: 13px; color: var(--ink-2); line-height: 1.4; }
 @media (max-width: 760px) { .dgrid { grid-template-columns: 1fr; } }
 
+/* ------------------------------------------------------------------ the board */
+.boardsec { padding-block: 12vh 8vh; }
+.boardsec .bhead { display: flex; justify-content: space-between; align-items: end; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+.boardsec h2 { margin: 10px 0 0; font: 400 clamp(38px, 4.6vw, 64px)/1 var(--serif); }
+.boardsec .eyebrow { color: var(--accent); }
+.bsub { margin: 12px 0 0; color: var(--ink-2); max-width: 50ch; line-height: 1.55; }
+.btabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.btabs button { font: 500 13px var(--sans); color: var(--ink-2); background: rgba(243,231,216,.05); border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+.btabs button[aria-selected="true"] { color: #1b1209; background: var(--accent); border-color: transparent; }
+.btabs button:focus-visible, .bwin button:focus-visible, .bcard .btn:focus-visible, .sw:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.bwin { display: flex; gap: 4px; margin-top: 10px; justify-content: flex-end; }
+.bwin button { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); background: none; border: 0; padding: 4px 8px; cursor: pointer; border-radius: 6px; }
+.bwin button[aria-pressed="true"] { color: var(--ink); background: rgba(243,231,216,.08); }
+.bgrid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 44px); align-items: start; }
+.bboard { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: rgba(12, 12, 22, .72); min-height: 120px; }
+.brow { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--line); position: relative; }
+.brow:first-child { border-top: 0; }
+.brow .rk { font: 500 14px var(--mono); color: var(--ink-3); }
+.brow .nm { font: 500 16px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brow .dots { display: flex; gap: 5px; }
+.brow .dots i { width: 7px; height: 7px; border-radius: 50%; }
+.brow .val { font: 500 18px var(--mono); font-variant-numeric: tabular-nums; text-align: right; min-width: 90px; }
+.brow.top::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); opacity: var(--o, 1); }
+.brow.top .rk { color: var(--accent); }
+.brow.you { background: rgba(240,168,104,.12); }
+.brow.you .nm::after { content: "You"; margin-left: 10px; font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); border: 1px solid currentColor; padding: 1px 6px; border-radius: 999px; }
+.bgap { padding: 6px 20px; border-top: 1px solid var(--line); font: 500 12px var(--mono); color: var(--ink-3); text-align: center; letter-spacing: .3em; }
+.bempty { padding: 28px 22px; color: var(--ink-2); line-height: 1.5; }
+.brow.in { animation: browrise .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 40ms); }
+@keyframes browrise { from { opacity: 0; transform: translateY(16px); } }
+.bside { display: grid; gap: 14px; }
+.bcard { border: 1px solid var(--line); border-radius: 16px; padding: 20px; background: rgba(12, 12, 22, .6); }
+.bcard .lab { font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.bcard .bigname { font: 400 28px/1.1 var(--serif); margin-top: 8px; }
+.bcard p { margin: 8px 0 0; color: var(--ink-2); line-height: 1.5; font-size: 14px; }
+.bcard .btn { margin-top: 12px; padding: 8px 12px; font-size: 13px; }
+.bcard .toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; font-size: 14px; }
+.sw { width: 42px; height: 24px; border-radius: 999px; background: var(--accent); position: relative; border: 0; cursor: pointer; flex: none; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 21px; width: 18px; height: 18px; border-radius: 50%; background: #1b1209; transition: left .2s; }
+.sw[aria-checked="false"] { background: rgba(243,231,216,.14); } .sw[aria-checked="false"]::after { left: 3px; background: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { .brow.in { animation: none; } .sw::after { transition: none; } }
+@media (max-width: 860px) { .bgrid { grid-template-columns: 1fr; } .bwin { justify-content: flex-start; } }
+
 /* ------------------------------------------------------------------ the house */
 .house { padding-block: 16vh 10vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(28px, 6vw, 96px); }
 .house h2 { margin: 12px 0 0; font: 400 clamp(38px, 4.6vw, 64px)/1.02 var(--serif); }
@@ -607,6 +650,34 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
   </div>
 </section>
 
+<!-- ============================================================== the board -->
+<section class="boardsec pad" id="board" aria-labelledby="board-h">
+  <div class="bhead">
+    <div>
+      <div class="eyebrow" id="bEyebrow"></div>
+      <h2 id="board-h"></h2>
+      <p class="bsub" id="bSub"></p>
+    </div>
+    <div>
+      <div class="btabs" role="tablist" aria-label="Boards" id="bTabs"></div>
+      <div class="bwin" id="bWin"><button type="button" data-w="week" aria-pressed="true">This week</button><button type="button" data-w="all" aria-pressed="false">All time</button></div>
+    </div>
+  </div>
+  <div class="bgrid">
+    <div class="bboard" id="bRows" aria-live="polite"></div>
+    <aside class="bside">
+      <div class="bcard">
+        <div class="lab">Your name on the boards</div>
+        <div class="bigname" id="bName">–</div>
+        <p id="bNameNote">Names are made up for you, so nobody can post anything rude. The same name in every game.</p>
+        <button class="btn" type="button" id="bReroll">New name</button>
+        <div class="toggle"><span id="bOptLabel">Show me on the boards</span><button class="sw" role="switch" aria-checked="true" id="bOpt" aria-labelledby="bOptLabel"></button></div>
+      </div>
+      <div class="bcard" id="bYou"><div class="lab">Your place</div><div class="bigname" id="bYouBig">–</div><p id="bYouNote"></p></div>
+    </aside>
+  </div>
+</section>
+
 <!-- ============================================================== the house -->
 <section class="house pad" id="house" aria-labelledby="house-title">
   <div class="reveal">
@@ -674,6 +745,7 @@ import { openDay, claim as claimDaily, reroll as rerollQuest, restoreRun, choose
 import { dayNumber, msToNextSeed } from '/shared/seed.js';
 import { onboarding, setPick, markStep, completeWelcome } from '/shared/retention.js';
 import { STARTER_BADGES, itemName } from '/shared/catalog.js';
+import { fetchBoard, boardEnabled, setBoardEnabled, myBoardName, rerollBoardName, submitFromProfile } from '/shared/leaderboard.js';
 import { getChips } from '/shared/chips.js';
 import { initTelemetry, telemetryEnabled, setTelemetry } from '/shared/telemetry.js';
 initTelemetry({ game: 'hub' });
@@ -960,6 +1032,67 @@ $('#xpNext').textContent = `${titleFor(lvl.level)} · ` + (lvl.next ? `${fmt(lvl
     markStep('welcome_open');
     setTimeout(() => dlg.showModal(), 700);
   }
+}
+
+
+/* -------------------------------------------------------------- the board: play time, peak chips, stars, streak */
+{
+  const G = { blackjack: ['#f0a868', 'Blackjack'], holdem: ['#d98a93', "Hold'em"], videopoker: ['#e8b860', 'Video Poker'], parking: ['#8fe3cf', 'Parking'], racing: ['#9aa6ff', 'Night Drive'] };
+  const hm = (s) => { const m = Math.floor(s / 60); return m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m}m`; };
+  const BOARDS = {
+    time: { label: 'Play time', accent: '#f0a868', eyebrow: 'The board · resets Mondays', title: "Who's been here longest.", sub: 'Minutes actually played across every game, counted by the server. Idle tabs do not count.', win: true, fmt: (r) => hm(r.value), empty: 'Nobody yet this week. Play for a few minutes to be first.' },
+    bj: { label: 'Blackjack', accent: '#f0a868', eyebrow: 'Blackjack · peak chips · unverified', title: 'Best night at the table.', sub: 'The most chips you have held in Blackjack. Reported by your browser, so treat it as friendly.', fmt: (r) => r.value.toLocaleString('en-US'), empty: 'No one has reported a peak yet.' },
+    pk: { label: 'Parking', accent: '#8fe3cf', eyebrow: 'Parking Precision · stars · unverified', title: 'Tidiest drivers.', sub: 'Stars across all 17 levels (51 is perfect). Ties go to the better best park.', fmt: (r) => `${r.value} / 51`, empty: 'No one has reported stars yet.' },
+    streak: { label: 'Streak', accent: '#f0a868', eyebrow: 'Streak · days in a row', title: 'Regulars.', sub: 'Most UTC days in a row with at least five minutes of play, counted by the server.', fmt: (r) => `${r.value} day${r.value === 1 ? '' : 's'}`, empty: 'Nobody has a run yet.' },
+  };
+  let tab = 'time', win = 'week', loaded = false, token = 0;
+  const tabs = $('#bTabs');
+  Object.entries(BOARDS).forEach(([k, b]) => { const t = el('button', null, b.label); t.type = 'button'; t.setAttribute('role', 'tab'); t.dataset.k = k; t.addEventListener('click', () => show(k)); tabs.append(t); });
+  $('#bWin').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; win = b.dataset.w; [...$('#bWin').children].forEach((x) => x.setAttribute('aria-pressed', String(x === b))); show(tab); });
+  function row(r, i, b, top) {
+    const dots = el('span', 'dots', ...r.games.filter((g) => G[g]).map((g) => { const d = el('i'); d.style.background = G[g][0]; d.title = G[g][1]; return d; }));
+    const n = el('div', `brow in${top && r.rank <= 3 ? ' top' : ''}${r.you ? ' you' : ''}`, el('span', 'rk', String(r.rank).padStart(2, '0')), el('span', 'nm', r.name), dots, el('span', 'val', b.fmt(r)));
+    n.style.setProperty('--i', i); n.style.setProperty('--o', String(1 - i * 0.25)); return n;
+  }
+  async function show(k) {
+    tab = k; const b = BOARDS[k], my = ++token;
+    document.getElementById('board').style.setProperty('--accent', b.accent);
+    [...tabs.children].forEach((t) => t.setAttribute('aria-selected', String(t.dataset.k === k)));
+    $('#bWin').style.visibility = b.win ? 'visible' : 'hidden';
+    $('#bEyebrow').textContent = b.eyebrow; $('#board-h').textContent = b.title; $('#bSub').textContent = b.sub;
+    const data = await fetchBoard({ tab: k, win });
+    if (my !== token) return;
+    const box = $('#bRows');
+    if (!data) { box.replaceChildren(el('div', 'bempty', 'The board is resting. It will be back; the games do not need it.')); return; }
+    if (!data.rows.length) box.replaceChildren(el('div', 'bempty', b.empty));
+    else {
+      const kids = data.rows.map((r, i) => row(r, i, b, true));
+      if (data.you && !data.rows.some((r) => r.you)) kids.push(el('div', 'bgap', '· · ·'), row(data.you, kids.length, b, false));
+      box.replaceChildren(...kids);
+    }
+    if (k === 'time' && win === 'week') {
+      const y = data.you;
+      $('#bYouBig').textContent = y ? `#${y.rank} · ${hm(y.value)}` : '–';
+      $('#bYouNote').textContent = y ? `${data.total} on the board this week.` : boardEnabled() ? 'Play for a few minutes and you will appear here.' : 'You are off the boards.';
+    }
+  }
+  const paintOpt = async () => {
+    const on = boardEnabled();
+    $('#bOpt').setAttribute('aria-checked', String(on)); $('#bReroll').disabled = !on;
+    if (!on) { $('#bYouBig').textContent = '–'; $('#bYouNote').textContent = 'You are off the boards.'; $('#bName').textContent = 'Hidden'; $('#bNameNote').textContent = 'You are off the boards: nothing about your play is sent, and the name you had is gone.'; return; }
+    $('#bNameNote').textContent = 'Names are made up for you, so nobody can post anything rude. The same name in every game.';
+    $('#bName').textContent = (await myBoardName()) || 'Not on the board yet';
+  };
+  $('#bOpt').addEventListener('click', async () => { await setBoardEnabled(!boardEnabled()); await paintOpt(); show(tab); });
+  $('#bReroll').addEventListener('click', async () => {
+    const r = await rerollBoardName();
+    if (!r) return; $('#bName').textContent = r.name;
+    $('#bNameNote').textContent = r.ok ? `New name. ${r.left} more today.` : 'That is three new names today. Try again tomorrow.';
+    show(tab);
+  });
+  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting) && !loaded) { loaded = true; io.disconnect(); submitFromProfile().finally(() => { paintOpt(); show(tab); }); } }, { rootMargin: '200px' });
+  io.observe(document.getElementById('board'));
+  { const b = BOARDS.time; $('#bEyebrow').textContent = b.eyebrow; $('#board-h').textContent = b.title; $('#bSub').textContent = b.sub; tabs.firstChild.setAttribute('aria-selected', 'true'); }
 }
 
 // Save & settings: copy the whole club save out, load one in, usage counters, start over.

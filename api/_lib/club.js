@@ -201,6 +201,7 @@ export function memoryStore() {
   const data = new Map();
   const set = (k) => data.get(k) ?? data.set(k, new Set()).get(k);
   const hash = (k) => data.get(k) ?? data.set(k, new Map()).get(k);
+  const zset = (k) => data.get(k) ?? data.set(k, new Map()).get(k);
   const ops = {
     SADD: (k, ...m) => { const s = set(k); let n = 0; for (const x of m) if (!s.has(String(x))) { s.add(String(x)); n++; } return n; },
     SREM: (k, ...m) => { const s = set(k); let n = 0; for (const x of m) n += s.delete(String(x)) ? 1 : 0; return n; },
@@ -211,8 +212,46 @@ export function memoryStore() {
     HGET: (k, f) => data.get(k)?.get?.(f) ?? null,
     HINCRBY: (k, f, n) => { const h = hash(k); const v = (Number(h.get(f)) || 0) + Number(n); h.set(f, String(v)); return v; },
     HGETALL: (k) => { const h = data.get(k); return h ? [...h].flat() : []; },
+    INCR: (k) => { const v = (Number(data.get(k)) || 0) + 1; data.set(k, v); return v; },
     INCRBY: (k, n) => { const v = (Number(data.get(k)) || 0) + Number(n); data.set(k, v); return v; },
     EXPIRE: () => 1,
+    DEL: (...ks) => { let n = 0; for (const k of ks) n += data.delete(k) ? 1 : 0; return n; },
+    HSET: (k, ...fv) => { const h = hash(k); let n = 0; for (let i = 0; i < fv.length; i += 2) { if (!h.has(String(fv[i]))) n++; h.set(String(fv[i]), String(fv[i + 1])); } return n; },
+    HDEL: (k, ...fs) => { const h = data.get(k); let n = 0; if (h) for (const f of fs) n += h.delete(String(f)) ? 1 : 0; return n; },
+    GET: (k) => { const v = data.get(k); return v == null ? null : String(v); },
+    SET: (k, v) => { data.set(k, String(v)); return 'OK'; },
+    ZADD: (k, ...a) => {
+      let mode = null;
+      while (['NX', 'XX', 'GT', 'LT'].includes(String(a[0]).toUpperCase())) mode = String(a.shift()).toUpperCase();
+      const z = zset(k); let n = 0;
+      for (let i = 0; i < a.length; i += 2) {
+        const score = Number(a[i]), m = String(a[i + 1]), cur = z.get(m);
+        if (cur === undefined) { if (mode !== 'XX') { z.set(m, score); n++; } }
+        else if (mode === 'NX') continue;
+        else if (mode === 'GT' && !(score > cur)) continue;
+        else if (mode === 'LT' && !(score < cur)) continue;
+        else z.set(m, score);
+      }
+      return n;
+    },
+    ZINCRBY: (k, inc, m) => { const z = zset(k); const v = (z.get(String(m)) ?? 0) + Number(inc); z.set(String(m), v); return String(v); },
+    ZSCORE: (k, m) => { const v = data.get(k)?.get?.(String(m)); return v === undefined ? null : String(v); },
+    ZCARD: (k) => (data.get(k)?.size ?? 0),
+    ZREM: (k, ...ms) => { const z = data.get(k); let n = 0; if (z) for (const m of ms) n += z.delete(String(m)) ? 1 : 0; return n; },
+    ZCOUNT: (k, min, max) => {
+      const z = data.get(k); if (!z) return 0;
+      const lim = (x, dflt) => { x = String(x); if (x === '-inf') return [-Infinity, false]; if (x === '+inf' || x === 'inf') return [Infinity, false]; return x.startsWith('(') ? [Number(x.slice(1)), true] : [Number(x), false]; };
+      const [lo, loEx] = lim(min), [hi, hiEx] = lim(max);
+      let n = 0; for (const v of z.values()) if ((loEx ? v > lo : v >= lo) && (hiEx ? v < hi : v <= hi)) n++;
+      return n;
+    },
+    ZREVRANGE: (k, start, stop, withScores) => {
+      const z = data.get(k); if (!z) return [];
+      const all = [...z].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? 1 : -1));
+      const lo = Number(start), hi = Number(stop) < 0 ? all.length + Number(stop) : Number(stop);
+      const part = all.slice(lo, hi + 1);
+      return String(withScores || '').toUpperCase() === 'WITHSCORES' ? part.flatMap(([m, v]) => [m, String(v)]) : part.map(([m]) => m);
+    },
   };
   return {
     kind: 'memory',

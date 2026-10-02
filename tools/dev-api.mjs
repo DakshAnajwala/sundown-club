@@ -8,12 +8,15 @@ import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import event from '../api/club/event.js';
 import metricsHandler from '../api/club/metrics.js';
+import playHandler from '../api/club/play.js';
+import boardHandler from '../api/club/board.js';
 
 process.env.METRICS_PASSWORD ||= 'dev';
+process.env.CLUB_DEV = '1';   // lets probes send x-dev-now to move the clock
 const port = Number(process.argv[2]) || 5181;
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.png': 'image/png', '.woff2': 'font/woff2', '.xml': 'application/xml', '.txt': 'text/plain' };
 const bodies = []; // raw event bodies, for tools/telemetry-probe.mjs (GET /dev/bodies)
-const routes = { '/api/club/event': event, '/api/club/metrics': metricsHandler };
+const routes = { '/api/club/event': event, '/api/club/metrics': metricsHandler, '/api/club/play': playHandler, '/api/club/board': boardHandler };
 
 function shim(res) {
   res.status = (c) => { res.statusCode = c; return res; };
@@ -25,11 +28,12 @@ http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/dev/bodies') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(bodies)); return; }
   const fn = routes[url.pathname];
-  if (fn && url.pathname === '/api/club/event' && req.method === 'POST') {
+  if (fn && ['/api/club/event', '/api/club/play'].includes(url.pathname) && req.method === 'POST') {
+    const isEvent = url.pathname === '/api/club/event';
     const chunks = [];
     for await (const c of req) chunks.push(c);
     const raw = Buffer.concat(chunks).toString('utf8');
-    bodies.push(raw);
+    if (isEvent) bodies.push(raw);
     try { req.body = JSON.parse(raw); } catch { req.body = raw; }
   }
   if (fn) { try { await fn(req, shim(res)); } catch (e) { res.statusCode = 500; res.end(String(e)); } return; }

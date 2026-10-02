@@ -35,4 +35,5 @@ import `/shared/<module>.js` (copied into `dist/shared/` by `tools/build-site.mj
 | `lounge/util.js`, `lounge/sfx.js` (built) | Noise, easing, the animation timeline; synthesised card/chip/sting sounds |
 | `coach.js` (built) | Tutorial card: `createCoach().show({ title, body, list, todo, pulse, buttons })`, `nudge()`, `offerOnce(key, …)`. All text via textContent |
 | `telemetry.js` (built) | `initTelemetry({ game })` once per page, `track(name, props)`, `telemetryEnabled()` / `setTelemetry(on)`. Anonymous first-party counters to `/api/club/event`; off on DNT/GPC or `hub.v1.settings.telemetry === false`. Spec `docs/retention/SPEC-telemetry.md` |
-| `leaderboard.js` (planned) | Client for a club-wide leaderboard (play time and more). Not designed yet; any network use updates the privacy policy |
+| `leaderboard.js` (built) | The club boards client: `startBoardSession(game)` (called by `initTelemetry`), `fetchBoard`, `setBoardEnabled`, `submitFromProfile`. Server in `api/club/`. Spec `apps/hub/SPEC-leaderboard.md` |
+| `names.js` (built) | Evening-name word lists, shared by profile.js and the board server |

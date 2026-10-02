@@ -1,6 +1,6 @@
 # SPEC — Club leaderboard ("The board")
 
-Status: **design, v0.1 (30 Sep 2026), waiting on the owner** (§9).
+Status: **built 2 Oct 2026 on `feat/retention` with the recommended answers to §9** (generated names, on by default with opt-out, tabs Play time / Blackjack / Parking / Streak). Needs the owner's Upstash env vars to be durable in production (`docs/retention/OWNER-TODO.md`). Code: `api/_lib/board.js`, `api/club/{play,board}.js`, `packages/shared/leaderboard.js`, the hub's "The board". Checks: `tools/board-check.mjs`, `tools/board-probe.mjs`.
 Mock: `apps/hub/design/leaderboard.html` (sample data only).
 Owner's ask: "a leaderboard of playtime and stuff like that".
 
@@ -105,3 +105,13 @@ as Parking's board today.
 3. On by default with opt-out (recommended), or off until someone opts in?
 4. Move the leaderboard API into this project: you add the three env vars in
    Vercel (Settings → Environment Variables), I do the rest.
+
+## 10. Built differently from the design above (decisions made while building)
+
+- Two Vercel functions, not four: `api/club/play.js` (POST: session, beat, submit, name, reroll, leave) and `api/club/board.js` (GET). The free plan allows twelve.
+- Names are made by the server from the player's id (`packages/shared/names.js`), not sent by the client; one name belongs to one player. "New name" is three a day.
+- Streak on the board counts **UTC** days with 5+ server-measured minutes (the hub's own streak uses local days and also counts finished quests).
+- Parking ties are broken by the best single park (the profile has no total score).
+- Plausibility rules (documented in `api/_lib/board.js`): Blackjack peak ≤ 1,000 + 400 × seconds of Blackjack credited; Parking stars ≤ seconds of Parking credited ÷ 20.
+- Limits per IP per 10 minutes: 12 submits, 90 beats, 30 sessions; reads 240 a minute.
+- Switching off calls `leave`, which removes the player from every board and frees the name.

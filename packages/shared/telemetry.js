@@ -111,6 +111,8 @@ export function initTelemetry(opts = {}) {
   try {
     if (wired) return;
     game = opts.game || 'hub';
+    // The club boards count play time (their own switch, see leaderboard.js); telemetry being off does not stop them.
+    import('./leaderboard.js').then((m) => m.startBoardSession(game)).catch(() => {});
     if (!telemetryEnabled()) return;
     player = ensureIdentity().id;
     wired = true;

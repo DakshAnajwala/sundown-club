@@ -23,6 +23,7 @@
 
 import { normalizeStreak, earnDay } from './streak.js';
 import { normalizeDaily, ensureDay } from './daily.js';
+import { NAME_A, NAME_B } from './names.js';
 
 export const KEY = 'hub.v2.profile';
 export const OLD_KEY = 'hub.v1.profile';
@@ -95,12 +96,7 @@ function write(p) {
   }
 }
 
-// Evening names: an adjective from the sky and a night creature, e.g. "Amber Heron".
-const NAME_A = ['Amber', 'Copper', 'Dusky', 'Ember', 'Golden', 'Hazy', 'Indigo', 'Late', 'Low', 'Mellow',
-  'Quiet', 'Rosy', 'Russet', 'Saffron', 'Silver', 'Slow', 'Tawny', 'Velvet', 'Violet', 'Warm'];
-const NAME_B = ['Badger', 'Curlew', 'Finch', 'Fox', 'Hare', 'Heron', 'Kestrel', 'Lark', 'Lynx', 'Marten',
-  'Moth', 'Nightjar', 'Otter', 'Owl', 'Plover', 'Raven', 'Starling', 'Swift', 'Tern', 'Wren'];
-
+// Evening names live in names.js (the board server uses the same lists).
 function randomBytes(n) {
   const b = new Uint8Array(n);
   if (globalThis.crypto?.getRandomValues) crypto.getRandomValues(b);
