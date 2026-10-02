@@ -87,7 +87,18 @@
   ]
 }
 </script>
+<link rel="preload" href="/vendor/fonts/young-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/schibsted-grotesk-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/schibsted-grotesk-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/vendor/fonts.css">
+<script>
+// Start the first screen's picture early: the game the script below will select (last played, or the one-question answer).
+try { var p = JSON.parse(localStorage.getItem('hub.v2.profile') || '{}'), g = p.games || {}, best = 'blackjack', t = -1, ok = { blackjack: 1, holdem: 1, videopoker: 1, parking: 1, racing: 1 };
+  for (var k in g) if (g[k] && ok[k] && g[k].lastPlayed > t) { t = g[k].lastPlayed; best = k; }
+  if (t < 0 && p.onb && p.onb.pick === 'cars') best = 'parking';
+  var M = { blackjack: 'bj-clean.jpg', parking: 'rooftop-dusk.webp', holdem: 'holdem.jpg', videopoker: 'videopoker.jpg', racing: 'nightdrive.jpg' };
+  window.__first = best; var l = document.createElement('link'); l.rel = 'preload'; l.as = 'image'; l.href = 'media/' + M[best]; l.fetchPriority = 'high'; document.head.appendChild(l); } catch (e) {}
+</script>
 <style>
 /* Layout: one long evening. A fixed sky behind the page sets as you scroll (golden hour -> dusk -> night).
    Lobby (approved first screen) -> the door (manifesto) -> Blackjack chapter (pinned, image opens to full bleed)
@@ -571,6 +582,11 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     <div class="picker" id="picker" role="group" aria-label="What brings you in?" hidden><span>What brings you in?</span><button type="button" data-pick="cards">Cards</button><button type="button" data-pick="cars">Cars</button><button type="button" data-pick="both">A bit of both</button></div>
     <div class="ctas"><button class="btn fill" id="play">Play <kbd>Enter</kbd></button><button class="btn" id="resume"></button></div>
     <div class="facts" id="facts"></div>
+    <script>
+    // First paint before the module script has loaded: the headline, eyebrow and blurb of the game it will select (kept in step with GAMES below; the script overwrites them).
+    (function () { try { var T = { blackjack: ['Cards · New', 'Blackjack', 'Six decks, one seat, and a dealer with no face. Golden hour through the window, chips that click.'], parking: ['Driving · 17 levels', 'Parking Precision', 'Park a real-sized car in a glowing bay, first person, scored out of 100. Mirrors, sensors and a reversing camera.'], holdem: ['Cards · New', "Hold'em", 'No-limit Texas Hold\u2019em at a six-seat table, against five faceless regulars who each play their own way.'], videopoker: ['Cards · New', 'Video Poker', 'Jacks or Better on a full-pay machine by the window. Hold, draw, and hope for the royal.'], racing: ['Driving · Early test drive', 'Night Drive', 'A street racing career after dark, still in the workshop. The cars are ready to try: a lit straight, a drift pad and every setup slider.'] }[window.__first || 'blackjack'];
+      document.getElementById('eyebrow').textContent = T[0]; document.getElementById('title').textContent = T[1]; document.getElementById('blurb').textContent = T[2]; } catch (e) {} })();
+    </script>
     <a class="tonight" id="tonight" href="#evening"><i></i><span id="tonightTxt"></span></a>
   </div>
   <div class="railwrap pad" id="railwrap">
@@ -594,8 +610,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <section class="chapter bj" id="blackjack" aria-labelledby="bj-title">
   <div class="stick">
     <div class="media" id="bjMedia">
-      <img src="media/bj-clean.jpg" alt="The Blackjack room at golden hour: a faceless dealer in a charcoal suit behind a green table, hills through the window">
-      <img class="night" src="media/bj-night.jpg" alt="The same room at night, stars through the window">
+      <img loading="lazy" decoding="async" src="media/bj-clean.jpg" alt="The Blackjack room at golden hour: a faceless dealer in a charcoal suit behind a green table, hills through the window">
+      <img loading="lazy" decoding="async" class="night" src="media/bj-night.jpg" alt="The same room at night, stars through the window">
     </div>
     <div class="shade" id="bjShade"></div>
     <div class="copy" id="bjCopy">
@@ -616,8 +632,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <!-- ============================================================== card room -->
 <section class="chapter cr" id="cardroom" aria-labelledby="cr-title">
   <div class="stick">
-    <div class="crmedia" id="crHold"><img src="media/holdem.jpg" alt="Six-seat Hold'em table with five faceless regulars in suits, at golden hour"></div>
-    <div class="crmedia" id="crVp"><img src="media/videopoker.jpg" alt="A Jacks or Better video poker machine by the lounge window"></div>
+    <div class="crmedia" id="crHold"><img loading="lazy" decoding="async" src="media/holdem.jpg" alt="Six-seat Hold'em table with five faceless regulars in suits, at golden hour"></div>
+    <div class="crmedia" id="crVp"><img loading="lazy" decoding="async" src="media/videopoker.jpg" alt="A Jacks or Better video poker machine by the lounge window"></div>
     <div class="shade" id="crShade"></div>
     <div class="copy crcopy" id="crCopyA">
       <div class="chap-num" style="--accent: #d98a93">02 · The card room</div>
@@ -645,12 +661,12 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
     </div>
     <div style="display: grid; align-items: center; overflow: hidden;">
       <div class="track" id="track">
-        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/open-deck.webp" alt="Open-air car park deck"></div><figcaption class="cap"><b><i>01</i>Open deck</b><span>Wide bays. Where everyone starts.</span></figcaption></figure>
-        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/underground.webp" alt="Underground car park with pillars"></div><figcaption class="cap"><b><i>02</i>Underground</b><span>Pillars, low light, less room than you think.</span></figcaption></figure>
-        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/rooftop-dusk.webp" alt="Rooftop car park at dusk with a glowing bay"></div><figcaption class="cap"><b><i>03</i>Rooftop at dusk</b><span>The last spaces before the sun goes.</span></figcaption></figure>
-        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/rooftop-lane.webp" alt="Narrow rooftop lane between parked cars"></div><figcaption class="cap"><b><i>04</i>Rooftop lane</b><span>Tight lanes between parked cars.</span></figcaption></figure>
-        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/driver-seat.webp" alt="Driver's seat view with the steering wheel and dashboard"></div><figcaption class="cap"><b><i>05</i>Driver's seat</b><span>The 720° wheel, hands and all.</span></figcaption></figure>
-        <figure class="frame" style="margin: 0"><div class="pic"><img src="media/reverse-camera.webp" alt="Reversing camera view with guidelines"></div><figcaption class="cap"><b><i>06</i>Reversing camera</b><span>Guidelines, and sensors that beep faster.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img loading="lazy" decoding="async" src="media/open-deck.webp" alt="Open-air car park deck"></div><figcaption class="cap"><b><i>01</i>Open deck</b><span>Wide bays. Where everyone starts.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img loading="lazy" decoding="async" src="media/underground.webp" alt="Underground car park with pillars"></div><figcaption class="cap"><b><i>02</i>Underground</b><span>Pillars, low light, less room than you think.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img loading="lazy" decoding="async" src="media/rooftop-dusk.webp" alt="Rooftop car park at dusk with a glowing bay"></div><figcaption class="cap"><b><i>03</i>Rooftop at dusk</b><span>The last spaces before the sun goes.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img loading="lazy" decoding="async" src="media/rooftop-lane.webp" alt="Narrow rooftop lane between parked cars"></div><figcaption class="cap"><b><i>04</i>Rooftop lane</b><span>Tight lanes between parked cars.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img loading="lazy" decoding="async" src="media/driver-seat.webp" alt="Driver's seat view with the steering wheel and dashboard"></div><figcaption class="cap"><b><i>05</i>Driver's seat</b><span>The 720° wheel, hands and all.</span></figcaption></figure>
+        <figure class="frame" style="margin: 0"><div class="pic"><img loading="lazy" decoding="async" src="media/reverse-camera.webp" alt="Reversing camera view with guidelines"></div><figcaption class="cap"><b><i>06</i>Reversing camera</b><span>Guidelines, and sensors that beep faster.</span></figcaption></figure>
         <div class="frame end"><p>Find the glowing bay.</p><a class="btn fill" href="/parking/play/" data-go="/parking/play/" data-name="Parking Precision" style="justify-self: start">Start driving</a></div>
       </div>
     </div>
@@ -662,7 +678,7 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 <section class="shop pad" id="workshop" aria-labelledby="shop-title">
   <div class="sec-head reveal"><div class="eyebrow">In the workshop</div><h2 id="shop-title">One more, still being built.</h2><p>Same evening, new rooms. They'll open here when they're ready.</p></div>
   <div class="teasers one">
-        <article class="teaser" style="--t: #9aa6ff"><img src="media/nightdrive.jpg" alt=""><span class="lock">Early test drive</span><h3>Night Drive</h3><p>A street racing career after dark: rivals, crews, police and a city to win. The story is still being built; the cars are ready to take out.</p><div class="tag">Driving</div><a class="btn fill" href="/racing/" data-go="/racing/" data-name="Night Drive" style="--accent: #9aa6ff; margin-top: 18px; justify-self: start">Test drive</a></article>
+        <article class="teaser" style="--t: #9aa6ff"><img loading="lazy" decoding="async" src="media/nightdrive.jpg" alt=""><span class="lock">Early test drive</span><h3>Night Drive</h3><p>A street racing career after dark: rivals, crews, police and a city to win. The story is still being built; the cars are ready to take out.</p><div class="tag">Driving</div><a class="btn fill" href="/racing/" data-go="/racing/" data-name="Night Drive" style="--accent: #9aa6ff; margin-top: 18px; justify-self: start">Test drive</a></article>
   </div>
 </section>
 
@@ -807,8 +823,8 @@ kbd { font: 500 11px var(--mono); padding: 1px 6px; border-radius: 4px; border: 
 </dialog>
 <div id="toast" role="status"></div>
 
-<script src="/vendor/gsap/gsap.min.js"></script>
-<script src="/vendor/gsap/ScrollTrigger.min.js"></script>
+<script defer src="/vendor/gsap/gsap.min.js"></script>
+<script defer src="/vendor/gsap/ScrollTrigger.min.js"></script>
 <script type="module">
 import { ensureIdentity, readProfile, levelFor, titleFor, setHandle, suggestHandles, today, HANDLE_MAX } from '/shared/profile.js';
 import { exportSave, parseSave, importSave, resetSave } from '/shared/save.js';
@@ -899,16 +915,20 @@ let cur = 0;
 const onb = onboarding();
 const firstVisit = onb.isNew;   // nobody has finished a round yet: one clear action instead of a menu
 GAMES.forEach((g, i) => {
-  const im = document.createElement('img'); im.src = g.img; im.alt = ''; $('#bg').appendChild(im); g.bgEl = im;
+  const im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; $('#bg').appendChild(im); g.bgEl = im;
   const w = document.createElement('button');
   w.className = 'tile' + (g.soon ? ' soon' : ''); w.setAttribute('role', 'tab'); w.setAttribute('aria-label', g.name + (g.soon ? ', coming soon' : ''));
-  w.innerHTML = `<div class="shot" style="--pos:${g.pos}"><img src="${g.img}" alt="">${g.soon ? '<span class="lock">Coming soon</span>' : ''}</div><div class="name">${g.name}<small>${g.tag}</small></div><div class="bar2"></div>`;
+  w.innerHTML = `<div class="shot" style="--pos:${g.pos}"><img src="media/thumbs/${g.id}.webp" alt="" width="480" height="270" decoding="async">${g.soon ? '<span class="lock">Coming soon</span>' : ''}</div><div class="name">${g.name}<small>${g.tag}</small></div><div class="bar2"></div>`;
   w.addEventListener('click', () => (cur === i ? play() : select(i)));
   $('#rail').appendChild(w); g.el = w;
 });
+// Full-size backdrops load for the selected game first; the rest arrive once the page is idle.
+const loadBg = (g) => { if (!g.bgEl.src) g.bgEl.src = g.img; };
+addEventListener('load', () => setTimeout(() => GAMES.forEach(loadBg), 1500));
 function select(i) {
   cur = (i + GAMES.length) % GAMES.length;
   const g = GAMES[cur];
+  loadBg(g);
   GAMES.forEach((x, j) => { x.bgEl.classList.toggle('on', j === cur); x.el.setAttribute('aria-selected', j === cur); });
   $('#lobby').style.setProperty('--accent', g.accent);
   $('#bar').style.setProperty('--accent', g.accent);

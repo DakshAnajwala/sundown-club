@@ -4,8 +4,12 @@
  *   node tools/dev-api.mjs [port]      (METRICS_PASSWORD defaults to "dev")
  */
 import http from 'node:http';
+import http2 from 'node:http2';
+import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { brotliCompressSync, gzipSync } from 'node:zlib';
 import event from '../api/club/event.js';
 import metricsHandler from '../api/club/metrics.js';
 import playHandler from '../api/club/play.js';
@@ -25,7 +29,7 @@ function shim(res) {
   return res;
 }
 
-http.createServer(async (req, res) => {
+const handler = async (req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/dev/bodies') { res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(bodies)); return; }
   const fn = routes[url.pathname];
@@ -43,7 +47,28 @@ http.createServer(async (req, res) => {
   if (!path.startsWith('dist')) { res.statusCode = 403; res.end(); return; }
   try {
     if ((await stat(path)).isDirectory()) path = join(path, 'index.html');
-    res.setHeader('content-type', TYPES[extname(path)] || 'application/octet-stream');
-    res.end(await readFile(path));
+    const type = TYPES[extname(path)] || 'application/octet-stream';
+    res.setHeader('content-type', type);
+    let body = await readFile(path);
+    // Vercel compresses text; so does this, so size and timing checks (tools/perf-probe.mjs) look like production.
+    if (/text|javascript|json|svg|xml/.test(type)) {
+      const ae = String(req.headers['accept-encoding'] || '');
+      if (/\bbr\b/.test(ae)) { body = brotliCompressSync(body); res.setHeader('content-encoding', 'br'); }
+      else if (/gzip/.test(ae)) { body = gzipSync(body); res.setHeader('content-encoding', 'gzip'); }
+      res.setHeader('vary', 'accept-encoding');
+    }
+    res.end(body);
   } catch { res.statusCode = 404; res.end('not found'); }
-}).listen(port, () => console.log(`dev-api on http://localhost:${port}`));
+};
+// H2=1 (or H2_CERT_DIR=<dir with key.pem and cert.pem>) serves HTTP/2 over TLS like Vercel does, so timing checks do not queue behind
+// HTTP/1.1's six connections (tools/perf-probe.mjs uses it). Without it: plain HTTP/1.1.
+let certDir = process.env.H2_CERT_DIR;
+if (!certDir && process.env.H2 === '1') {   // H2=1: make (once) a throwaway certificate in .dev-cert/ with openssl
+  certDir = '.dev-cert';
+  if (!existsSync(`${certDir}/cert.pem`)) { mkdirSync(certDir, { recursive: true }); execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', `${certDir}/key.pem`, '-out', `${certDir}/cert.pem`, '-days', '30', '-subj', '/CN=localhost'], { stdio: 'ignore' }); }
+}
+if (certDir) {
+  http2.createSecureServer({ key: readFileSync(`${certDir}/key.pem`), cert: readFileSync(`${certDir}/cert.pem`), allowHTTP1: true }, handler).listen(port, () => console.log(`dev-api (h2) on https://localhost:${port}`));
+} else {
+  http.createServer(handler).listen(port, () => console.log(`dev-api on http://localhost:${port}`));
+}

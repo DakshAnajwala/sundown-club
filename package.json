@@ -16,6 +16,7 @@
     "serve": "npx --yes serve dist -l 5180",
     "serve:api": "node tools/dev-api.mjs 5181",
     "check:site": "node tools/seo-check.mjs",
+    "perf": "node tools/perf-probe.mjs",
     "check": "node tools/cards-check.mjs && node tools/holdem-sim.mjs 1500 && node tools/videopoker-check.mjs && node tools/telemetry-check.mjs && node tools/profile-check.mjs && node tools/daily-check.mjs && node tools/board-check.mjs && node tools/content-check.mjs"
   }
 }

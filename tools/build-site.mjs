@@ -16,6 +16,8 @@
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { GUIDES } from '../apps/hub/guides/guides.js';
+import { injectPreloads } from './modulepreload.mjs';
+import { buildThreeLite } from './build-three-lite.mjs';
 import { renderGuide, renderIndex, guidePaths } from '../apps/hub/guides/render.mjs';
 
 const out = 'dist';
@@ -77,6 +79,9 @@ cpSync('packages/shared', `${out}/shared`, { recursive: true, filter: (src) => !
 const nm = 'node_modules';
 mkdirSync(`${out}/vendor/three`, { recursive: true });
 for (const f of ['three.module.js', 'three.core.js']) cpSync(`${nm}/three/build/${f}`, `${out}/vendor/three/${f}`);
+// The pages import a tree-shaken three.js (only what they use, about half the bytes) in place of the full library.
+rmSync(`${out}/vendor/three/three.core.js`, { force: true });
+await buildThreeLite(`${out}/vendor/three/three.module.js`);
 mkdirSync(`${out}/vendor/gsap`, { recursive: true });
 for (const f of ['gsap.min.js', 'ScrollTrigger.min.js']) cpSync(`${nm}/gsap/dist/${f}`, `${out}/vendor/gsap/${f}`);
 mkdirSync(`${out}/vendor/fonts`, { recursive: true });
@@ -99,6 +104,9 @@ if (!existsSync('apps/racing/dist/index.html')) throw new Error('apps/racing/dis
 cpSync('apps/racing/dist', `${out}/racing`, { recursive: true });
 
 console.log('Sundown Club site assembled in dist/');
+
+// Tell the browser about every module the first screen needs, so they download at once instead of one level at a time.
+for (const page of ['/', '/blackjack/', '/holdem/', '/videopoker/']) injectPreloads(page);
 
 // Service worker last, so the precache list can name real files in dist/.
 {

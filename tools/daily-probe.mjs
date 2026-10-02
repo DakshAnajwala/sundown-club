@@ -24,12 +24,12 @@ try {
   check('swap changes the first quest and uses the reroll', (await text('#dq .q .qt span')) !== q0 && (await p.$$('#dq .qm button')).length === 0);
   await p.click('#claim'); await sleep(300);
   const after = await p.evaluate(() => ({ p: JSON.parse(localStorage.getItem('hub.v2.profile')), chips: JSON.parse(localStorage.getItem('club.v1.chips')) }));
-  check('claim: +100 XP, +1 token, chips 1250', after.p.xp === 100 && after.p.tokens === 1 && after.chips.bankroll === 1250, JSON.stringify([after.p.xp, after.p.tokens, after.chips]));
+  check('claim: +100 XP (and the First claim achievement, 25), +1 token, chips 1250', after.p.xp === 125 && after.p.tokens === 1 && after.chips.bankroll === 1250 && after.p.achv['club.claims.1'] > 0, JSON.stringify([after.p.xp, after.p.tokens, after.chips]));
   check('claim also counts the day', after.p.streak.days === 1 && after.p.streak.last);
   check('button locks', await p.$eval('#claim', (e) => e.disabled));
   await p.click('#claim').catch(() => {});
-  check('no double claim', (await p.evaluate(() => JSON.parse(localStorage.getItem('hub.v2.profile')).xp)) === 100);
-  check('streak shows 1 day', (await text('#dstreak .big')).startsWith('1'));
+  check('no double claim', (await p.evaluate(() => JSON.parse(localStorage.getItem('hub.v2.profile')).xp)) === 125);
+  check('streak shows 1 day', (await text('#dstreak .bigdays')).startsWith('1'));
   await p.select('#restSel', '3'); await sleep(200);
   check('rest day saved', await p.evaluate(() => JSON.parse(localStorage.getItem('hub.v2.profile')).streak.rest === 3));
   // yesterday's run with a missed day and one freeze: freeze is spent, note shown

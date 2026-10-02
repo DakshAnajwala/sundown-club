@@ -16,6 +16,7 @@ moving the site to a new address.
 | Share cards | every page | Open Graph and Twitter tags. Images are 1200 × 630 in `apps/hub/media/og/`, cropped from real in-game frames. |
 | Structured data | JSON-LD in every page | Hub: `WebSite`, `Person` and an `ItemList` of the games. Each game: `VideoGame`. No ratings or reviews: there are none, so none may be invented (PRODUCT.md). |
 | A heading on game pages | `<h1 class="sr-only">` | The 3D games have no visible heading. This one is for screen readers and crawlers, and it matches the game's name. |
+| Guides | `apps/hub/guides/guides.js` → `/guides/<slug>/` | Ten how-to pages and an index, built by `apps/hub/guides/render.mjs`, all in the sitemap, each with `Article` + breadcrumb JSON-LD. `npm run check:site` (after a build) checks tags, links, length and copy rules. |
 | Crawlable links | hub | The hub's game buttons are real `href`s (`/blackjack/` and so on), so crawlers can follow them. JavaScript only takes over inside a sandboxed preview frame. |
 
 ## Parking Precision: canonical stays on the old site (for now)
