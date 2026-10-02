@@ -657,7 +657,7 @@ function buildGround() {
     const m = new THREE.Mesh(new THREE.BoxGeometry(...size), lambert(color));
     m.position.set(...pos);
     scene.add(m);
-    // Colliders at least 0.6 m thick (CLAUDE.md: tunnelling at 250 km/h).
+    // Colliders at least 0.6 m thick (tunnelling at 250 km/h).
     if (collide) physics.addStaticBox({ pos, size: size.map((s, i) => (i === 1 ? s : Math.max(0.6, s))), userData: { kind } });
     return m;
   };

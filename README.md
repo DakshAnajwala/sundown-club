@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/logo/lockup-dark.png">
+    <img src="brand/logo/lockup-light.png" alt="Sundown Club: a pendant lamp over a table, and the name" width="420">
+  </picture>
+</p>
+
 # Sundown Club
 
 Small 3D browser games, set in one long evening that turns from golden hour to night.
@@ -61,8 +68,8 @@ The hub and card games import shared modules by site path, so open them through
 | `apps/parking` | Parking Precision |
 | `apps/racing` | Night Drive (in development) |
 | `packages/shared` | Code every game shares: the 3D lounge, cards, chips, profile, the leave card |
-| `tools` | Site assembly and the logic checks |
-| `docs` | Deploying, search engines, design records |
+| `tools` | Site assembly, the logic checks and the logo export |
+| `brand` | The club's logo: master files, LinkedIn logo and cover |
 
 ## Licence
 

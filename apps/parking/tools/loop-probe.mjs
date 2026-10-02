@@ -15,7 +15,7 @@
  * presses because it has to drive the focused menu button.
  *
  * Levels are resolved by name/id via debug().levelNames/levelIds, never by
- * index (CLAUDE.md §7.7).
+ * index (project notes).
  *
  *   node tools/loop-probe.mjs [--json out.json] [--quick] [url]
  *

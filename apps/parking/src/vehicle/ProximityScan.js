@@ -95,7 +95,7 @@ export function createProximityScan({ physics, chassisBody }) {
         const wx = dx + ox * bc + oz * bs;
         const wz = dz - ox * bs + oz * bc;
         const lx = wx * cos + wz * sin;
-        // The car's forward axis is local -Z (see CLAUDE.md's measured
+        // The car's forward axis is local -Z (see the project notes' measured
         // conventions), but a plan view wants forward to be +z so it can draw
         // straight up the screen. Flip it here, once, rather than making every
         // reader of this data remember the sign.
