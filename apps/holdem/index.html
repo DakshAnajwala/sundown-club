@@ -95,6 +95,14 @@ body { margin: 0; background: #1d2130; color: var(--ink); font-family: var(--ui)
 .tr b { color: var(--ink); font-weight: 600; }
 kbd { font-family: var(--num); font-size: 11px; font-weight: 600; min-width: 18px; text-align: center; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--line); border-bottom-width: 2px; color: var(--ink-soft); background: rgba(255,255,255,.6); }
 .bottom { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; display: grid; justify-items: center; gap: 8px; max-width: calc(100vw - 32px); }
+#mine { position: fixed; right: 14px; top: 134px; z-index: 5; padding: 8px 12px; display: grid; gap: 6px; max-width: calc(100vw - 28px); }
+#mine .mrow { display: flex; align-items: center; gap: 8px; }
+#mine .mlab { width: 54px; font: 600 10px var(--ui); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+#mine .mcards { display: flex; gap: 4px; }
+#mine .mcards img { height: 56px; width: auto; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.35); background: #f3ede2; }
+#mine .mcards .gap { height: 56px; width: 40px; border-radius: 4px; border: 1px dashed var(--line); }
+#mine .mtext { font: 600 12px var(--ui); color: var(--ink); max-width: 120px; line-height: 1.2; }
+@media (max-width: 760px) { #mine { top: auto; right: 8px; bottom: 150px; } #mine .mcards img, #mine .mcards .gap { height: 44px; } #mine .mcards .gap { width: 31px; } }
 .hint { font-size: 13px; color: #f3ede2; text-shadow: 0 1px 3px rgba(0,0,0,.5); min-height: 18px; text-align: center; }
 .hint b { font-weight: 600; }
 .bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 8px; align-items: center; }
@@ -148,6 +156,7 @@ button { font: inherit; color: inherit; }
 </aside>
 
 <div id="tags"><div id="potTag" class="pot panel"></div></div>
+<div id="mine" class="panel" aria-label="Your cards and the board" hidden><div class="mrow"><span class="mlab">Your hand</span><span id="mHole" class="mcards"></span><span id="mText" class="mtext"></span></div><div class="mrow"><span class="mlab">Board</span><span id="mBoard" class="mcards"></span></div></div>
 <div id="toast" class="panel"></div>
 
 <div class="bottom">
@@ -172,7 +181,7 @@ button { font: inherit; color: inherit; }
 <script type="module">
 import * as THREE from 'three';
 import { createLounge, createCameraRig, ROOMS, mat } from '@sundown/shared/lounge/lounge.js';
-import { createCardKit } from '@sundown/shared/lounge/cards3d.js';
+import { createCardKit, drawFace } from '@sundown/shared/lounge/cards3d.js';
 import { createChipKit, CHIP_H } from '@sundown/shared/lounge/chips3d.js';
 import { createFigure, SUITS } from '@sundown/shared/lounge/figure.js';
 import { createSfx } from '@sundown/shared/lounge/sfx.js';
@@ -312,7 +321,22 @@ const tags = P.map((p, i) => {
   el.querySelector('.sty').textContent = STYLES[p.style].label;
   $('#tags').appendChild(el); return el;
 });
+// The big, flat "your cards and the board" panel: the 3D table is far away, so the numbers are repeated where they can be read.
+const faceUrl = {};
+const faceImg = (c) => { const k = c.rank + c.suit; if (!faceUrl[k]) faceUrl[k] = drawFace(c.rank, c.suit).toDataURL('image/png'); const i = document.createElement('img'); i.src = faceUrl[k]; i.alt = `${c.rank === 'T' ? '10' : c.rank} of ${({ S: 'spades', H: 'hearts', D: 'diamonds', C: 'clubs' })[c.suit] || c.suit}`; return i; };
+function paintMine() {
+  const hole = holeMeshes[0]?.length >= 2 && !T.on ? P[0].hole : [];
+  const board = (table.state.board || []).slice(0, boardMeshes.length);
+  const box = $('#mine'); box.hidden = !hole.length;
+  if (!hole.length) return;
+  const key = hole.map((c) => c.rank + c.suit).join() + '|' + board.map((c) => c.rank + c.suit).join();
+  if (box.dataset.k === key) return; box.dataset.k = key;
+  $('#mHole').replaceChildren(...hole.map(faceImg));
+  $('#mBoard').replaceChildren(...board.map(faceImg), ...Array.from({ length: 5 - board.length }, () => { const g = document.createElement('i'); g.className = 'gap'; return g; }));
+  $('#mText').textContent = shown.folded[0] ? 'Folded' : myHandText();
+}
 function refreshHud() {
+  paintMine();
   $('#myStack').textContent = fmt(shown.stack[0]);
   $('#club').textContent = fmt(offTable);
   P.forEach((p, i) => {
