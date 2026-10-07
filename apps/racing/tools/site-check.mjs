@@ -85,7 +85,7 @@ const card = await page.evaluate(() => {
 ok('Esc opens the club leave card', card === 'Leave Night Drive?', String(card));
 await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle0' }), page.keyboard.press('Escape')]);
 ok('Esc again lands on the hub', new URL(page.url()).pathname === '/', page.url());
-const prof = await page.evaluate(() => JSON.parse(localStorage.getItem('hub.v1.profile') || '{}').games?.racing ?? null);
+const prof = await page.evaluate(() => JSON.parse(localStorage.getItem('hub.v2.profile') || localStorage.getItem('hub.v1.profile') || '{}').games?.racing ?? null);
 ok('profile entry saved for racing', prof && prof.resume === 'Test drive' && Array.isArray(prof.facts), JSON.stringify(prof));
 
 ok('0 console errors', errors.length === 0, errors.slice(0, 5).join(' | '));

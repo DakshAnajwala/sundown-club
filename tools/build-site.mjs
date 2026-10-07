@@ -14,7 +14,11 @@
  *   dist/privacy.html …   the club's legal pages (apps/hub/legal/)
  *   dist/robots.txt, sitemap.xml, favicon.svg   for search engines (docs/seo.md)
  */
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { GUIDES } from '../apps/hub/guides/guides.js';
+import { injectPreloads } from './modulepreload.mjs';
+import { buildThreeLite } from './build-three-lite.mjs';
+import { renderGuide, renderIndex, guidePaths } from '../apps/hub/guides/render.mjs';
 
 const out = 'dist';
 rmSync(out, { recursive: true, force: true });
@@ -30,7 +34,7 @@ cpSync('apps/hub/apple-touch-icon.png', `${out}/apple-touch-icon.png`);
 // as canonical (a sitemap only lists canonical URLs), and Night Drive, which is in development
 // and marked noindex until it is ready (owner, 2 Oct 2026).
 const SITE = 'https://sundown-club.vercel.app';
-const PAGES = ['/', '/blackjack/', '/holdem/', '/videopoker/'];
+const PAGES = ['/', '/blackjack/', '/holdem/', '/videopoker/', ...guidePaths()];
 writeFileSync(`${out}/sitemap.xml`, `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${PAGES.map((p) => `  <url><loc>${SITE}${p}</loc></url>`).join('\n')}
@@ -40,9 +44,31 @@ writeFileSync(`${out}/robots.txt`, `User-agent: *
 Allow: /
 Disallow: /parking/design/
 Disallow: /api/
+Disallow: /admin/
+Disallow: /c/
 
 Sitemap: ${SITE}/sitemap.xml
 `);
+
+// Owner-only pages (noindex, password in the API): metrics.
+mkdirSync(`${out}/admin/metrics`, { recursive: true });
+cpSync('apps/hub/admin/metrics.html', `${out}/admin/metrics/index.html`);
+
+// Guides: static how-to pages from apps/hub/guides/guides.js (docs/seo.md).
+mkdirSync(`${out}/guides`, { recursive: true });
+writeFileSync(`${out}/guides/index.html`, renderIndex());
+for (const g of GUIDES) { mkdirSync(`${out}/guides/${g.slug}`, { recursive: true }); writeFileSync(`${out}/guides/${g.slug}/index.html`, renderGuide(g)); }
+
+// Challenge links /c/<code> (rewritten to this page by vercel.json).
+mkdirSync(`${out}/c`, { recursive: true });
+cpSync('apps/hub/challenge.html', `${out}/c/index.html`);
+
+// A/B test config (packages/shared/flags.js): same origin, so a deploy can switch an experiment on.
+cpSync('apps/hub/flags.json', `${out}/flags.json`);
+
+// Installable app: manifest, icons and the service worker (the build id names its caches, so a deploy replaces them).
+cpSync('apps/hub/manifest.webmanifest', `${out}/manifest.webmanifest`);
+cpSync('apps/hub/icons', `${out}/icons`, { recursive: true });
 
 // Static game pages: index.html plus any sibling .js modules (engine, bots).
 for (const app of ['blackjack', 'holdem', 'videopoker']) {
@@ -58,6 +84,9 @@ cpSync('packages/shared', `${out}/shared`, { recursive: true, filter: (src) => !
 const nm = 'node_modules';
 mkdirSync(`${out}/vendor/three`, { recursive: true });
 for (const f of ['three.module.js', 'three.core.js']) cpSync(`${nm}/three/build/${f}`, `${out}/vendor/three/${f}`);
+// The pages import a tree-shaken three.js (only what they use, about half the bytes) in place of the full library.
+rmSync(`${out}/vendor/three/three.core.js`, { force: true });
+await buildThreeLite(`${out}/vendor/three/three.module.js`);
 mkdirSync(`${out}/vendor/gsap`, { recursive: true });
 for (const f of ['gsap.min.js', 'ScrollTrigger.min.js']) cpSync(`${nm}/gsap/dist/${f}`, `${out}/vendor/gsap/${f}`);
 mkdirSync(`${out}/vendor/fonts`, { recursive: true });
@@ -80,3 +109,17 @@ if (!existsSync('apps/racing/dist/index.html')) throw new Error('apps/racing/dis
 cpSync('apps/racing/dist', `${out}/racing`, { recursive: true });
 
 console.log('Sundown Club site assembled in dist/');
+
+// Tell the browser about every module the first screen needs, so they download at once instead of one level at a time.
+for (const page of ['/', '/blackjack/', '/holdem/', '/videopoker/']) injectPreloads(page);
+
+// Service worker last, so the precache list can name real files in dist/.
+{
+  const BUILD = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
+  const list = ['/', '/blackjack/', '/holdem/', '/videopoker/', '/parking/play/', '/racing/', '/guides/', '/vendor/fonts.css', '/favicon.svg', '/manifest.webmanifest', '/icons/icon-192.png', '/privacy.html', '/legal.css'];
+  const walk = (dir, base = '') => readdirSync(`${out}/${dir}`, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? walk(`${dir}/${d.name}`, base) : [`/${dir}/${d.name}`]));
+  list.push(...walk('shared').filter((f) => f.endsWith('.js') || f.endsWith('.json')), ...walk('vendor/three'), ...walk('vendor/fonts').filter((f) => f.endsWith('.woff2')), ...walk('vendor/gsap'));
+  for (const app of ['blackjack', 'holdem', 'videopoker']) list.push(...readdirSync(`${out}/${app}`).filter((n) => n.endsWith('.js')).map((n) => `/${app}/${n}`));
+  const tpl = readFileSync('apps/hub/sw.js', 'utf8').replace('__BUILD__', BUILD).replace('__PRECACHE__', JSON.stringify([...new Set(list)], null, 1));
+  writeFileSync(`${out}/sw.js`, tpl);
+}

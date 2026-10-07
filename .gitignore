@@ -14,3 +14,4 @@ dist-ssr
 apps/*/tools/shots/
 apps/parking/design/level13/dist-sheet/
 graphify-out/
+.dev-cert/

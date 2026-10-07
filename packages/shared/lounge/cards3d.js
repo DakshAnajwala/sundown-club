@@ -4,6 +4,7 @@
  * cards on the table.
  */
 import * as THREE from 'three';
+import { cardBackPalette } from '../cosmetics.js';
 
 export const RED = '#c0594b', INK = '#2e2d35', STOCK = '#f3ede2';
 export const RANK_LABEL = { T: '10' };
@@ -54,13 +55,14 @@ export function drawFace(rank, suit) {
 export function drawBack() {
   const Wc = 360, Hc = 500, c = document.createElement('canvas'); c.width = Wc; c.height = Hc;
   const g = c.getContext('2d');
+  const P = cardBackPalette();   // the player's equipped card back (cosmetics.js); copper stripe by default
   g.fillStyle = STOCK; g.fillRect(0, 0, Wc, Hc);
   g.save(); g.beginPath(); g.roundRect(20, 20, Wc - 40, Hc - 40, 16); g.clip();
-  g.fillStyle = '#d6a27c'; g.fillRect(0, 0, Wc, Hc);
+  g.fillStyle = P.base; g.fillRect(0, 0, Wc, Hc);
   g.translate(Wc / 2, Hc / 2); g.rotate(-0.6);
-  for (let i = -20; i < 20; i++) { g.fillStyle = i % 3 === 0 ? '#e6bf98' : i % 3 === 1 ? '#c98d68' : '#d6a27c'; g.fillRect(-500, i * 26, 1000, 26); }
+  for (let i = -20; i < 20; i++) { g.fillStyle = i % 3 === 0 ? P.a : i % 3 === 1 ? P.b : P.base; g.fillRect(-500, i * 26, 1000, 26); }
   g.restore();
-  g.strokeStyle = STOCK; g.lineWidth = 6;
+  g.strokeStyle = P.line; g.lineWidth = 6;
   g.beginPath(); g.moveTo(Wc / 2, Hc / 2 - 60); g.lineTo(Wc / 2 + 40, Hc / 2); g.lineTo(Wc / 2, Hc / 2 + 60); g.lineTo(Wc / 2 - 40, Hc / 2); g.closePath(); g.stroke();
   return c;
 }

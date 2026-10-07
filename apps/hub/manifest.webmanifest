@@ -1,0 +1,23 @@
+{
+  "name": "Sundown Club",
+  "short_name": "Sundown",
+  "description": "Cards, parking and night driving in your browser. Free, play money only.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#14121a",
+  "theme_color": "#14121a",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Tonight's table", "short_name": "Tonight", "url": "/#evening" },
+    { "name": "Video Poker daily hand", "short_name": "Daily hand", "url": "/videopoker/?daily=1" },
+    { "name": "The board", "short_name": "Board", "url": "/#board" }
+  ]
+}

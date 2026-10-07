@@ -1,10 +1,18 @@
 /**
- * profile.js — the shared Sundown Club profile in localStorage ("hub.v1.profile").
+ * profile.js — the shared Sundown Club profile in localStorage ("hub.v2.profile").
  *
  * Every game writes its own entry under `games[<id>]`; the hub reads them and
- * owns the identity (`id`, `handle`). Shape and level curve: apps/hub/SPEC.md §8.
+ * owns the identity (`id`, `handle`). Shape, level curve, migration:
+ * apps/hub/SPEC.md §8 and docs/retention/SPEC-profile-v2.md.
  *
- *   { id, handle, xp, streak: { days, last }, games: { <id>: { lastPlayed, timeMs, resume, facts, ledger } } }
+ *   { v: 2, id, handle, xp, title, badges: [id x3], tokens,
+ *     streak: { days, last, best },
+ *     inv: { owned: [id], equipped: { <slot>: id } }, found: { <id>: time },
+ *     games: { <id>: { lastPlayed, timeMs, resume, facts, ledger } } }
+ *
+ * "hub.v1.profile" (the old shape) is read once and copied forward; the old
+ * key is left untouched as a backup. Unknown top-level keys written by newer
+ * code survive a read-modify-write.
  *
  * The identity is made in this browser on the first visit and never leaves it:
  * another browser or device gets its own.
@@ -13,34 +21,77 @@
  * JSON all fall back to an empty profile, and a failed write is ignored.
  */
 
-const KEY = 'hub.v1.profile';
+import { normalizeStreak, earnDay } from './streak.js';
+import { normalizeDaily, ensureDay } from './daily.js';
+import { NAME_A, NAME_B } from './names.js';
+import { STARTER_ITEMS } from './catalog.js';
+import { variant } from './flags.js';
+
+export const KEY = 'hub.v2.profile';
+export const OLD_KEY = 'hub.v1.profile';
 const ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ITEM_RE = /^[a-z0-9][a-z0-9._-]{0,47}$/;
 export const HANDLE_MAX = 24;
+export const MAX_LEVEL = 100;
+export const MAX_BADGES = 3;
+export const MAX_TOKENS = 99;
 
 function empty() {
-  return { xp: 0, streak: { days: 0, last: null }, games: {} };
+  return { v: 2, xp: 0, tokens: 0, badges: [], inv: { owned: [...STARTER_ITEMS], equipped: {} }, found: {}, streak: normalizeStreak(null), daily: normalizeDaily(null), stats: {}, mastery: {}, achv: {}, weekly: null, season: null, games: {} };
 }
+
+const num = (x, d = 0) => (Number.isFinite(x) ? x : d);
+const SLOT_RE = /^[a-zA-Z][a-zA-Z0-9_-]{0,23}$/;
+const slotId = (x) => (typeof x === 'string' && SLOT_RE.test(x) ? x : null);
+const itemId = (x) => (typeof x === 'string' && ITEM_RE.test(x) ? x : null);
 
 /** Trim, drop control characters, squash runs of spaces, cap the length. Empty means "no name". */
 export function cleanHandle(s) {
   return String(s ?? '').replace(/[\u0000-\u001f\u007f-\u009f]/g, '').replace(/\s+/g, ' ').trim().slice(0, HANDLE_MAX).trim();
 }
 
+/** Turn anything found in storage (v1, v2 or junk) into a valid v2 profile. Never throws. */
+export function normalize(p) {
+  const out = empty();
+  if (!p || typeof p !== 'object') return out;
+  // Carry over keys newer code may have added; known keys are rebuilt below.
+  for (const k of Object.keys(p)) if (!(k in out) && k !== 'id' && k !== 'handle' && k !== 'title' && k !== 'createdAt') out[k] = p[k];
+  out.xp = Math.max(0, num(p.xp));
+  out.tokens = Math.min(MAX_TOKENS, Math.max(0, Math.round(num(p.tokens))));
+  out.streak = normalizeStreak(p.streak);
+  out.daily = normalizeDaily(p.daily);
+  // Content layer (rewards.js): lifetime counters, mastery XP, unlocked achievements, the weekly goal, the season track.
+  const numMap = (m) => { const o = {}; if (m && typeof m === 'object' && !Array.isArray(m)) for (const [k, v] of Object.entries(m)) if (/^[A-Za-z0-9._-]{1,40}$/.test(k) && Number.isFinite(Number(v))) o[k] = Number(v); return o; };
+  out.stats = numMap(p.stats); out.mastery = numMap(p.mastery); out.achv = numMap(p.achv);
+  const w = p.weekly && typeof p.weekly === 'object' ? p.weekly : null;
+  out.weekly = w && /^\d{4}-\d{2}-\d{2}$/.test(String(w.week)) && /^[a-z0-9-]{1,24}$/.test(String(w.id)) ? { week: w.week, id: w.id, p: Math.max(0, Number(w.p) || 0), done: !!w.done } : null;
+  const se = p.season && typeof p.season === 'object' ? p.season : null;
+  out.season = se && /^s\d{1,3}$/.test(String(se.id)) ? { id: se.id, xp: Math.max(0, Number(se.xp) || 0), claimed: (Array.isArray(se.claimed) ? se.claimed : []).map(Number).filter((n) => Number.isInteger(n) && n >= 1 && n <= 60) } : null;
+  out.games = p.games && typeof p.games === 'object' && !Array.isArray(p.games) ? p.games : {};
+  out.badges = (Array.isArray(p.badges) ? p.badges : []).map(itemId).filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).slice(0, MAX_BADGES);
+  const inv = p.inv && typeof p.inv === 'object' ? p.inv : {};
+  out.inv.owned = [...STARTER_ITEMS, ...(Array.isArray(inv.owned) ? inv.owned : [])].map(itemId).filter(Boolean).filter((x, i, a) => a.indexOf(x) === i);
+  if (inv.equipped && typeof inv.equipped === 'object') for (const [slot, id] of Object.entries(inv.equipped)) if (slotId(slot) && itemId(id)) out.inv.equipped[slot] = id;
+  if (p.found && typeof p.found === 'object') for (const [id, t] of Object.entries(p.found)) if (itemId(id)) out.found[id] = num(t, 0);
+  if (typeof p.id === 'string' && ID_RE.test(p.id)) out.id = p.id;
+  if (typeof p.handle === 'string' && cleanHandle(p.handle)) out.handle = cleanHandle(p.handle);
+  if (typeof p.createdAt === 'number') out.createdAt = p.createdAt;
+  if (typeof p.title === 'string' && itemId(p.title)) out.title = p.title;
+  return out;
+}
+
 export function readProfile() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return empty();
-    const p = JSON.parse(raw);
-    if (!p || typeof p !== 'object') return empty();
-    const out = {
-      xp: Number.isFinite(p.xp) ? p.xp : 0,
-      streak: p.streak && typeof p.streak === 'object' ? { days: Number(p.streak.days) || 0, last: p.streak.last ?? null } : { days: 0, last: null },
-      games: p.games && typeof p.games === 'object' ? p.games : {},
-    };
-    // Keep the identity through every game's read-modify-write.
-    if (typeof p.id === 'string' && ID_RE.test(p.id)) out.id = p.id;
-    if (typeof p.handle === 'string' && cleanHandle(p.handle)) out.handle = cleanHandle(p.handle);
-    return out;
+    if (raw) return normalize(JSON.parse(raw));
+    // First run on v2: copy the old profile forward (the v1 key stays as a backup).
+    const old = localStorage.getItem(OLD_KEY);
+    if (old) {
+      const p = normalize(JSON.parse(old));
+      write(p);
+      return p;
+    }
+    return empty();
   } catch {
     return empty();
   }
@@ -54,12 +105,7 @@ function write(p) {
   }
 }
 
-// Evening names: an adjective from the sky and a night creature, e.g. "Amber Heron".
-const NAME_A = ['Amber', 'Copper', 'Dusky', 'Ember', 'Golden', 'Hazy', 'Indigo', 'Late', 'Low', 'Mellow',
-  'Quiet', 'Rosy', 'Russet', 'Saffron', 'Silver', 'Slow', 'Tawny', 'Velvet', 'Violet', 'Warm'];
-const NAME_B = ['Badger', 'Curlew', 'Finch', 'Fox', 'Hare', 'Heron', 'Kestrel', 'Lark', 'Lynx', 'Marten',
-  'Moth', 'Nightjar', 'Otter', 'Owl', 'Plover', 'Raven', 'Starling', 'Swift', 'Tern', 'Wren'];
-
+// Evening names live in names.js (the board server uses the same lists).
 function randomBytes(n) {
   const b = new Uint8Array(n);
   if (globalThis.crypto?.getRandomValues) crypto.getRandomValues(b);
@@ -95,8 +141,17 @@ export function ensureIdentity() {
   const fresh = !p.id;
   p.id ||= newId();
   p.handle ||= newHandle();
+  p.createdAt ||= Date.now();
   write(p);
   return { id: p.id, handle: p.handle, fresh };
+}
+
+/** A few evening names to pick from (not the current one, no repeats). */
+export function suggestHandles(n = 3, current = '') {
+  const out = new Set();
+  let guard = 0;
+  while (out.size < n && guard++ < 200) { const h = newHandle(); if (h !== current) out.add(h); }
+  return [...out];
 }
 
 /** Rename this browser's player. Returns the stored name, or null if `name` is empty after cleaning. */
@@ -115,32 +170,119 @@ export function today(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/** Merge `patch` into games[id], stamp lastPlayed, and count the day towards the streak. */
+/** Five minutes of play in a day earns the day for the streak. */
+export const EARN_MS = 5 * 60 * 1000;
+
+/**
+ * Merge `patch` into games[id] and stamp lastPlayed. When `patch.timeMs` grows,
+ * the extra time counts towards today's five minutes; reaching them earns the
+ * day for the streak (rules in streak.js).
+ */
 export function updateGame(id, patch = {}) {
   const p = readProfile();
   const now = new Date();
+  const prevMs = Number(p.games[id]?.timeMs) || 0;
   p.games[id] = { ...(p.games[id] || {}), ...patch, lastPlayed: now.getTime() };
-  const t = today(now);
-  if (p.streak.last !== t) {
-    const y = new Date(now); y.setDate(y.getDate() - 1);
-    p.streak = { days: p.streak.last === today(y) ? p.streak.days + 1 : 1, last: t };
+  const delta = Number.isFinite(patch.timeMs) ? Math.max(0, patch.timeMs - prevMs) : 0;
+  if (delta > 0) {
+    const t = today(now);
+    const lastPlayed = Object.fromEntries(Object.entries(p.games).map(([g, s]) => [g, Number(s?.lastPlayed) || 0]));
+    p.daily = ensureDay(p.daily, t, { player: p.id, lastPlayed, now: now.getTime() });
+    const was = p.daily.playMs;
+    p.daily = { ...p.daily, playMs: was + Math.min(delta, 6 * 3600 * 1000) };
+    if (was < EARN_MS && p.daily.playMs >= EARN_MS) p.streak = earnDay(p.streak, t, { freezeEvery: variant('freeze_rate') === '5' ? 5 : 7 }).streak;
   }
   write(p);
   return p;
 }
 
-export function addXp(amount) {
+/** Read-modify-write the profile in one go: `fn(p)` edits it in place; returns what fn returns. For retention.js. */
+export function updateProfile(fn) {
   const p = readProfile();
-  p.xp = Math.max(0, p.xp + Math.round(amount));
+  const r = fn(p);
   write(p);
-  return p.xp;
+  return r === undefined ? p : r;
 }
 
-/** Level from total XP: going from level L to L+1 costs 250 × L. */
+export function addXp(amount) {
+  return grantXp(amount).xp;
+}
+
+/** XP needed to go from level L to L+1. Level 1 to 2 costs 250 (as before); level 99 to 100 costs 5,150. */
+export function xpToNext(level) {
+  return 200 + 50 * level;
+}
+
+/** Level from total XP, capped at MAX_LEVEL. `into`/`next` are progress inside the level (next = 0 at the cap). */
 export function levelFor(xp) {
-  let level = 1, need = 250, left = xp;
-  while (left >= need) { left -= need; level += 1; need = 250 * level; }
-  return { level, into: left, next: need };
+  let level = 1, left = Math.max(0, xp);
+  while (level < MAX_LEVEL && left >= xpToNext(level)) { left -= xpToNext(level); level += 1; }
+  return level >= MAX_LEVEL ? { level: MAX_LEVEL, into: left, next: 0 } : { level, into: left, next: xpToNext(level) };
+}
+
+const TITLES = [[1, 'Newcomer'], [5, 'Regular'], [10, 'Night Owl'], [20, 'Insider'], [30, 'Fixture'], [45, 'Old Hand'], [60, 'Club Legend'], [100, 'Keeper of the Lamp']];
+/** The title a level earns: the highest tier at or below it. */
+export function titleFor(level) {
+  let t = TITLES[0][1];
+  for (const [l, name] of TITLES) if (level >= l) t = name;
+  return t;
+}
+
+/** Add (or remove) XP. Returns { xp, level, from, leveled } so callers can celebrate a level-up. */
+export function grantXp(amount) {
+  const p = readProfile();
+  const from = levelFor(p.xp).level;
+  p.xp = Math.max(0, p.xp + Math.round(num(amount)));
+  write(p);
+  const level = levelFor(p.xp).level;
+  return { xp: p.xp, level, from, leveled: level > from };
+}
+
+/** Evening Tokens: clamp to 0..MAX_TOKENS. Returns the new balance. */
+export function addTokens(amount) {
+  const p = readProfile();
+  p.tokens = Math.min(MAX_TOKENS, Math.max(0, p.tokens + Math.round(num(amount))));
+  write(p);
+  return p.tokens;
+}
+
+/** Give the player a cosmetic or badge and log it in the collection. Returns true when it is new. */
+export function grantItem(id) {
+  if (!itemId(id)) return false;
+  const p = readProfile();
+  if (p.inv.owned.includes(id)) return false;
+  p.inv.owned.push(id);
+  p.found[id] = Date.now();
+  write(p);
+  return true;
+}
+
+/** Put an owned item in a slot (e.g. slot 'cardBack'). Passing null clears the slot. Returns the equipped map. */
+export function equip(slot, id) {
+  if (!slotId(slot)) return null;
+  const p = readProfile();
+  if (id == null) delete p.inv.equipped[slot];
+  else if (itemId(id) && p.inv.owned.includes(id)) p.inv.equipped[slot] = id;
+  write(p);
+  return p.inv.equipped;
+}
+
+/** Pick up to three owned badges to show. Unknown or unowned ids are dropped. */
+export function setBadges(ids) {
+  const p = readProfile();
+  p.badges = (Array.isArray(ids) ? ids : []).filter((x, i, a) => itemId(x) && p.inv.owned.includes(x) && a.indexOf(x) === i).slice(0, MAX_BADGES);
+  write(p);
+  return p.badges;
+}
+
+/** Mark a collection entry as seen (for achievements that are not items). */
+export function markFound(id) {
+  if (!itemId(id)) return false;
+  const p = readProfile();
+  if (id in p.found) return false;
+  p.found[id] = Date.now();
+  write(p);
+  return true;
 }
 
 /**

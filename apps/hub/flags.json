@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "note": "Every experiment is off. Turn one on only after writing its hypothesis, metric and stop rule in docs/retention/experiments.md, and only when enough players exist to answer it.",
+  "experiments": {
+    "round_panel": { "enabled": false, "default": "on", "variants": { "on": 50, "off": 50 } },
+    "quests_count": { "enabled": false, "default": "3", "variants": { "3": 50, "4": 50 } },
+    "onboarding_start": { "enabled": false, "default": "ask", "variants": { "ask": 50, "auto": 50 } },
+    "freeze_rate": { "enabled": false, "default": "7", "variants": { "7": 50, "5": 50 } },
+    "daily_claim_place": { "enabled": false, "default": "hub", "variants": { "hub": 50, "game": 50 } }
+  }
+}

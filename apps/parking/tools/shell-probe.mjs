@@ -152,7 +152,7 @@ await sleep(200);
 check('pause menu offers leaving to Sundown Club', /Esc again/.test((await panelText()) ?? ''));
 await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.keyboard.press('Escape')]);
 check('Esc in the pause menu leaves to the site root', new globalThis.URL(page.url()).pathname === '/', page.url());
-check('leaving saved the club profile', await page.evaluate(() => Boolean(JSON.parse(localStorage.getItem('hub.v1.profile') || '{}').games?.parking?.lastPlayed)));
+check('leaving saved the club profile', await page.evaluate(() => Boolean(JSON.parse((localStorage.getItem('hub.v2.profile') || localStorage.getItem('hub.v1.profile')) || '{}').games?.parking?.lastPlayed)));
 // Come back and drive again so the rest of the probe starts from the same place.
 await page.goto(new globalThis.URL('/play/', page.url()).href, { waitUntil: 'load' });
 await page.waitForFunction(() => window.__game?.debug, { timeout: 60000 });

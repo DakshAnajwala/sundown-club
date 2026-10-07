@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>A challenge · Sundown Club</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23f0a868'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/vendor/fonts.css">
+<style>
+:root { --bg: #14121a; --ink: #f1ebe0; --soft: #b9a896; --line: rgba(241,235,224,.14); --accent: #e8b860; --serif: "Young Serif", Georgia, serif; --sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; color: var(--ink); font: 16px/1.5 var(--sans);
+  background: radial-gradient(70% 50% at 80% 90%, rgba(240,168,104,.35), transparent 70%), linear-gradient(180deg, #171a36, #3a2218 70%, #5a3319); }
+main { width: min(560px, 100%); }
+.word { font: 400 24px var(--serif); text-decoration: none; color: var(--ink); display: inline-block; margin-bottom: 28px; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+h1 { margin: 10px 0 8px; font: 400 clamp(40px, 8vw, 64px)/1.02 var(--serif); }
+p { color: var(--soft); margin: 0 0 20px; font-size: 18px; max-width: 40ch; }
+.btn { display: inline-flex; padding: 14px 24px; border-radius: 12px; background: var(--accent); color: #1b1209; font: 600 16px var(--sans); text-decoration: none; }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.small { margin-top: 28px; font-size: 13px; color: var(--soft); }
+.small a { color: var(--soft); }
+</style>
+</head>
+<body>
+<main>
+  <a class="word" href="/">sundown club</a>
+  <div class="eyebrow" id="eyebrow">A challenge</div>
+  <h1 id="title">Checking the link…</h1>
+  <p id="body"></p>
+  <a class="btn" id="play" href="/videopoker/" hidden>Play the same hand</a>
+  <p class="small">Free, no sign-up. Play money only. <a href="/privacy.html">Privacy</a></p>
+</main>
+<script>
+(async () => {
+  const $ = (id) => document.getElementById(id);
+  const code = decodeURIComponent(location.pathname.replace(/^\/c\/?/, '').split('/')[0] || '');
+  if (!/^C1\.[A-Za-z0-9_-]+\.[0-9a-f]{16}$/.test(code)) { $('title').textContent = 'This link does not work.'; $('body').textContent = 'It may have been cut short when it was pasted. Ask your friend to send it again.'; $('play').href = '/'; $('play').textContent = 'Go to the club'; $('play').hidden = false; return; }
+  try {
+    const r = await (await fetch('/api/club/play', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ a: 'challenge_check', code }) })).json();
+    if (!r.ok) throw new Error('bad');
+    const d = r.data;
+    $('eyebrow').textContent = 'Video Poker · Jacks or Better';
+    $('title').textContent = `${d.n || 'A friend'} got ${d.l}.`;
+    $('body').textContent = d.v ? `${d.v} coins on one hand. You get the same five cards and the same draw. Can you beat it?` : 'No win on that hand. You get the same five cards and the same draw. Can you do better?';
+    $('play').href = '/videopoker/?c=' + encodeURIComponent(code); $('play').hidden = false;
+  } catch {
+    $('title').textContent = 'This link does not work.'; $('body').textContent = 'The challenge could not be checked. It may be from an older version of the club.'; $('play').href = '/'; $('play').textContent = 'Go to the club'; $('play').hidden = false;
+  }
+})();
+</script>
+</body>
+</html>

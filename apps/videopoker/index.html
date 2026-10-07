@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23e8b860'/%3E%3C/svg%3E">
 <title>Video Poker: free Jacks or Better online · Sundown Club</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#14121a">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="description" content="Free Jacks or Better video poker in your browser, on a full-pay 9/6 machine by a lounge window. Hold, draw and chase the royal. Play chips only.">
 <link rel="canonical" href="https://sundown-club.vercel.app/videopoker/">
 <meta property="og:type" content="website">
@@ -58,6 +61,11 @@
   }
 }
 </script>
+<link rel="preload" href="/vendor/fonts/schibsted-grotesk-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/schibsted-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/schibsted-grotesk-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/ibm-plex-mono-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/young-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/vendor/fonts.css">
 <script type="importmap">{ "imports": { "three": "/vendor/three/three.module.js", "@sundown/shared/": "/shared/" } }</script>
 <style>
@@ -108,6 +116,8 @@ button { font: inherit; color: inherit; }
   <div class="row"><span class="lbl">Club chips</span><span id="chips" class="num">0</span></div>
   <div class="row"><span class="lbl">Last win</span><span id="lastWin" class="num small">—</span></div>
   <button class="learn" id="bLearn" type="button">Learn to play <kbd>T</kbd></button>
+  <button class="learn" id="bDaily" type="button">Today's hand <kbd>D</kbd></button>
+  <button class="learn" id="bShare" type="button" hidden>Share this hand <kbd>S</kbd></button>
 </header>
 <aside class="tr panel">
   <div><b>Keys</b></div>
@@ -135,6 +145,15 @@ import { fmt, easeInOut } from '@sundown/shared/lounge/util.js';
 import { getChips, setBankroll, refill, canRefill } from '@sundown/shared/chips.js';
 import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
+import { initTelemetry } from '@sundown/shared/telemetry.js';
+import { reportRound, reportSeed, seedResults } from '@sundown/shared/retention.js';
+import { makeChallenge, checkChallenge } from '@sundown/shared/leaderboard.js';
+import { renderShareCard, shareResult } from '@sundown/shared/sharecard.js';
+import { levelFor, titleFor, readProfile } from '@sundown/shared/profile.js';
+import { track } from '@sundown/shared/telemetry.js';
+import { seededShuffle, seedFor, dayNumber } from '@sundown/shared/seed.js';
+import { showRoundPanel } from '@sundown/shared/roundpanel.js';
+initTelemetry({ game: 'videopoker' });
 import { createMachine, PAYTABLE } from './engine.js';
 import { createCoach, markTutorialSeen } from '@sundown/shared/coach.js';
 import { deck as freshDeck } from '@sundown/shared/cards.js';
@@ -216,8 +235,11 @@ let settling = false, pending = null;   // a drawn hand waiting for payOut(), an
 const stats = (() => { try { return JSON.parse(localStorage.getItem('vp.v1')) || {}; } catch { return {}; } })();
 stats.hands ||= 0; stats.best ||= null; stats.bestCoins ||= 0; stats.won ||= 0;
 
+// Today's hand: the same five cards (and draws) for everyone today, one go, free play (chips do not move).
+const D = { on: false, prevCoins: 5, kind: 'daily', seed: 0, from: null };   // kind: 'daily' | 'challenge'; from: a friend's { n, v, l }
+let lastSeeded = null;   // the last seeded hand finished here, for the share button
 function save() {
-  if (T.on) return;   // tutorial chips are pretend
+  if (T.on || D.on) return;   // tutorial chips are pretend; today's hand is free play
   setBankroll(bank);
   try { localStorage.setItem('vp.v1', JSON.stringify(stats)); } catch { /* blocked */ }
   updateGame('videopoker', { resume: `Continue · ${fmt(bank)} chips`, facts: [[fmt(bank), 'Club chips'], [fmt(stats.hands), 'Hands'], [stats.best || '—', 'Best hand']], ledger: { hands: stats.hands, bestCoins: stats.bestCoins, won: stats.won } });
@@ -281,13 +303,14 @@ function deal() {
   if (machine.phase === 'dealt' || performance.now() < animUntil) return;
   if (!tutAllows('deal')) return;
   const cost = coins * COIN;
-  if (bank < cost) {
+  if (!D.on && bank < cost) {
     if (canRefill()) { bank = refill().bankroll; toast('The club topped your chips back up to 1,000.'); }
     else { coins = Math.max(1, Math.floor(bank / COIN)); if (bank < COIN) return toast('Not enough chips for a coin.'); }
   }
-  bank -= coins * COIN; save(); sfx.chip(); press(dealBtn);
+  if (!D.on) bank -= coins * COIN;
+  save(); sfx.chip(); press(dealBtn);
   winLine = null; lastWin = 0;
-  const { hand } = machine.deal(coins, T.on ? { deck: lessonDeck() } : undefined);
+  const { hand } = machine.deal(coins, T.on ? { deck: lessonDeck() } : D.on ? { deck: seededShuffle(freshDeck(), D.seed) } : undefined);
   for (let i = 0; i < 5; i++) { flip[i] = 0; flipCard(i, 0, 0); }
   setTimeout(() => { hand.forEach((c, i) => { shownCards[i] = c; flipCard(i, 1, i * 90); }); }, 160);
   message = 'Hold with 1–5, then draw';
@@ -310,6 +333,8 @@ function draw() {
 function payOut(result) {
   if (!settling) return;
   settling = false; pending = null;
+  if (D.on) return finishDaily(result);
+  const real = !T.on;
   stats.hands += 1;
   if (result) {
     const won = result.coins * COIN; bank += won; lastWin = won; winLine = result.name; stats.won += won;
@@ -320,7 +345,71 @@ function payOut(result) {
   } else { message = 'No win this time'; lastWin = 0; }
   save(); hud();
   tutEmit('result');
+  if (real) showRoundPanel(reportRound('videopoker', 'hand', { hand: result ? result.name : 'none', rank: result ? RANK[result.name] : 0, win: !!result, won: result ? result.coins * COIN : 0, bet: coins }), { corner: 'bl' });
 }
+function finishDaily(result) {
+  const name = result ? result.name : 'No win', won = result ? result.coins : 0;
+  const held = machine.held.slice();
+  const kind = D.kind, from = D.from, seed = D.seed;
+  D.on = false; coins = D.prevCoins; D.from = null;
+  let tail = '';
+  if (kind === 'daily') {
+    const r = reportSeed('videopoker', { name, coins: won });
+    const shown = r.result || { name, coins: won };
+    lastSeeded = { kind, seed, name: shown.name, coins: shown.coins, held, day: dayNumber() };
+    tail = ` · ${shown.name}${shown.coins ? ` · ${shown.coins} coins` : ''}${r.first ? ` · +${r.xp} XP` : ''}`;
+  } else {
+    lastSeeded = { kind, seed, name, coins: won, held, from };
+    if (from) tail = won > from.v ? ` · you beat ${from.n} (${from.v})` : won === from.v ? ` · level with ${from.n} (${from.v})` : ` · ${from.n} had ${from.v}`;
+    track('challenge_accepted');
+  }
+  winLine = result ? result.name : null; lastWin = 0;
+  message = kind === 'daily' ? `Today's hand${tail}` : `Challenge: ${name}${won ? ` · ${won} coins` : ''}${tail}`;
+  if (result) sfx.sting(result.coins >= 25 ? 'big' : 'win');
+  showRoundPanel(reportRound('videopoker', 'hand', { hand: name, rank: result ? RANK[result.name] : 0, win: !!result, won: 0, bet: 5 }), { corner: 'bl' });
+  $('#bShare').hidden = false;
+  hud(); dailyBtn();
+}
+async function shareHand() {
+  if (!lastSeeded) return;
+  const L = lastSeeded, btn = $('#bShare');
+  btn.disabled = true;
+  try {
+    const p = readProfile(), lvl = levelFor(p.xp);
+    const grid = L.held.map((h) => (h ? '🟩' : '⬛')).join('');
+    const label = L.name === 'No win' ? 'No win' : L.name;
+    const c = await makeChallenge({ g: 'videopoker', s: L.seed, v: L.coins, l: label.slice(0, 24) });
+    const url = c?.code ? `${location.origin}/c/${c.code}` : null;
+    const eyebrow = L.kind === 'daily' ? `Sundown Daily #${L.day}` : 'Challenge hand';
+    const png = await renderShareCard({ eyebrow, title: label, sub: L.coins ? `${L.coins} coins` : 'Better luck next hand', game: 'Video Poker · Jacks or Better', accent: '#e8b860', foot: `Level ${lvl.level} · ${titleFor(lvl.level)}${p.streak?.days > 1 ? ` · ${p.streak.days}-day streak` : ''}`, grid });
+    const text = `${eyebrow} · Video Poker\n${label}${L.coins ? ` (${L.coins} coins)` : ''}\n${grid}${url ? '\nCan you beat it?' : ''}`;
+    const how = await shareResult({ title: eyebrow, text, url, png });
+    track('share_click', { kind: how });
+    if (c?.code && L.kind === 'daily') track('challenge_sent');
+    toast(how === 'copied' ? (url ? 'Link and result copied.' : 'Result copied.') : how === 'downloaded' ? 'Picture saved.' : how === 'shared' ? 'Shared.' : 'Could not share that.');
+    if (!url) toast(c?.error === 'boards off' ? 'Turn on the club boards to make a challenge link.' : 'Result copied. Challenge links are not set up yet.');
+  } finally { btn.disabled = false; }
+}
+async function startChallenge(code) {
+  if (T.on || D.on || settling || machine.phase === 'dealt' || performance.now() < animUntil) return;
+  const r = await checkChallenge(code);
+  if (!r?.ok || r.data.g !== 'videopoker') { toast('That challenge link is not valid.'); return; }
+  D.on = true; D.kind = 'challenge'; D.seed = r.data.s; D.from = { n: r.data.n || 'A friend', v: r.data.v, l: r.data.l }; D.prevCoins = coins; coins = 5;
+  $('#bShare').hidden = true; hud(); deal();
+  message = `${D.from.n} got ${r.data.l}${r.data.v ? ` (${r.data.v} coins)` : ''}. Hold with 1–5, then draw`;
+}
+function startDaily() {
+  if (T.on || D.on || settling || machine.phase === 'dealt' || performance.now() < animUntil) return;
+  const done = seedResults().videopoker;
+  if (done) { toast(`Today's hand: ${done.name}${done.coins ? ` · ${done.coins} coins` : ''}. A new hand comes at midnight UTC.`); return; }
+  D.on = true; D.kind = 'daily'; D.seed = seedFor('videopoker'); D.from = null; D.prevCoins = coins; coins = 5; $('#bShare').hidden = true; hud(); deal();
+  message = "Today's hand · hold with 1–5, then draw";
+}
+function dailyBtn() {
+  const done = seedResults().videopoker;
+  $('#bDaily').firstChild.textContent = done ? `Today's hand: ${done.name} ` : `Today's hand #${dayNumber()} `;
+}
+const RANK = { 'Jacks or better': 1, 'Two pair': 2, 'Three of a kind': 3, 'Straight': 4, 'Flush': 5, 'Full house': 6, 'Four of a kind': 7, 'Straight flush': 8, 'Royal flush': 9 };
 function toggle(i) { if (machine.phase !== 'dealt' || performance.now() < animUntil) return; if (!tutAllows(`hold${i}`)) return; machine.toggle(i); press(holdBtns[i]); hud(); if (T.on && machine.held[1] && machine.held[3]) tutEmit('held'); }
 function betOne() { if (machine.phase === 'dealt' || !tutAllows('bet')) return; coins = coins % 5 + 1; press(betBtn); sfx.chip(); hud(); message = `Bet ${coins} · Space to deal`; }
 function maxBet() { if (machine.phase === 'dealt' || !tutAllows('deal')) return; coins = 5; hud(); deal(); }
@@ -337,9 +426,13 @@ addEventListener('keydown', (e) => {
   else if (k >= '1' && k <= '5') toggle(+k - 1);
   else if (k === 'b') betOne();
   else if (k === 'm') maxBet();
-  else if (k === 't' && !T.on) startTutorial();
+  else if (k === 't' && !T.on && !D.on) startTutorial();
+  else if (k === 'd') startDaily();
+  else if (k === 's' && lastSeeded && !D.on) shareHand();
 });
-$('#bLearn').addEventListener('click', () => (T.on ? null : startTutorial()));
+$('#bLearn').addEventListener('click', () => (T.on || D.on ? null : startTutorial()));
+$('#bDaily').addEventListener('click', startDaily);
+$('#bShare').addEventListener('click', shareHand);
 $('#bDeal').addEventListener('click', () => (machine.phase === 'dealt' ? draw() : deal()));
 $('#bBet').addEventListener('click', betOne);
 $('#bMax').addEventListener('click', maxBet);
@@ -406,7 +499,8 @@ function endTutorial() {
 const playtime = trackPlaytime('videopoker');
 createLeaveGuard({ game: 'Video Poker', save: () => {
   // a hand left mid-draw is drawn for you, so the bet is never lost to leaving
-  if (T.on) { T.on = false; bank = getChips().bankroll; }
+  if (D.on && machine.phase === 'dealt') { machine.draw(); D.on = false; coins = D.prevCoins; }   // today's hand left unfinished: not counted, nothing paid
+  else if (T.on) { T.on = false; bank = getChips().bankroll; }
   else if (settling) payOut(pending);
   else if (machine.phase === 'dealt') { const { result } = machine.draw(); if (result) bank += result.coins * COIN; }
   playtime.flush(); save();
@@ -428,10 +522,14 @@ async function boot() {
   back = drawBack(); cab.userData.drawSign();
   L.resize(camera); addEventListener('resize', () => L.resize(camera));
   L.applyDay(0.755);
-  hud(); frame();
+  hud(); dailyBtn(); frame();
   $('#loading').classList.add('gone');
-  if (!stats.hands) coach.offerOnce('videopoker', { title: 'New to video poker?', body: ['A one-minute tutorial plays a practice hand with you and explains each step in plain words.'], onYes: () => startTutorial() });
-  window.__vp = { T, startTutorial, machine, deal, draw, toggle, get bank() { return bank; } };
+  const wantDaily = /[?&]daily\b/.test(location.search);   // the hub's "Play today's hand" link
+  const challenge = new URLSearchParams(location.search).get('c');   // /c/<code> sends people here with ?c=<code>
+  if (challenge) setTimeout(() => startChallenge(challenge), 600);
+  else if (wantDaily) setTimeout(startDaily, 600);
+  else if (!stats.hands) coach.offerOnce('videopoker', { title: 'New to video poker?', body: ['A one-minute tutorial plays a practice hand with you and explains each step in plain words.'], onYes: () => startTutorial() });
+  window.__vp = { T, D, startDaily, startChallenge, shareHand, startTutorial, machine, deal, draw, toggle, get bank() { return bank; } };
 }
 boot();
 </script>

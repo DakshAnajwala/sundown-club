@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 18'%3E%3Ccircle cx='14' cy='13' r='8' fill='%23d98a93'/%3E%3C/svg%3E">
 <title>Texas Hold'em: free no-limit poker online · Sundown Club</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#14121a">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <meta name="description" content="Free no-limit Texas Hold'em in your browser: a six-seat table with five regulars who each play their own way, blinds 5/10, play chips and a short tutorial.">
 <link rel="canonical" href="https://sundown-club.vercel.app/holdem/">
 <meta property="og:type" content="website">
@@ -58,6 +61,11 @@
   }
 }
 </script>
+<link rel="preload" href="/vendor/fonts/schibsted-grotesk-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/schibsted-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/schibsted-grotesk-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/ibm-plex-mono-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/vendor/fonts/young-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/vendor/fonts.css">
 <script type="importmap">{ "imports": { "three": "/vendor/three/three.module.js", "@sundown/shared/": "/shared/" } }</script>
 <style>
@@ -87,6 +95,14 @@ body { margin: 0; background: #1d2130; color: var(--ink); font-family: var(--ui)
 .tr b { color: var(--ink); font-weight: 600; }
 kbd { font-family: var(--num); font-size: 11px; font-weight: 600; min-width: 18px; text-align: center; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--line); border-bottom-width: 2px; color: var(--ink-soft); background: rgba(255,255,255,.6); }
 .bottom { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; display: grid; justify-items: center; gap: 8px; max-width: calc(100vw - 32px); }
+#mine { position: fixed; right: 14px; top: 134px; z-index: 5; padding: 8px 12px; display: grid; gap: 6px; max-width: calc(100vw - 28px); }
+#mine .mrow { display: flex; align-items: center; gap: 8px; }
+#mine .mlab { width: 54px; font: 600 10px var(--ui); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+#mine .mcards { display: flex; gap: 4px; }
+#mine .mcards img { height: 56px; width: auto; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.35); background: #f3ede2; }
+#mine .mcards .gap { height: 56px; width: 40px; border-radius: 4px; border: 1px dashed var(--line); }
+#mine .mtext { font: 600 12px var(--ui); color: var(--ink); max-width: 120px; line-height: 1.2; }
+@media (max-width: 760px) { #mine { top: auto; right: 8px; bottom: 150px; } #mine .mcards img, #mine .mcards .gap { height: 44px; } #mine .mcards .gap { width: 31px; } }
 .hint { font-size: 13px; color: #f3ede2; text-shadow: 0 1px 3px rgba(0,0,0,.5); min-height: 18px; text-align: center; }
 .hint b { font-weight: 600; }
 .bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 8px; align-items: center; }
@@ -140,6 +156,7 @@ button { font: inherit; color: inherit; }
 </aside>
 
 <div id="tags"><div id="potTag" class="pot panel"></div></div>
+<div id="mine" class="panel" aria-label="Your cards and the board" hidden><div class="mrow"><span class="mlab">Your hand</span><span id="mHole" class="mcards"></span><span id="mText" class="mtext"></span></div><div class="mrow"><span class="mlab">Board</span><span id="mBoard" class="mcards"></span></div></div>
 <div id="toast" class="panel"></div>
 
 <div class="bottom">
@@ -164,16 +181,21 @@ button { font: inherit; color: inherit; }
 <script type="module">
 import * as THREE from 'three';
 import { createLounge, createCameraRig, ROOMS, mat } from '@sundown/shared/lounge/lounge.js';
-import { createCardKit } from '@sundown/shared/lounge/cards3d.js';
+import { createCardKit, drawFace } from '@sundown/shared/lounge/cards3d.js';
 import { createChipKit, CHIP_H } from '@sundown/shared/lounge/chips3d.js';
 import { createFigure, SUITS } from '@sundown/shared/lounge/figure.js';
 import { createSfx } from '@sundown/shared/lounge/sfx.js';
 import { createTimeline, easeInOut, easeOut, fmt } from '@sundown/shared/lounge/util.js';
-import { best, describe, value, deck as freshDeck } from '@sundown/shared/cards.js';
+import { best, describe, value, categoryOf, deck as freshDeck } from '@sundown/shared/cards.js';
 import { createCoach, markTutorialSeen } from '@sundown/shared/coach.js';
 import { getChips, setBankroll, refill, START } from '@sundown/shared/chips.js';
 import { createLeaveGuard } from '@sundown/shared/leave-guard.js';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile.js';
+import { initTelemetry } from '@sundown/shared/telemetry.js';
+import { reportRound } from '@sundown/shared/retention.js';
+import { feltColor } from '@sundown/shared/cosmetics.js';
+import { showRoundPanel } from '@sundown/shared/roundpanel.js';
+initTelemetry({ game: 'holdem' });
 import { createHoldem } from './engine.js';
 import { decide, STYLES } from './bots.js';
 
@@ -187,8 +209,8 @@ const L = createLounge({ stage: $('#stage'), room: ROOMS.lounge, lampAt: new V3(
 const { scene, renderer } = L;
 const camera = new THREE.PerspectiveCamera(56, 1, 0.05, 1500);
 const rig = createCameraRig(camera, {
-  cinematic: { pos: new V3(0, 1.62, 1.86), look: new V3(0, 0.82, -0.22), fov: 58 },
-  fixed: { pos: new V3(0, 2.25, 1.55), look: new V3(0, 0.72, -0.05), fov: 56 },
+  cinematic: { pos: new V3(0, 1.38, 1.42), look: new V3(0, 0.77, 0.10), fov: 60 },
+  fixed: { pos: new V3(0, 1.95, 1.2), look: new V3(0, 0.74, 0.08), fov: 58 },
 }, { reducedMotion });
 const ellipse = (scale = 1) => { const s = new THREE.Shape(); for (let i = 0; i <= 96; i++) { const t = (i / 96) * Math.PI * 2, x = Math.cos(t) * A * scale, y = Math.sin(t) * B * scale; i ? s.lineTo(x, y) : s.moveTo(x, y); } return s; };
 const feltCanvas = document.createElement('canvas'); feltCanvas.width = 2048; feltCanvas.height = Math.round(2048 * B / A);
@@ -206,7 +228,7 @@ feltTex.repeat.set(1 / (2 * A), 1 / (2 * B)); feltTex.offset.set(0.5, 0.5);
 function drawFelt() {
   const g = feltCanvas.getContext('2d'), Wf = feltCanvas.width, Hf = feltCanvas.height, px = Wf / (2 * A);
   const X = (x) => (x + A) * px, Z = (z) => (z + B) * px;
-  g.fillStyle = '#4f7f73'; g.fillRect(0, 0, Wf, Hf);
+  g.fillStyle = feltColor('#4f7f73'); g.fillRect(0, 0, Wf, Hf);
   const vg = g.createRadialGradient(Wf / 2, Hf / 2, 80, Wf / 2, Hf / 2, Wf * 0.6); vg.addColorStop(0, 'rgba(255,255,255,.06)'); vg.addColorStop(1, 'rgba(0,0,0,.2)'); g.fillStyle = vg; g.fillRect(0, 0, Wf, Hf);
   const ink = 'rgba(233,225,207,0.78)'; g.strokeStyle = ink; g.fillStyle = ink;
   g.lineWidth = 3; g.beginPath(); g.ellipse(Wf / 2, Hf / 2, (A - 0.2) * px, (B - 0.2) * px, 0, 0, 7); g.stroke();
@@ -287,7 +309,7 @@ saveGame();   // the buy-in is written straight away, so closing the tab never l
 
 // what the table shows right now (the engine is always ahead of the animation)
 const shown = { stack: P.map((p) => p.stack), bet: P.map(() => 0), pot: 0, say: P.map(() => ''), folded: P.map(() => false), turn: -1, won: P.map(() => false) };
-let holeMeshes = P.map(() => []), boardMeshes = [], myPot = 0;
+let holeMeshes = P.map(() => []), boardMeshes = [], myPot = 0, sawShowdown = false;
 const won = { amount: P.map(() => 0), desc: P.map(() => null) };   // this hand's winnings per seat, all side pots together
 
 // ---------------------------------------------------------------- HUD
@@ -299,7 +321,22 @@ const tags = P.map((p, i) => {
   el.querySelector('.sty').textContent = STYLES[p.style].label;
   $('#tags').appendChild(el); return el;
 });
+// The big, flat "your cards and the board" panel: the 3D table is far away, so the numbers are repeated where they can be read.
+const faceUrl = {};
+const faceImg = (c) => { const k = c.rank + c.suit; if (!faceUrl[k]) faceUrl[k] = drawFace(c.rank, c.suit).toDataURL('image/png'); const i = document.createElement('img'); i.src = faceUrl[k]; i.alt = `${c.rank === 'T' ? '10' : c.rank} of ${({ S: 'spades', H: 'hearts', D: 'diamonds', C: 'clubs' })[c.suit] || c.suit}`; return i; };
+function paintMine() {
+  const hole = holeMeshes[0]?.length >= 2 && !T.on ? P[0].hole : [];
+  const board = (table.state.board || []).slice(0, boardMeshes.length);
+  const box = $('#mine'); box.hidden = !hole.length;
+  if (!hole.length) return;
+  const key = hole.map((c) => c.rank + c.suit).join() + '|' + board.map((c) => c.rank + c.suit).join();
+  if (box.dataset.k === key) return; box.dataset.k = key;
+  $('#mHole').replaceChildren(...hole.map(faceImg));
+  $('#mBoard').replaceChildren(...board.map(faceImg), ...Array.from({ length: 5 - board.length }, () => { const g = document.createElement('i'); g.className = 'gap'; return g; }));
+  $('#mText').textContent = shown.folded[0] ? 'Folded' : myHandText();
+}
 function refreshHud() {
+  paintMine();
   $('#myStack').textContent = fmt(shown.stack[0]);
   $('#club').textContent = fmt(offTable);
   P.forEach((p, i) => {
@@ -407,6 +444,7 @@ function animate(ev) {
       TL.wait(e.street === 'flop' ? 300 : 500);
     } else if (e.type === 'show') {
       TL.call(() => {
+        sawShowdown = true;
         if (i > 0) for (const m of holeMeshes[i]) { const from = m.userData.flip.rotation.z; TL.add(320, { update(k) { cards.setFlip(m, from * (1 - easeInOut(k))); } }, 0); }
         shown.say[i] = e.desc; refreshHud();
       });
@@ -440,7 +478,7 @@ function nextStep() {
 }
 function newHand(startOpts) {
   for (const m of [...holeMeshes.flat(), ...boardMeshes]) scene.remove(m);
-  holeMeshes = P.map(() => []); boardMeshes = []; myPot = 0;
+  holeMeshes = P.map(() => []); boardMeshes = []; myPot = 0; sawShowdown = false;
   won.amount = P.map(() => 0); won.desc = P.map(() => null);
   P.forEach((p, i) => { if (i > 0 && p.stack <= 0) { p.stack = 500; shown.stack[i] = 500; shown.say[i] = 'Rebuys'; } });
   if (P[0].stack <= 0) return askRebuy();
@@ -472,6 +510,11 @@ function handOver() {
   stats.biggest = Math.max(stats.biggest, myPot);
   shown.stack = P.map((p) => p.stack); refreshHud();
   saveGame();
+  {
+    let cat = 0;
+    try { if (myWin && sawShowdown) cat = categoryOf(best([...P[0].hole, ...table.state.board]).score); } catch { /* keep 0 */ }
+    showRoundPanel(reportRound('holdem', 'hand', { won: !!myWin, pot: myPot, showdown: sawShowdown, cat, folded: !!shown.folded[0] }), { corner: 'bl' });
+  }
   hint(`${handResult(myWin)} Next hand in a moment · <kbd>Space</kbd> deals now`);
   TL.wait(2200);
   TL.call(newHand);

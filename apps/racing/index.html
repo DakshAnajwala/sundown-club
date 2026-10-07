@@ -8,6 +8,9 @@
     <meta name="description" content="Night Drive, a street racing game set after dark, is in development, so expect bugs. Take its two cars out in an early test drive: a lit straight and a drift pad.">
     <!-- In development and kept out of search results until it is ready (owner, 2 Oct 2026; docs/seo.md). -->
     <meta name="robots" content="noindex">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#14121a">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="canonical" href="https://sundown-club.vercel.app/racing/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Sundown Club">
@@ -69,6 +72,10 @@
          same page the cars are tuned in. -->
     <h1 class="sr-only">Night Drive test drive</h1>
     <div id="app"></div>
+    <script type="module">
+      import { initTelemetry } from '@sundown/shared/telemetry';
+      initTelemetry({ game: 'racing' });
+    </script>
     <script type="module" src="./design/handling/handling.js"></script>
   </body>
 </html>

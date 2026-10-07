@@ -61,6 +61,8 @@ import { LEVELS } from '../world/Levels.js';
 import { createProgress } from '../ui/progress.js';
 import { leaveToHub } from '@sundown/shared/leave-guard';
 import { trackPlaytime, updateGame } from '@sundown/shared/profile';
+import { reportRound, reportSeed } from '@sundown/shared/retention';
+import { showRoundPanel } from '@sundown/shared/roundpanel';
 import { WHEEL_HUB, EYE, RIDE_HEIGHT } from '../vehicle/Dimensions.js';
 import { createSettings } from '../ui/settings.js';
 import { createTutorial, TUTORIAL_LEVEL } from '../game/Tutorial.js';
@@ -519,6 +521,11 @@ export function createGame({ container }) {
       if (record.improved) ghostBytes = ghost.saveBest(level.id);
     }
     ghost.stop();
+    // The club's daily loop (quests, XP, streak). The tutorial lot is practice and does not count.
+    if (daily) reportSeed('parking', { score: result.score, stars: result.stars });
+    if (level !== TUTORIAL_LEVEL) {
+      showRoundPanel(reportRound('parking', 'park', { stars: result.stars, score: result.score, level: level.id, timeSec: result.timeSec, underPar: result.timeSec <= (level.parTime ?? 60), clean: !result.bumps }), { corner: 'tr', style: { top: '72px' } });
+    }
 
     // Juice scaled to the real result (SPEC §9): a sound layer from three
     // stars up, and one bay pulse unless the player prefers reduced motion.
@@ -1104,6 +1111,8 @@ export function createGame({ container }) {
     },
 
     debugGhost: () => ghost.debug(),
+    /** A friend's ghost from a shared link (main.js reads ?g=<id>). */
+    rival: { set: (levelId, hz, d, name) => ghost.setRival(levelId, hz, d, name), levelName: (id) => LEVELS.find((l) => l.id === id)?.name ?? null },
 
     setMirrorMode: (m) => mirrors.setMode(m),
 

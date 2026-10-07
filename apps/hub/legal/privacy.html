@@ -16,15 +16,15 @@
 </header>
 <main>
 <h1>Privacy policy</h1>
-<p class="updated">Last updated 2 October 2026</p>
+<p class="updated">Last updated 2 October 2026 (anonymous usage counters added)</p>
 
 <div class="short">
 <h2 style="border: 0; margin-top: 18px; padding-top: 0">The short version</h2>
 <ul>
   <li><strong>No accounts.</strong> No sign-up, no password, no email address. You never type your name anywhere.</li>
   <li><strong>Your progress stays in your browser.</strong> Chips, scores, settings and play time are saved on your own device and are not sent to us.</li>
-  <li><strong>One thing is ever sent:</strong> Parking Precision’s leaderboard scores, with a made-up name. You can switch that off (section 5).</li>
-  <li><strong>No ads, no tracking, no analytics</strong> on Sundown Club.</li>
+  <li><strong>Three things are sent:</strong> Parking Precision’s own leaderboard scores, with a made-up name (section 5); anonymous usage counters, such as which game page was opened (section 6); and the club boards, which show a made-up name with minutes played, best Blackjack chips, Parking stars and longest streak (section 7). You can switch each off.</li>
+  <li><strong>No ads, no cookies, no tracking across other sites, and no third-party analytics</strong> on Sundown Club.</li>
   <li><strong>Nothing is loaded from other companies.</strong> Fonts and code are served from this site itself.</li>
   <li><strong>Play money only.</strong> The chips in Blackjack, Hold’em and Video Poker are not real money and never can be.</li>
 </ul>
@@ -39,8 +39,15 @@
   <thead><tr><th>Name in your browser</th><th>What it holds</th></tr></thead>
   <tbody>
     <tr><td><code>club.v1.chips</code></td><td>Your club chips, shared by Blackjack, Hold’em and Video Poker: how many you have, the most you have ever had, and how many times the club refilled them.</td></tr>
-    <tr><td><code>hub.v1.profile</code></td><td>What the homepage shows about you: a random identifier and a name for you, both made the first time you open the homepage (the name is picked at random until you change it under “Your evening”), when you last played each game, a one-line summary of each (for example your chip count), how long you have played each game while it was on screen, how many days in a row you have played, and your club level. The identifier and the name never leave your browser, so another browser or device gets its own. The name is not your Parking Precision leaderboard name.</td></tr>
+    <tr><td><code>hub.v2.profile</code></td><td>What the homepage shows about you: a random identifier and a name for you, both made the first time you open the homepage (the name is picked at random until you change it under “Your evening”), when you last played each game, a one-line summary of each (for example your chip count), how long you have played each game while it was on screen, how many days in a row you have played (and your best run), your club level and experience points, the cosmetic items, badges and tokens you have earned, and tonight’s three challenges with your progress, whether you have claimed today’s reward, your streak details (freezes, rest day), what you picked when asked what brings you in and how far you got through the first visit, and your result in each day’s shared challenge (for example “Two pair”), lifetime counts (such as hands played and best chip win), your mastery progress in each game, which achievements you have unlocked and when, this week’s goal progress, and your season progress. The identifier and the name never leave your browser, so another browser or device gets its own. The name is not your Parking Precision leaderboard name. (<code>hub.v1.profile</code> is the same note from before 2 October 2026; it is copied forward once and then left alone.)</td></tr>
+    <tr><td><code>hub.v1.settings</code></td><td>Your choices about the club: whether you allow the anonymous usage counters (section 6) and whether you are shown on the club boards (section 7).</td></tr>
+    <tr><td><code>hub.v1.board</code></td><td>The last Blackjack chip peak and Parking star total sent to the club boards (section 7), so the same numbers are not sent twice.</td></tr>
+    <tr><td><code>hub.v1.flags</code></td><td>A copy, fetched at most once a day from this site, of which experiments the club is running (none at the moment). Your group in each is worked out on your device from your random identifier.</td></tr>
+    <tr><td><code>hub.v1.pwa</code></td><td>How many times you have opened the club on this browser, and whether you said “Not now” to the install and reminder questions (section 8).</td></tr>
+    <tr><td><code>hub.v1.invite</code></td><td>An invite code from a link you opened, kept until you finish your first round.</td></tr>
+    <tr><td><code>hub.v1.tele</code></td><td>The day you first opened the club on this browser, so the usage counters can say “day 5”. Never sent as a date, only as a number of days.</td></tr>
     <tr><td><code>tut.v1.…</code></td><td>Whether you have already been offered each game’s tutorial, so it doesn’t ask again.</td></tr>
+    <tr><td><code>bj.v1.tour</code></td><td>Blackjack: the day number you started the daily tournament, so the same shoe cannot be replayed.</td></tr>
     <tr><td><code>bj.v1.main</code></td><td>Blackjack: your highest chip count, hands played and blackjacks.</td></tr>
     <tr><td><code>holdem.v1</code></td><td>Hold’em: hands played, hands won and the biggest pot you have won.</td></tr>
     <tr><td><code>vp.v1</code></td><td>Video Poker: hands played, your best hand and chips won.</td></tr>
@@ -49,11 +56,12 @@
   </tbody>
 </table></div>
 <p>There is no email address, no location and nothing measured about your device, browser or network. The only name you can type is the homepage name above, and it stays in your browser.</p>
-<p><strong>Deleting it:</strong> clear this site’s data in your browser’s settings and all of it is gone. Parking Precision also has <em>Settings → Reset progress</em>. Tutorials use pretend chips and save nothing while they run.</p>
+<p><strong>Taking a copy:</strong> “Save &amp; settings” on the homepage can download or copy everything in the table above as one save file or code, and load it back (on this or another browser). Nothing is uploaded: the file only goes where you put it.</p>
+<p><strong>Deleting it:</strong> “Save &amp; settings” also has an erase button, or clear this site’s data in your browser’s settings and all of it is gone. Parking Precision also has <em>Settings → Reset progress</em>. Tutorials use pretend chips and save nothing while they run.</p>
 
 <h2>3. Hosting</h2>
 <p>The site is hosted by <a href="https://vercel.com" rel="noopener">Vercel</a>. Like every web host, Vercel’s servers see standard connection details in order to send you the pages, such as your IP address, browser type and the time of each request. We don’t look at, collect or use those logs ourselves. They are covered by <a href="https://vercel.com/legal/privacy-policy" rel="noopener">Vercel’s privacy policy</a>.</p>
-<p><strong>Analytics:</strong> none. Vercel Web Analytics is not switched on for Sundown Club, and no page here loads an analytics or measurement script. If that ever changes, this page will be updated first.</p>
+<p><strong>Analytics:</strong> Vercel Web Analytics is not switched on for Sundown Club, and no page here loads a third-party analytics or measurement script. The only counting is the club’s own, described in section 6.</p>
 <p>Parking Precision used to live at its own address, <code>parking-precision.vercel.app</code>, which still works. That older site has Vercel Web Analytics switched on (counts of visits only, no cookies) and has <a href="https://parking-precision.vercel.app/privacy.html" rel="noopener">its own privacy policy</a>. Playing it here, inside Sundown Club, does not use that analytics.</p>
 
 <h2>4. Nothing from other companies</h2>
@@ -75,13 +83,57 @@
 <h3>Removing your score</h3>
 <p>Email <strong>daksh.anajwala@gmail.com</strong> with the name shown on the board and the level, and the entry will be deleted. Because there are no accounts, that name is the only way to find it.</p>
 
-<h2>6. Play money</h2>
+<h2 id="usage-counters">6. Anonymous usage counters</h2>
+<p>So the club can tell whether anyone comes back and which games get played, each page sends a few small messages to the club’s own server (<code>sundown-club.vercel.app/api/club/event</code>). It is on by default and you can turn it off at any time (see below).</p>
+<h3>What is sent</h3>
+<ul>
+  <li>The random identifier from <code>hub.v1.profile</code> (made in your browser, never tied to your name, and never your homepage name).</li>
+  <li>Short event names such as “opened Hold’em”, “unlocked an achievement” (the achievement’s id, so the club can show what share of players have each one), “finished a round”, “left the page”, and a few tags: which game, how long the page was on screen, how many days since you first came, which test group you are in when the club is running an experiment (for example “round panel: off”), and a rough source for the visit (<em>direct, from this site, search, social or other</em>; the address you came from is not sent).</li>
+  <li>Nothing you typed, no name, no email, no chip counts or scores, and no details about your device.</li>
+</ul>
+<h3>What is kept</h3>
+<p>Counters, and per-day lists of random identifiers (to count how many different browsers came on a day and came back later). No single event is stored on its own, and the lists contain no name. Everything is deleted automatically after 180 days. The server briefly notes the IP address of a request to stop floods; that count is scrambled with the date, expires within two minutes and is never stored with the counters.</p>
+<h3>Turning it off</h3>
+<p>It stays off if your browser sends “Do Not Track” or Global Privacy Control. It can also be turned off with the “Anonymous usage counters” switch at the bottom of the homepage, which saves <code>telemetry: false</code> in <code>hub.v1.settings</code>. When off, nothing is queued or sent. Clearing this site’s data gives you a new random identifier, so the old one can never be linked to you again.</p>
+<p>The usage numbers are read only by the owner, behind a password, as totals and percentages.</p>
+
+<h2 id="boards">7. The club boards</h2>
+<p>The homepage has a section called “The board”: who has played the most minutes this week, the most Blackjack chips held, the most Parking stars and the longest run of days. It is on by default and has a switch (“Show me on the boards”) right there.</p>
+<h3>What is sent</h3>
+<ul>
+  <li><strong>Play time:</strong> when a game page opens it asks the club’s server for a session; then, only while the page is on screen and you have pressed a key or moved the pointer in the last two minutes, it sends one small “still here” message a minute. It names the game (for example <em>blackjack</em>) and nothing else. Hidden or idle pages send nothing, and the server counts at most 75 seconds per message, six hours a session and sixteen hours a day.</li>
+  <li><strong>Blackjack and Parking numbers:</strong> your best chip count, your Parking star total with your best park, and your final stack in the Daily Blackjack tournament (the best of the week is shown). These come from your browser, so they can be edited by someone who tries; the board says “unverified” and the server refuses impossible values.</li>
+  <li>The random identifier from your profile goes with each message. <strong>No name you typed is ever sent.</strong> The name on the board is made up by the server from that identifier (for example “Amber Heron 42”). “New name” makes another, up to three a day.</li>
+</ul>
+<h3>What is kept and who sees it</h3>
+<p>The server keeps your made-up name, the minutes you played in each game (this week and in total), your best chips, stars and streak days, and the identifier those hang on. Anyone can read the top ten and see names with numbers and which games they play; the identifier is never shown. This week’s time board is deleted after 60 days, the others stay until you switch the boards off. The server notes your IP address for a few minutes to stop floods (scrambled with the date, never stored with your numbers).</p>
+<h3>Sharing: friends, invites, challenges, ghosts</h3>
+<p>These also use the club boards switch; with it off none of them sends anything.</p>
+<ul>
+  <li><strong>Friends:</strong> “Make a club” creates a six-character code (letters and numbers only) that stands for a private board. People who type the same code see each other’s made-up names and minutes. The code is the only thing you ever type to the club’s server, and it cannot hold anything else.</li>
+  <li><strong>Invite links:</strong> a short random code that stands for you (never your identifier). When someone opens the link and finishes a first round, the server records that this identifier arrived through that code, once, so each of you gets a token (five a month for the inviter).</li>
+  <li><strong>Challenge links:</strong> when you tap Share on a Video Poker hand, the server signs a code containing the shuffle number, your result and your made-up name, so the numbers cannot be changed. Anyone with the link can see them. Nothing is kept on the server.</li>
+  <li><strong>Parking ghosts:</strong> “Get a ghost link” uploads one run’s driving path (positions and heading, no name) with its level number and your made-up name. It is kept for 30 days under a random eight-character id and shown to anyone who opens the link. A friend’s ghost you race is saved in your browser as <code>parking-precision:rival:v1</code>.</li>
+  <li>An invite code you arrived with is kept in <code>hub.v1.invite</code> until you finish a first round.</li>
+</ul>
+<h3>Switching it off</h3>
+<p>The switch takes you off every board at once, frees your name and stops every message. Clearing this site’s data gives you a new identifier and leaves the old rows behind, so email <strong>daksh.anajwala@gmail.com</strong> with the name that was shown and it will be deleted. The identifier is stored in your browser as part of <code>hub.v2.profile</code>; the switch itself is saved as <code>board: false</code> in <code>hub.v1.settings</code>, and <code>hub.v1.board</code> remembers the last numbers sent so they are not sent twice.</p>
+
+<h2 id="offline">8. Offline play, installing and reminders</h2>
+<ul>
+  <li><strong>Offline play:</strong> the club saves copies of its own pages, code and pictures on your device (in your browser’s cache, with a small helper called a service worker) so it opens quickly and works without a connection. Nothing is sent when it does this, and clearing this site’s data removes the copies.</li>
+  <li><strong>Installing:</strong> if your browser offers to install the club like an app, we only ask politely after your second visit. “Not now” is remembered and we do not ask again. Installing is done by your browser.</li>
+  <li><strong>Reminders (off unless you turn them on, and only if the club has them switched on):</strong> after your third visit we may ask whether you want one reminder a day. If you say yes, your browser gives the club a push address (a link at the push service run by your browser’s maker, such as Google, Mozilla or Apple) together with your random identifier. Once a day, at most, the club asks that service to wake your browser, which shows a short generic message that the Daily Seed is up. The message contains nothing about you. The push service sees that a message was delivered to your browser. Turning reminders off in “Save &amp; settings” deletes the address from the club’s server.</li>
+</ul>
+<p>These are saved on your device as <code>hub.v1.pwa</code>: how many times you have opened the club, and whether you said “Not now” to the install or reminder questions.</p>
+
+<h2>9. Play money</h2>
 <p>The chips in Blackjack, Hold’em and Video Poker are play chips. They cannot be bought, sold, cashed out or swapped for anything, and nothing you win has any value outside the game. No payment details are ever asked for.</p>
 
-<h2>7. Children</h2>
+<h2>10. Children</h2>
 <p>We don’t knowingly collect personal information from anyone, including children. There is no account and no place to type a message. The homepage lets you change the name it calls you, but that name stays in your browser and is never sent or shown to anyone else. The only public thing, the Parking Precision leaderboard, uses its own made-up names. If you think something identifying has ended up on the board, email us and it will be removed.</p>
 
-<h2>8. Changes</h2>
+<h2>11. Changes</h2>
 <p>If the way Sundown Club handles data ever changes (for example analytics, ads or accounts), this page will be updated before the change goes live, and the date at the top will change. Where the law requires it, you will be asked before anything new happens.</p>
 </main>
 <footer><span>© 2026 Daksh Anajwala · Sundown Club</span><a href="/">Back to the games</a></footer>
