@@ -209,8 +209,8 @@ const L = createLounge({ stage: $('#stage'), room: ROOMS.lounge, lampAt: new V3(
 const { scene, renderer } = L;
 const camera = new THREE.PerspectiveCamera(56, 1, 0.05, 1500);
 const rig = createCameraRig(camera, {
-  cinematic: { pos: new V3(0, 1.62, 1.86), look: new V3(0, 0.82, -0.22), fov: 58 },
-  fixed: { pos: new V3(0, 2.25, 1.55), look: new V3(0, 0.72, -0.05), fov: 56 },
+  cinematic: { pos: new V3(0, 1.38, 1.42), look: new V3(0, 0.77, 0.10), fov: 60 },
+  fixed: { pos: new V3(0, 1.95, 1.2), look: new V3(0, 0.74, 0.08), fov: 58 },
 }, { reducedMotion });
 const ellipse = (scale = 1) => { const s = new THREE.Shape(); for (let i = 0; i <= 96; i++) { const t = (i / 96) * Math.PI * 2, x = Math.cos(t) * A * scale, y = Math.sin(t) * B * scale; i ? s.lineTo(x, y) : s.moveTo(x, y); } return s; };
 const feltCanvas = document.createElement('canvas'); feltCanvas.width = 2048; feltCanvas.height = Math.round(2048 * B / A);
